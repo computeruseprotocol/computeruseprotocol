@@ -1,0 +1,436 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://computer-use-protocol.org/schema/cup.schema.json",
+  "title": "Computer Use Protocol — UI Tree",
+  "description": "Universal structured representation of UI accessibility trees across platforms. Converts Windows UIA, macOS AXUIElement, Linux AT-SPI2, Web ARIA, Android AccessibilityNodeInfo, and iOS UIAccessibility into a single canonical format.",
+
+  "type": "object",
+  "required": ["version", "platform", "screen", "tree"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Schema version (semver). Breaking changes increment major."
+    },
+    "platform": {
+      "$ref": "#/$defs/platformId",
+      "description": "Source platform that produced this tree."
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "Unix epoch milliseconds when the tree was captured."
+    },
+    "screen": {
+      "$ref": "#/$defs/screen",
+      "description": "Screen dimensions for the display containing the tree. Required so consumers can compute relative coordinates."
+    },
+    "app": {
+      "$ref": "#/$defs/appInfo",
+      "description": "Application the tree was captured from. Omit when tree spans the full desktop."
+    },
+    "tree": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" },
+      "description": "Root-level nodes. Usually one per top-level window."
+    }
+  },
+
+  "$defs": {
+
+    "platformId": {
+      "type": "string",
+      "enum": ["windows", "macos", "linux", "web", "android", "ios"]
+    },
+
+    "screen": {
+      "type": "object",
+      "required": ["w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "w": { "type": "integer", "description": "Screen width in physical pixels." },
+        "h": { "type": "integer", "description": "Screen height in physical pixels." },
+        "scale": { "type": "number", "description": "Display scale factor (e.g. 1.5 for 150% DPI). Default 1.0." }
+      }
+    },
+
+    "appInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "Application name or window title." },
+        "pid": { "type": "integer", "description": "OS process ID." },
+        "bundleId": { "type": "string", "description": "macOS/iOS bundle identifier or Android package name." }
+      }
+    },
+
+    "node": {
+      "type": "object",
+      "required": ["id", "role", "name"],
+      "additionalProperties": false,
+      "properties": {
+
+        "id": {
+          "type": "string",
+          "pattern": "^e\\d+$",
+          "description": "Stable short identifier assigned during serialization. Format: 'e' + sequential integer (e.g. 'e0', 'e1', 'e14'). Used to reference elements in agent actions."
+        },
+
+        "role": {
+          "$ref": "#/$defs/role",
+          "description": "Canonical ARIA-based role, lowercased. Platform-native roles are mapped to this set via CUP mapping tables."
+        },
+
+        "name": {
+          "type": "string",
+          "description": "Computed accessible name. Follows W3C accname precedence: explicit label > content > title > placeholder. Truncated to 200 chars."
+        },
+
+        "description": {
+          "type": "string",
+          "description": "Secondary accessible description (ARIA aria-describedby, UIA HelpText, macOS AXHelp). Omit if empty."
+        },
+
+        "value": {
+          "type": "string",
+          "description": "Current value for inputs, sliders, progress bars, comboboxes, etc. String representation; numeric interpretation left to consumers. Omit if not applicable."
+        },
+
+        "bounds": {
+          "$ref": "#/$defs/rect",
+          "description": "Bounding rectangle in absolute screen coordinates (physical pixels). Omit if element is offscreen or not rendered."
+        },
+
+        "states": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/state" },
+          "uniqueItems": true,
+          "description": "Active state flags. Only present/truthy states are listed; absence means default (enabled, not focused, not selected, etc.)."
+        },
+
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/action" },
+          "uniqueItems": true,
+          "description": "Actions the element supports. Agents use this to determine what interactions are possible."
+        },
+
+        "attributes": {
+          "$ref": "#/$defs/attributes",
+          "description": "Semantic attributes that don't fit into the core fields. Typed key-value pairs for table coords, heading level, live region, etc."
+        },
+
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" },
+          "description": "Child nodes. Omit if leaf node."
+        },
+
+        "platform": {
+          "type": "object",
+          "description": "Platform-specific escape hatch. Raw properties from the source API that don't map cleanly to the canonical schema. Keyed by platform ID.",
+          "properties": {
+            "windows": { "$ref": "#/$defs/platformWindows" },
+            "macos": { "$ref": "#/$defs/platformMacOS" },
+            "linux": { "$ref": "#/$defs/platformLinux" },
+            "web": { "$ref": "#/$defs/platformWeb" },
+            "android": { "$ref": "#/$defs/platformAndroid" },
+            "ios": { "$ref": "#/$defs/platformIOS" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+
+    "rect": {
+      "type": "object",
+      "required": ["x", "y", "w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "integer", "description": "Left edge, pixels from screen left." },
+        "y": { "type": "integer", "description": "Top edge, pixels from screen top." },
+        "w": { "type": "integer", "minimum": 0, "description": "Width in pixels." },
+        "h": { "type": "integer", "minimum": 0, "description": "Height in pixels." }
+      }
+    },
+
+    "role": {
+      "type": "string",
+      "enum": [
+        "alert",
+        "alertdialog",
+        "application",
+        "banner",
+        "button",
+        "cell",
+        "checkbox",
+        "columnheader",
+        "combobox",
+        "complementary",
+        "contentinfo",
+        "dialog",
+        "document",
+        "form",
+        "generic",
+        "grid",
+        "group",
+        "heading",
+        "img",
+        "link",
+        "list",
+        "listitem",
+        "log",
+        "main",
+        "marquee",
+        "menu",
+        "menubar",
+        "menuitem",
+        "menuitemcheckbox",
+        "menuitemradio",
+        "navigation",
+        "none",
+        "option",
+        "progressbar",
+        "radio",
+        "region",
+        "row",
+        "rowheader",
+        "scrollbar",
+        "search",
+        "searchbox",
+        "separator",
+        "slider",
+        "spinbutton",
+        "status",
+        "switch",
+        "tab",
+        "table",
+        "tablist",
+        "tabpanel",
+        "text",
+        "textbox",
+        "timer",
+        "titlebar",
+        "toolbar",
+        "tooltip",
+        "tree",
+        "treeitem",
+        "window"
+      ],
+      "description": "ARIA-derived canonical role. 'text' and 'titlebar' are CUP extensions not in ARIA. 'generic' is the fallback for unmapped platform roles."
+    },
+
+    "state": {
+      "type": "string",
+      "enum": [
+        "busy",
+        "checked",
+        "collapsed",
+        "disabled",
+        "editable",
+        "expanded",
+        "focused",
+        "hidden",
+        "mixed",
+        "modal",
+        "multiselectable",
+        "offscreen",
+        "pressed",
+        "readonly",
+        "required",
+        "selected"
+      ],
+      "description": "Active state flag. Only include states that are currently true. 'mixed' applies to tri-state checkboxes. 'pressed' applies to toggle buttons."
+    },
+
+    "action": {
+      "type": "string",
+      "enum": [
+        "click",
+        "collapse",
+        "decrement",
+        "dismiss",
+        "expand",
+        "focus",
+        "increment",
+        "longpress",
+        "scroll",
+        "select",
+        "setvalue",
+        "toggle",
+        "type"
+      ],
+      "description": "Canonical action the element supports. 'type' means the element accepts text input. 'setvalue' means the value can be set programmatically."
+    },
+
+    "attributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Structured semantic attributes beyond the core fields.",
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Heading level (1-6) or tree depth."
+        },
+        "valueMin": {
+          "type": "number",
+          "description": "Minimum value for range widgets (slider, progressbar, spinbutton)."
+        },
+        "valueMax": {
+          "type": "number",
+          "description": "Maximum value for range widgets."
+        },
+        "valueNow": {
+          "type": "number",
+          "description": "Current numeric value for range widgets."
+        },
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Axis for scrollbars, sliders, separators, toolbars, tablists."
+        },
+        "rowIndex": {
+          "type": "integer",
+          "description": "Zero-based row index within a table/grid."
+        },
+        "colIndex": {
+          "type": "integer",
+          "description": "Zero-based column index within a table/grid."
+        },
+        "rowCount": {
+          "type": "integer",
+          "description": "Total rows in the containing table/grid."
+        },
+        "colCount": {
+          "type": "integer",
+          "description": "Total columns in the containing table/grid."
+        },
+        "posInSet": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based position within a set (list item 3 of 10)."
+        },
+        "setSize": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total items in the set."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text for textbox/searchbox/combobox."
+        },
+        "url": {
+          "type": "string",
+          "description": "Target URL for links and images."
+        },
+        "live": {
+          "type": "string",
+          "enum": ["polite", "assertive", "off"],
+          "description": "ARIA live region politeness for dynamic content."
+        },
+        "autocomplete": {
+          "type": "string",
+          "enum": ["inline", "list", "both", "none"],
+          "description": "Autocomplete hint for comboboxes and textboxes."
+        },
+        "keyShortcut": {
+          "type": "string",
+          "description": "Keyboard shortcut associated with this element (e.g. 'Ctrl+S')."
+        },
+        "roledescription": {
+          "type": "string",
+          "description": "Human-readable override for the role label (ARIA aria-roledescription)."
+        }
+      }
+    },
+
+    "platformWindows": {
+      "type": "object",
+      "description": "Raw Windows UIA properties.",
+      "properties": {
+        "controlType": { "type": "integer", "description": "UIA ControlType ID (e.g. 50000 = Button)." },
+        "automationId": { "type": "string", "description": "UIA AutomationId — stable developer-assigned identifier." },
+        "className": { "type": "string", "description": "Win32 window class name." },
+        "patterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Supported UIA Control Patterns (e.g. 'Invoke', 'Toggle', 'Value', 'Selection', 'Scroll')."
+        },
+        "hwnd": { "type": "integer", "description": "Window handle." }
+      },
+      "additionalProperties": true
+    },
+
+    "platformMacOS": {
+      "type": "object",
+      "description": "Raw macOS Accessibility properties.",
+      "properties": {
+        "axRole": { "type": "string", "description": "AXRole value (e.g. 'AXButton')." },
+        "axSubrole": { "type": "string", "description": "AXSubrole value (e.g. 'AXCloseButton')." },
+        "axIdentifier": { "type": "string", "description": "Developer-assigned accessibility identifier." },
+        "axActions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Supported AX actions (e.g. 'AXPress', 'AXIncrement')."
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "platformLinux": {
+      "type": "object",
+      "description": "Raw Linux AT-SPI2 properties.",
+      "properties": {
+        "atspiRole": { "type": "string", "description": "AtspiRole value (e.g. 'ROLE_PUSH_BUTTON')." },
+        "interfaces": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Supported AT-SPI2 interfaces (e.g. 'Action', 'Text', 'Value')."
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "platformWeb": {
+      "type": "object",
+      "description": "Raw Web/DOM accessibility properties.",
+      "properties": {
+        "tagName": { "type": "string", "description": "HTML element tag (e.g. 'button', 'input')." },
+        "ariaRole": { "type": "string", "description": "Explicit ARIA role if different from implicit role." },
+        "selector": { "type": "string", "description": "CSS selector for the element." },
+        "xpath": { "type": "string", "description": "XPath for the element." },
+        "inputType": { "type": "string", "description": "Input type attribute (e.g. 'text', 'email', 'password')." }
+      },
+      "additionalProperties": true
+    },
+
+    "platformAndroid": {
+      "type": "object",
+      "description": "Raw Android accessibility properties.",
+      "properties": {
+        "className": { "type": "string", "description": "Java class name (e.g. 'android.widget.Button')." },
+        "resourceId": { "type": "string", "description": "View resource ID (e.g. 'com.app:id/submit_btn')." },
+        "packageName": { "type": "string", "description": "Application package name." },
+        "isClickable": { "type": "boolean" },
+        "isScrollable": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+
+    "platformIOS": {
+      "type": "object",
+      "description": "Raw iOS UIAccessibility properties.",
+      "properties": {
+        "elementType": { "type": "string", "description": "XCUIElementType (e.g. 'button', 'staticText')." },
+        "identifier": { "type": "string", "description": "Accessibility identifier." },
+        "traits": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "UIAccessibility trait flags (e.g. 'button', 'staticText', 'image')."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

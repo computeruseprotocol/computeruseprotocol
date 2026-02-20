@@ -1,0 +1,331 @@
+{
+  "version": "0.1.0",
+  "platform": "windows",
+  "timestamp": 1740067200000,
+  "screen": { "w": 2560, "h": 1440, "scale": 1.0 },
+  "app": null,
+  "tree": [
+    {
+      "id": "e0",
+      "role": "toolbar",
+      "name": "Taskbar",
+      "bounds": { "x": 0, "y": 1392, "w": 2560, "h": 48 },
+      "states": [],
+      "actions": [],
+      "platform": {
+        "windows": { "controlType": 50033, "className": "Shell_TrayWnd" }
+      },
+      "children": [
+        {
+          "id": "e1",
+          "role": "group",
+          "name": "Running applications",
+          "bounds": { "x": 1013, "y": 1392, "w": 401, "h": 48 },
+          "states": [],
+          "actions": []
+        },
+        {
+          "id": "e2",
+          "role": "group",
+          "name": "",
+          "bounds": { "x": 0, "y": 1392, "w": 2560, "h": 48 },
+          "states": [],
+          "actions": [],
+          "children": [
+            {
+              "id": "e3",
+              "role": "button",
+              "name": "Widgets -7°C Clear",
+              "bounds": { "x": 6, "y": 1392, "w": 152, "h": 48 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e4",
+              "role": "button",
+              "name": "Start",
+              "bounds": { "x": 1014, "y": 1392, "w": 45, "h": 48 },
+              "states": [],
+              "actions": ["click", "focus"],
+              "platform": {
+                "windows": { "controlType": 50000, "automationId": "StartButton" }
+              }
+            },
+            {
+              "id": "e5",
+              "role": "button",
+              "name": "Search",
+              "bounds": { "x": 1061, "y": 1400, "w": 220, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e6",
+              "role": "button",
+              "name": "Task View",
+              "bounds": { "x": 1283, "y": 1400, "w": 32, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e7",
+              "role": "button",
+              "name": "Google Chrome — pinned",
+              "bounds": { "x": 1333, "y": 1400, "w": 40, "h": 32 },
+              "states": ["pressed"],
+              "actions": ["click", "focus"],
+              "platform": {
+                "windows": { "controlType": 50000, "automationId": "Chrome" }
+              }
+            },
+            {
+              "id": "e8",
+              "role": "button",
+              "name": "File Explorer — 1 running window — pinned",
+              "bounds": { "x": 1375, "y": 1400, "w": 40, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e9",
+              "role": "button",
+              "name": "Discord — 1 running window",
+              "bounds": { "x": 1417, "y": 1400, "w": 40, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e10",
+              "role": "button",
+              "name": "Visual Studio Code — 1 running window",
+              "bounds": { "x": 1459, "y": 1400, "w": 40, "h": 32 },
+              "states": ["pressed"],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e11",
+              "role": "button",
+              "name": "Slack — 1 running window",
+              "bounds": { "x": 1501, "y": 1400, "w": 40, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            }
+          ]
+        },
+        {
+          "id": "e12",
+          "role": "group",
+          "name": "System tray",
+          "bounds": { "x": 2355, "y": 1392, "w": 205, "h": 48 },
+          "states": [],
+          "actions": [],
+          "children": [
+            {
+              "id": "e13",
+              "role": "button",
+              "name": "Show hidden icons",
+              "bounds": { "x": 2356, "y": 1400, "w": 32, "h": 32 },
+              "states": [],
+              "actions": ["click", "expand"]
+            },
+            {
+              "id": "e14",
+              "role": "button",
+              "name": "Speaker: 45%",
+              "value": "45",
+              "bounds": { "x": 2430, "y": 1400, "w": 32, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"],
+              "attributes": {
+                "valueMin": 0,
+                "valueMax": 100,
+                "valueNow": 45
+              }
+            },
+            {
+              "id": "e15",
+              "role": "button",
+              "name": "Network: Connected",
+              "bounds": { "x": 2462, "y": 1400, "w": 32, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e16",
+              "role": "button",
+              "name": "Notifications — 3 new",
+              "bounds": { "x": 2526, "y": 1400, "w": 32, "h": 32 },
+              "states": [],
+              "actions": ["click", "focus"]
+            },
+            {
+              "id": "e17",
+              "role": "text",
+              "name": "2:30 PM\n2/20/2026",
+              "bounds": { "x": 2494, "y": 1396, "w": 30, "h": 40 },
+              "states": [],
+              "actions": ["click"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e18",
+      "role": "window",
+      "name": "Visual Studio Code",
+      "bounds": { "x": 0, "y": 0, "w": 2560, "h": 1392 },
+      "states": ["focused"],
+      "actions": ["focus"],
+      "platform": {
+        "windows": { "controlType": 50032, "className": "Chrome_WidgetWin_1", "hwnd": 394782 }
+      },
+      "children": [
+        {
+          "id": "e19",
+          "role": "titlebar",
+          "name": "doc.md — computer-use-protocol",
+          "bounds": { "x": 0, "y": 0, "w": 2560, "h": 30 },
+          "states": [],
+          "actions": [],
+          "children": [
+            {
+              "id": "e20",
+              "role": "button",
+              "name": "Minimize",
+              "bounds": { "x": 2423, "y": 0, "w": 46, "h": 30 },
+              "states": [],
+              "actions": ["click"]
+            },
+            {
+              "id": "e21",
+              "role": "button",
+              "name": "Maximize",
+              "bounds": { "x": 2469, "y": 0, "w": 46, "h": 30 },
+              "states": [],
+              "actions": ["click"]
+            },
+            {
+              "id": "e22",
+              "role": "button",
+              "name": "Close",
+              "bounds": { "x": 2515, "y": 0, "w": 46, "h": 30 },
+              "states": [],
+              "actions": ["click"]
+            }
+          ]
+        },
+        {
+          "id": "e23",
+          "role": "menubar",
+          "name": "Application menu",
+          "bounds": { "x": 0, "y": 0, "w": 400, "h": 30 },
+          "states": [],
+          "actions": [],
+          "attributes": { "orientation": "horizontal" },
+          "children": [
+            {
+              "id": "e24",
+              "role": "menuitem",
+              "name": "File",
+              "bounds": { "x": 48, "y": 0, "w": 36, "h": 30 },
+              "states": [],
+              "actions": ["click", "expand"]
+            },
+            {
+              "id": "e25",
+              "role": "menuitem",
+              "name": "Edit",
+              "bounds": { "x": 84, "y": 0, "w": 36, "h": 30 },
+              "states": [],
+              "actions": ["click", "expand"]
+            },
+            {
+              "id": "e26",
+              "role": "menuitem",
+              "name": "View",
+              "bounds": { "x": 120, "y": 0, "w": 42, "h": 30 },
+              "states": [],
+              "actions": ["click", "expand"]
+            }
+          ]
+        },
+        {
+          "id": "e27",
+          "role": "tree",
+          "name": "Explorer",
+          "bounds": { "x": 0, "y": 30, "w": 260, "h": 1362 },
+          "states": ["focused"],
+          "actions": ["focus"],
+          "children": [
+            {
+              "id": "e28",
+              "role": "treeitem",
+              "name": "schema",
+              "bounds": { "x": 0, "y": 64, "w": 260, "h": 22 },
+              "states": ["expanded"],
+              "actions": ["click", "expand", "collapse"],
+              "attributes": { "level": 1 },
+              "children": [
+                {
+                  "id": "e29",
+                  "role": "treeitem",
+                  "name": "cup.schema.json",
+                  "bounds": { "x": 22, "y": 86, "w": 238, "h": 22 },
+                  "states": [],
+                  "actions": ["click"],
+                  "attributes": { "level": 2 }
+                },
+                {
+                  "id": "e30",
+                  "role": "treeitem",
+                  "name": "example.json",
+                  "bounds": { "x": 22, "y": 108, "w": 238, "h": 22 },
+                  "states": [],
+                  "actions": ["click"],
+                  "attributes": { "level": 2 }
+                }
+              ]
+            },
+            {
+              "id": "e31",
+              "role": "treeitem",
+              "name": "doc.md",
+              "bounds": { "x": 0, "y": 130, "w": 260, "h": 22 },
+              "states": ["selected"],
+              "actions": ["click"],
+              "attributes": { "level": 1 }
+            }
+          ]
+        },
+        {
+          "id": "e32",
+          "role": "document",
+          "name": "doc.md",
+          "bounds": { "x": 260, "y": 60, "w": 2300, "h": 1332 },
+          "states": ["focused", "editable"],
+          "actions": ["focus", "type", "scroll"],
+          "children": [
+            {
+              "id": "e33",
+              "role": "heading",
+              "name": "The missing infrastructure layer for cross-platform UI trees",
+              "bounds": { "x": 320, "y": 80, "w": 1800, "h": 32 },
+              "states": [],
+              "actions": [],
+              "attributes": { "level": 1 }
+            },
+            {
+              "id": "e34",
+              "role": "text",
+              "name": "No universal standard for representing UI accessibility trees...",
+              "bounds": { "x": 320, "y": 120, "w": 1800, "h": 60 },
+              "states": [],
+              "actions": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
