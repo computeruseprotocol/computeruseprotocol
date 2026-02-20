@@ -30,15 +30,16 @@ from google import genai
 from google.genai import types
 
 # Existing CUP infrastructure ------------------------------------------------
-from bench_a11y_tree_fast import (
+from cup.platforms.windows import (
     init_uia,
     make_cache_request,
     build_cup_node,
-    get_foreground_window,
+    _win32_foreground_window,
+    _win32_screen_size,
     AutomationElementMode_Full,
     TreeScope_Subtree,
 )
-from cup_format import build_envelope, serialize_compact
+from cup.format import build_envelope, serialize_compact
 
 # ---------------------------------------------------------------------------
 # UIA Pattern IDs (for action execution)
@@ -202,7 +203,7 @@ def walk_cached_tree_with_refs(
 
 def capture_foreground(uia, subtree_cr) -> tuple[str, dict, str]:
     """Capture foreground window tree. Returns (compact_text, ref_map, app_name)."""
-    hwnd, title = get_foreground_window()
+    hwnd, title = _win32_foreground_window()
     try:
         el = uia.ElementFromHandleBuildCache(hwnd, subtree_cr)
     except comtypes.COMError as e:
@@ -216,8 +217,7 @@ def capture_foreground(uia, subtree_cr) -> tuple[str, dict, str]:
     if root is None:
         return "# Empty tree", {}, title
 
-    from bench_a11y_tree_fast import get_screen_size
-    sw, sh = get_screen_size()
+    sw, sh = _win32_screen_size()
     envelope = build_envelope([root], platform="windows",
                               screen_w=sw, screen_h=sh, app_name=title)
     compact = serialize_compact(envelope)

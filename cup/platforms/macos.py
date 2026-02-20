@@ -1,32 +1,21 @@
 """
-macOS accessibility tree -> CUP format via pyobjc AXUIElement API.
+macOS AXUIElement platform adapter for CUP.
 
-Outputs trees in Computer Use Protocol (CUP) schema — canonical roles, states,
-actions, and platform metadata — ready for AI agent consumption.
+Captures the accessibility tree via pyobjc AXUIElement API and maps it to the
+canonical CUP schema — roles, states, actions, and platform metadata.
 
 Requires macOS accessibility permissions:
   System Settings > Privacy & Security > Accessibility > (add Terminal / Python)
 
 Dependencies:
   pip install pyobjc-framework-ApplicationServices pyobjc-framework-Cocoa pyobjc-framework-Quartz
-
-Usage:
-    python macos_tree.py                        # all visible app windows
-    python macos_tree.py --foreground           # focused window only
-    python macos_tree.py --depth 5              # cap depth at 5
-    python macos_tree.py --app Safari           # filter by app name
-    python macos_tree.py --json-out tree.json
-    python macos_tree.py --compact-out tree.cup
-    python macos_tree.py --foreground --json-out full.json --compact-out compact.cup
 """
 
 from __future__ import annotations
 
-import argparse
 import concurrent.futures
 import itertools
-import json
-import time
+from typing import Any
 
 from ApplicationServices import (
     AXUIElementCreateApplication,
@@ -61,7 +50,7 @@ from ApplicationServices import (
 )
 from AppKit import NSWorkspace, NSScreen, NSApplicationActivationPolicyRegular, NSArray
 
-from cup_format import build_envelope, serialize_compact, prune_tree
+from cup._base import PlatformAdapter
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +293,7 @@ def _unpack_bounds(pos_ref, size_ref) -> dict | None:
 # Screen metrics
 # ---------------------------------------------------------------------------
 
-def get_screen_info() -> tuple[int, int, float]:
+def _macos_screen_info() -> tuple[int, int, float]:
     """Return (width, height, scale) of the primary display.
 
     Width/height are in logical points (macOS coordinates).
@@ -324,7 +313,7 @@ def get_screen_info() -> tuple[int, int, float]:
 # Window enumeration
 # ---------------------------------------------------------------------------
 
-def get_foreground_app() -> tuple[int, str, str | None]:
+def _macos_foreground_app() -> tuple[int, str, str | None]:
     """Return (pid, app_name, bundle_id) of the frontmost application."""
     workspace = NSWorkspace.sharedWorkspace()
     app = workspace.frontmostApplication()
@@ -335,7 +324,7 @@ def get_foreground_app() -> tuple[int, str, str | None]:
     )
 
 
-def get_visible_apps() -> list[tuple[int, str, str | None]]:
+def _macos_visible_apps() -> list[tuple[int, str, str | None]]:
     """Return [(pid, app_name, bundle_id)] for all visible (regular) apps."""
     workspace = NSWorkspace.sharedWorkspace()
     apps = []
@@ -349,7 +338,7 @@ def get_visible_apps() -> list[tuple[int, str, str | None]]:
     return apps
 
 
-def get_windows_for_app(pid: int):
+def _macos_windows_for_app(pid: int):
     """Return list of AXWindow elements for an app, or empty list."""
     app_ref = AXUIElementCreateApplication(pid)
     windows = _get_attr(app_ref, kAXWindowsAttribute)
@@ -358,7 +347,7 @@ def get_windows_for_app(pid: int):
     return []
 
 
-def get_focused_window(pid: int):
+def _macos_focused_window(pid: int):
     """Return the focused window AXUIElement for an app, or None."""
     app_ref = AXUIElementCreateApplication(pid)
     win = _get_attr(app_ref, kAXFocusedWindowAttribute)
@@ -707,181 +696,94 @@ def walk_tree(element, depth: int, max_depth: int,
 
 
 # ---------------------------------------------------------------------------
-# Main
+# MacosAdapter — PlatformAdapter implementation
 # ---------------------------------------------------------------------------
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="macOS a11y tree -> CUP format (pyobjc AXUIElement)")
-    parser.add_argument("--depth", type=int, default=0,
-                        help="Max tree depth (0 = unlimited, default: unlimited)")
-    parser.add_argument("--app", type=str, default=None,
-                        help="Filter to apps whose name contains this string")
-    parser.add_argument("--foreground", action="store_true",
-                        help="Only walk the foreground app's focused window")
-    parser.add_argument("--json-out", type=str, default=None,
-                        help="Write pruned CUP JSON to file")
-    parser.add_argument("--full-json-out", type=str, default=None,
-                        help="Write full (unpruned) CUP JSON to file")
-    parser.add_argument("--compact-out", type=str, default=None,
-                        help="Write compact LLM-friendly text to file")
-    args = parser.parse_args()
+class MacosAdapter(PlatformAdapter):
+    """CUP adapter for macOS via pyobjc AXUIElement API."""
 
-    max_depth = args.depth if args.depth > 0 else 999
-    scope = ("foreground" if args.foreground
-             else (f"app={args.app}" if args.app else "all apps"))
+    @property
+    def platform_name(self) -> str:
+        return "macos"
 
-    print("=== macOS A11y Tree -> CUP (pyobjc AXUIElement) ===")
-    print(f"Max depth : {'unlimited' if args.depth == 0 else args.depth}")
-    print(f"Scope     : {scope}")
-    print()
+    def initialize(self) -> None:
+        pass  # pyobjc has no explicit init step
 
-    # -- Step 1: screen info -----------------------------------------------
-    t0 = time.perf_counter()
-    sw, sh, screen_scale = get_screen_info()
-    t_screen = time.perf_counter() - t0
-    scale_str = f" @{screen_scale}x" if screen_scale != 1.0 else ""
-    print(f"[1] {'Screen info':33s} : {t_screen*1000:8.1f} ms  ({sw}x{sh}{scale_str})")
+    def get_screen_info(self) -> tuple[int, int, float]:
+        return _macos_screen_info()
 
-    # -- Step 2: enumerate apps/windows ------------------------------------
-    t0 = time.perf_counter()
-    app_name = None
-    app_pid = None
-    app_bundle_id = None
+    def get_foreground_window(self) -> dict[str, Any]:
+        pid, app_name, bundle_id = _macos_foreground_app()
+        win_ref = _macos_focused_window(pid)
+        return {
+            "handle": win_ref,
+            "title": app_name,
+            "pid": pid,
+            "bundle_id": bundle_id,
+        }
 
-    if args.foreground:
-        pid, fg_name, bundle_id = get_foreground_app()
-        app_name = fg_name
-        app_pid = pid
-        app_bundle_id = bundle_id
-        win = get_focused_window(pid)
-        if win is None:
-            print(f"  Could not get focused window for '{fg_name}' (PID {pid})")
-            print("  Ensure accessibility permissions are granted.")
-            return
-        win_list = [(pid, fg_name, win)]
-        t_enum = time.perf_counter() - t0
-        print(f"[2] {'Get foreground window':33s} : {t_enum*1000:8.1f} ms  (\"{fg_name}\")")
-    else:
-        apps = get_visible_apps()
-        if args.app:
-            apps = [(p, n, b) for p, n, b in apps
-                    if args.app.lower() in n.lower()]
-            if not apps:
-                print(f"  No app found matching '{args.app}'")
-                return
-            if len(apps) == 1:
-                app_name = apps[0][1]
-                app_pid = apps[0][0]
-                app_bundle_id = apps[0][2]
+    def get_all_windows(self) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
+        apps = _macos_visible_apps()
 
-        # Parallel window enumeration across apps
-        def _enum_windows(app_info):
-            p, n, _ = app_info
-            return [(p, n, w) for w in get_windows_for_app(p)]
+        def _enum(app_info):
+            p, n, b = app_info
+            return [(p, n, b, w) for w in _macos_windows_for_app(p)]
 
-        win_list = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-            for result in pool.map(_enum_windows, apps):
-                win_list.extend(result)
+            for batch in pool.map(_enum, apps):
+                for pid, name, bid, win_ref in batch:
+                    results.append({
+                        "handle": win_ref,
+                        "title": name,
+                        "pid": pid,
+                        "bundle_id": bid,
+                    })
+        return results
 
-        t_enum = time.perf_counter() - t0
-        app_str = f"{len(apps)} apps" if not args.app else f"matched {len(apps)} app(s)"
-        print(f"[2] {'Enumerate windows':33s} : {t_enum*1000:8.1f} ms  ({app_str}, {len(win_list)} windows)")
+    def capture_tree(
+        self,
+        windows: list[dict[str, Any]],
+        *,
+        max_depth: int = 999,
+    ) -> tuple[list[dict], dict]:
+        sw, sh, _ = self.get_screen_info()
 
-    # -- Step 3: walk trees ------------------------------------------------
-    t0 = time.perf_counter()
-
-    if len(win_list) <= 1:
-        # Single window — walk sequentially (no thread overhead)
-        id_gen = itertools.count()
-        stats: dict = {"nodes": 0, "max_depth": 0, "roles": {},
-                       "screen_w": sw, "screen_h": sh}
-        tree: list[dict] = []
-        for pid, name, win_el in win_list:
-            node = walk_tree(win_el, 0, max_depth, id_gen, stats)
-            if node is not None:
-                tree.append(node)
-        total_nodes = stats["nodes"]
-    else:
-        # Multiple windows — walk in parallel threads.
-        # AX API calls release the GIL (C calls via pyobjc), so threads
-        # give real parallelism for cross-process attribute reads.
-        # itertools.count().__next__ is atomic under GIL for safe ID gen.
-        shared_id_gen = itertools.count()
-
-        def _walk_one(win_info):
-            _, _, win_el = win_info
-            local_stats = {"nodes": 0, "max_depth": 0, "roles": {},
+        if len(windows) <= 1:
+            # Single window — walk sequentially (no thread overhead)
+            id_gen = itertools.count()
+            stats: dict = {"nodes": 0, "max_depth": 0, "roles": {},
                            "screen_w": sw, "screen_h": sh}
-            node = walk_tree(win_el, 0, max_depth, shared_id_gen, local_stats)
-            return node, local_stats
-
-        tree = []
-        total_nodes = 0
-        merged_stats = {"nodes": 0, "max_depth": 0, "roles": {},
-                        "screen_w": sw, "screen_h": sh}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-            for node, local_stats in pool.map(_walk_one, win_list):
+            tree: list[dict] = []
+            for win in windows:
+                node = walk_tree(win["handle"], 0, max_depth, id_gen, stats)
                 if node is not None:
                     tree.append(node)
-                merged_stats["nodes"] += local_stats["nodes"]
-                merged_stats["max_depth"] = max(merged_stats["max_depth"],
-                                                local_stats["max_depth"])
-                for k, v in local_stats["roles"].items():
-                    merged_stats["roles"][k] = merged_stats["roles"].get(k, 0) + v
-        stats = merged_stats
-        total_nodes = stats["nodes"]
+            return tree, stats
+        else:
+            # Multiple windows — walk in parallel threads.
+            # AX API calls release the GIL (C calls via pyobjc), so threads
+            # give real parallelism for cross-process attribute reads.
+            shared_id_gen = itertools.count()
+            merged_stats: dict = {"nodes": 0, "max_depth": 0, "roles": {},
+                                  "screen_w": sw, "screen_h": sh}
+            tree = []
 
-    t_walk = time.perf_counter() - t0
-    print(f"[3] {'Walk accessibility tree':33s} : {t_walk*1000:8.1f} ms  ({total_nodes} nodes)")
+            def _walk_one(win):
+                local_stats = {"nodes": 0, "max_depth": 0, "roles": {},
+                               "screen_w": sw, "screen_h": sh}
+                node = walk_tree(win["handle"], 0, max_depth,
+                                 shared_id_gen, local_stats)
+                return node, local_stats
 
-    # -- Step 4: wrap in CUP envelope + serialise --------------------------
-    t0 = time.perf_counter()
-    envelope = build_envelope(tree, platform="macos",
-                              screen_w=sw, screen_h=sh,
-                              screen_scale=screen_scale,
-                              app_name=app_name, app_pid=app_pid,
-                              app_bundle_id=app_bundle_id)
-    json_str = json.dumps(envelope, ensure_ascii=False)
-    t_json = time.perf_counter() - t0
-    json_kb = len(json_str) / 1024
-    print(f"[4] {'CUP envelope + JSON':33s} : {t_json*1000:8.1f} ms  ({json_kb:.1f} KB)")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+                for node, local_stats in pool.map(_walk_one, windows):
+                    if node is not None:
+                        tree.append(node)
+                    merged_stats["nodes"] += local_stats["nodes"]
+                    merged_stats["max_depth"] = max(
+                        merged_stats["max_depth"], local_stats["max_depth"])
+                    for k, v in local_stats["roles"].items():
+                        merged_stats["roles"][k] = merged_stats["roles"].get(k, 0) + v
 
-    # -- Summary -----------------------------------------------------------
-    total = (t_screen + t_enum + t_walk + t_json) * 1000
-    print()
-    print(f"    TOTAL                         : {total:8.1f} ms")
-    print(f"    Nodes                         : {total_nodes}")
-    print(f"    Max depth reached             : {stats['max_depth']}")
-    print(f"    Unique roles (AX)             : {len(stats['roles'])}")
-    print()
-    print("  Role distribution (top 15):")
-    for role, count in sorted(stats["roles"].items(), key=lambda kv: -kv[1])[:15]:
-        print(f"    {role:45s} {count:6d}")
-
-    if args.json_out:
-        pruned_tree = prune_tree(envelope["tree"])
-        pruned_envelope = {**envelope, "tree": pruned_tree}
-        pruned_str = json.dumps(pruned_envelope, ensure_ascii=False)
-        with open(args.json_out, "w", encoding="utf-8") as f:
-            json.dump(pruned_envelope, f, indent=2, ensure_ascii=False)
-        pruned_kb = len(pruned_str) / 1024
-        print(f"\n  Pruned JSON written to {args.json_out} ({pruned_kb:.1f} KB)")
-
-    if args.full_json_out:
-        with open(args.full_json_out, "w", encoding="utf-8") as f:
-            json.dump(envelope, f, indent=2, ensure_ascii=False)
-        print(f"  Full JSON written to {args.full_json_out} ({json_kb:.1f} KB)")
-
-    if args.compact_out:
-        compact_str = serialize_compact(envelope)
-        with open(args.compact_out, "w", encoding="utf-8") as f:
-            f.write(compact_str)
-        compact_kb = len(compact_str) / 1024
-        ratio = (1 - compact_kb / json_kb) * 100 if json_kb > 0 else 0
-        print(f"  Compact written to {args.compact_out} ({compact_kb:.1f} KB, {ratio:.0f}% smaller)")
-
-
-if __name__ == "__main__":
-    main()
+            return tree, merged_stats

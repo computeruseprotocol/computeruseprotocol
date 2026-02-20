@@ -1,38 +1,29 @@
 """
-Optimised benchmark: Windows UIA accessibility tree -> CUP format via raw COM.
+Windows UIA platform adapter for CUP.
 
-Outputs trees in Computer Use Protocol (CUP) schema — canonical roles, states,
-actions, and platform metadata — ready for AI agent consumption.
+Captures the accessibility tree via raw UIA COM interface and maps it to the
+canonical CUP schema — roles, states, actions, and platform metadata.
 
-Key optimisations over the pywinauto version:
+Key optimisations:
   1. Direct UIA COM via comtypes — no wrapper overhead
-  2. CacheRequest batches 21 properties (core + states + patterns) in one call
+  2. CacheRequest batches 29 properties (core + states + patterns + ARIA) in one call
   3. Win32 EnumWindows for instant HWND list (skips slow UIA root enumeration)
   4. ElementFromHandleBuildCache to get UIA elements from HWNDs
   5. FindAllBuildCache collapses entire subtree into ONE cross-process call
   6. TreeWalker with BuildCache for structured tree (one call per node, all props)
-
-Usage:
-    python bench_a11y_tree_fast.py                # full tree, all windows
-    python bench_a11y_tree_fast.py --foreground    # full tree, foreground window only
-    python bench_a11y_tree_fast.py --depth 5       # cap depth at 5
-    python bench_a11y_tree_fast.py --app Notepad   # filter by window title
-    python bench_a11y_tree_fast.py --flat           # flat list (no hierarchy)
-    python bench_a11y_tree_fast.py --json-out tree.json
-    python bench_a11y_tree_fast.py --foreground --compact-out tree.cup
-    python bench_a11y_tree_fast.py --foreground --json-out full.json --compact-out compact.cup
 """
 
 from __future__ import annotations
 
-import argparse
 import ctypes
 import ctypes.wintypes
 import itertools
-import json
-import time
+from typing import Any
+
 import comtypes
 import comtypes.client
+
+from cup._base import PlatformAdapter
 
 # ---------------------------------------------------------------------------
 # UIA COM property IDs
@@ -51,6 +42,8 @@ UIA_ClassNamePropertyId = 30012
 UIA_HelpTextPropertyId = 30013
 UIA_NativeWindowHandlePropertyId = 30020
 UIA_IsOffscreenPropertyId = 30022
+UIA_OrientationPropertyId = 30023
+UIA_IsRequiredForFormPropertyId = 30025
 
 # Pattern availability
 UIA_IsInvokePatternAvailablePropertyId = 30031
@@ -64,9 +57,17 @@ UIA_IsValuePatternAvailablePropertyId = 30043
 # Pattern state values
 UIA_ValueValuePropertyId = 30045
 UIA_ValueIsReadOnlyPropertyId = 30046
+UIA_RangeValueValuePropertyId = 30047
+UIA_RangeValueMinimumPropertyId = 30049
+UIA_RangeValueMaximumPropertyId = 30050
 UIA_ExpandCollapseExpandCollapseStatePropertyId = 30070
+UIA_WindowIsModalPropertyId = 30077
 UIA_SelectionItemIsSelectedPropertyId = 30079
 UIA_ToggleToggleStatePropertyId = 30086
+
+# ARIA (web content hosted in UIA)
+UIA_AriaRolePropertyId = 30101
+UIA_AriaPropertiesPropertyId = 30102
 
 # Tree scope / element mode
 TreeScope_Element = 1
@@ -80,18 +81,23 @@ AutomationElementMode_Full = 1
 PROP_IDS = [
     # Core (3)
     UIA_NamePropertyId, UIA_ControlTypePropertyId, UIA_BoundingRectanglePropertyId,
-    # State / identification (5)
+    # State / identification (7)
     UIA_IsEnabledPropertyId, UIA_HasKeyboardFocusPropertyId, UIA_IsOffscreenPropertyId,
     UIA_AutomationIdPropertyId, UIA_ClassNamePropertyId, UIA_HelpTextPropertyId,
+    UIA_OrientationPropertyId, UIA_IsRequiredForFormPropertyId,
     # Pattern availability (7)
     UIA_IsInvokePatternAvailablePropertyId, UIA_IsTogglePatternAvailablePropertyId,
     UIA_IsExpandCollapsePatternAvailablePropertyId, UIA_IsValuePatternAvailablePropertyId,
     UIA_IsSelectionItemPatternAvailablePropertyId, UIA_IsScrollPatternAvailablePropertyId,
     UIA_IsRangeValuePatternAvailablePropertyId,
-    # Pattern state values (5)
+    # Pattern state values (8)
     UIA_ToggleToggleStatePropertyId, UIA_ExpandCollapseExpandCollapseStatePropertyId,
     UIA_SelectionItemIsSelectedPropertyId, UIA_ValueIsReadOnlyPropertyId,
-    UIA_ValueValuePropertyId,
+    UIA_ValueValuePropertyId, UIA_RangeValueValuePropertyId,
+    UIA_RangeValueMinimumPropertyId, UIA_RangeValueMaximumPropertyId,
+    UIA_WindowIsModalPropertyId,
+    # ARIA (2)
+    UIA_AriaRolePropertyId, UIA_AriaPropertiesPropertyId,
 ]
 
 
@@ -177,7 +183,7 @@ user32 = ctypes.windll.user32
 WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
 
 
-def enum_top_level_windows(*, visible_only: bool = True) -> list[tuple[int, str]]:
+def _win32_enum_windows(*, visible_only: bool = True) -> list[tuple[int, str]]:
     """Use Win32 EnumWindows to get (hwnd, title) for top-level windows. Near-instant."""
     results: list[tuple[int, str]] = []
     buf = ctypes.create_unicode_buffer(512)
@@ -195,7 +201,7 @@ def enum_top_level_windows(*, visible_only: bool = True) -> list[tuple[int, str]
     return results
 
 
-def get_foreground_window() -> tuple[int, str]:
+def _win32_foreground_window() -> tuple[int, str]:
     """Return (hwnd, title) of the current foreground window."""
     hwnd = user32.GetForegroundWindow()
     buf = ctypes.create_unicode_buffer(512)
@@ -203,13 +209,25 @@ def get_foreground_window() -> tuple[int, str]:
     return (hwnd, buf.value)
 
 
-def get_screen_size() -> tuple[int, int]:
+def _win32_screen_size() -> tuple[int, int]:
     """Return (width, height) of the primary monitor in pixels."""
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 
-# Re-export from cup_format for envelope + compact serialization
-from cup_format import build_envelope, serialize_compact, prune_tree  # noqa: E402
+def _win32_screen_scale() -> float:
+    """Return the display scale factor (e.g. 1.5 for 150% DPI)."""
+    try:
+        dpi = ctypes.windll.shcore.GetDpiForSystem()
+        return dpi / 96.0
+    except Exception:
+        return 1.0
+
+
+def get_window_pid(hwnd: int) -> int:
+    """Return the process ID for a window handle."""
+    pid = ctypes.wintypes.DWORD()
+    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    return pid.value
 
 
 # ---------------------------------------------------------------------------
@@ -263,6 +281,17 @@ def _cached_int(el, pid, default=0):
         return default
 
 
+def _cached_float(el, pid, default=None):
+    """Read a cached float UIA property."""
+    try:
+        v = el.GetCachedPropertyValue(pid)
+        if v is None:
+            return default
+        return float(v)
+    except Exception:
+        return default
+
+
 def _cached_str(el, pid, default=""):
     """Read a cached string UIA property."""
     try:
@@ -288,8 +317,8 @@ def is_valid_element(el) -> bool:
 def build_cup_node(el, id_gen, stats) -> dict:
     """Build a CUP-formatted node dict from a cached UIA element.
 
-    Reads all 21 cached properties and maps them to canonical CUP fields:
-    role, states, actions, value, description, and platform metadata.
+    Reads all 29 cached properties and maps them to canonical CUP fields:
+    role, states, actions, value, attributes, description, and platform metadata.
     """
     stats["nodes"] += 1
 
@@ -323,6 +352,8 @@ def build_cup_node(el, id_gen, stats) -> dict:
     is_enabled   = _cached_bool(el, UIA_IsEnabledPropertyId, True)
     has_focus    = _cached_bool(el, UIA_HasKeyboardFocusPropertyId, False)
     is_offscreen = _cached_bool(el, UIA_IsOffscreenPropertyId, False)
+    is_required  = _cached_bool(el, UIA_IsRequiredForFormPropertyId, False)
+    is_modal     = _cached_bool(el, UIA_WindowIsModalPropertyId, False)
 
     # ── Pattern availability ──
     has_invoke   = _cached_bool(el, UIA_IsInvokePatternAvailablePropertyId, False)
@@ -345,10 +376,56 @@ def build_cup_node(el, id_gen, stats) -> dict:
     class_name    = _cached_str(el, UIA_ClassNamePropertyId)
     help_text     = _cached_str(el, UIA_HelpTextPropertyId)
 
+    # ── ARIA properties (web content hosted in UIA) ──
+    aria_role = _cached_str(el, UIA_AriaRolePropertyId)
+    aria_props_str = _cached_str(el, UIA_AriaPropertiesPropertyId)
+    aria_props: dict[str, str] = {}
+    if aria_props_str:
+        for pair in aria_props_str.split(";"):
+            if "=" in pair:
+                k, v = pair.split("=", 1)
+                aria_props[k.strip()] = v.strip()
+
     # ── Role (ARIA-mapped) ──
     role = CUP_ROLES.get(ct, "generic")
     if ct == 50033 and name:   # Pane with name -> region
         role = "region"
+
+    # Refine role from ARIA (web content in UIA) — only override ambiguous roles
+    if aria_role and role in ("generic", "group", "text", "region"):
+        ARIA_ROLE_MAP = {
+            "heading": "heading",
+            "dialog": "dialog",
+            "alert": "alert",
+            "alertdialog": "alertdialog",
+            "searchbox": "searchbox",
+            "navigation": "navigation",
+            "main": "main",
+            "search": "search",
+            "banner": "banner",
+            "contentinfo": "contentinfo",
+            "complementary": "complementary",
+            "region": "region",
+            "form": "form",
+            "cell": "cell",
+            "gridcell": "cell",
+            "switch": "switch",
+            "tab": "tab",
+            "tabpanel": "tabpanel",
+            "log": "log",
+            "status": "status",
+            "timer": "timer",
+            "marquee": "marquee",
+        }
+        if aria_role in ARIA_ROLE_MAP:
+            role = ARIA_ROLE_MAP[aria_role]
+
+    # MenuItem subrole refinement (no ARIA needed)
+    if ct == 50011:  # MenuItem
+        if has_toggle:
+            role = "menuitemcheckbox"
+        elif has_sel_item:
+            role = "menuitemradio"
 
     # ── States ──
     states = []
@@ -360,7 +437,11 @@ def build_cup_node(el, id_gen, stats) -> dict:
         states.append("offscreen")
     if has_toggle:
         if toggle_state == 1:
-            states.append("checked")
+            # Toggle on Button = pressed (toggle button), on CheckBox = checked
+            if ct == 50000:  # Button
+                states.append("pressed")
+            else:
+                states.append("checked")
         elif toggle_state == 2:
             states.append("mixed")
     if has_expand:
@@ -370,6 +451,10 @@ def build_cup_node(el, id_gen, stats) -> dict:
             states.append("expanded")
     if is_selected:
         states.append("selected")
+    if is_required:
+        states.append("required")
+    if is_modal:
+        states.append("modal")
     if has_value and val_readonly:
         states.append("readonly")
     if has_value and not val_readonly and role in TEXT_INPUT_ROLES:
@@ -398,6 +483,43 @@ def build_cup_node(el, id_gen, stats) -> dict:
     if not actions and is_enabled:
         actions.append("focus")
 
+    # ── Attributes ──
+    attrs: dict = {}
+
+    # Heading level from ARIA properties
+    if role == "heading" and "level" in aria_props:
+        try:
+            attrs["level"] = int(aria_props["level"])
+        except ValueError:
+            pass
+
+    # Range widget min/max/now
+    if has_range:
+        range_min = _cached_float(el, UIA_RangeValueMinimumPropertyId)
+        range_max = _cached_float(el, UIA_RangeValueMaximumPropertyId)
+        range_val = _cached_float(el, UIA_RangeValueValuePropertyId)
+        if range_min is not None:
+            attrs["valueMin"] = range_min
+        if range_max is not None:
+            attrs["valueMax"] = range_max
+        if range_val is not None:
+            attrs["valueNow"] = range_val
+
+    # Orientation
+    orientation = _cached_int(el, UIA_OrientationPropertyId, -1)
+    if orientation == 1 and role in ("scrollbar", "slider", "separator", "toolbar", "tablist"):
+        attrs["orientation"] = "horizontal"
+    elif orientation == 2 and role in ("scrollbar", "slider", "separator", "toolbar", "tablist"):
+        attrs["orientation"] = "vertical"
+
+    # Placeholder from ARIA properties (web content)
+    if role in ("textbox", "searchbox", "combobox") and "placeholder" in aria_props:
+        attrs["placeholder"] = aria_props["placeholder"][:200]
+
+    # URL for links from Value pattern string
+    if role == "link" and val_str:
+        attrs["url"] = val_str[:500]
+
     # ── Assemble CUP node ──
     node = {
         "id": f"e{next(id_gen)}",
@@ -408,7 +530,8 @@ def build_cup_node(el, id_gen, stats) -> dict:
     # Optional fields — omit when empty to keep payload compact
     if help_text:
         node["description"] = help_text[:200]
-    if val_str:
+    if val_str and role in ("textbox", "searchbox", "combobox", "spinbutton",
+                            "slider", "progressbar", "document"):
         node["value"] = val_str[:200]
     if bounds:
         node["bounds"] = bounds
@@ -416,6 +539,8 @@ def build_cup_node(el, id_gen, stats) -> dict:
         node["states"] = states
     if actions:
         node["actions"] = actions
+    if attrs:
+        node["attributes"] = attrs
 
     # ── Platform extension (windows-specific raw data) ──
     patterns = []
@@ -438,10 +563,6 @@ def build_cup_node(el, id_gen, stats) -> dict:
 
     return node
 
-
-# ---------------------------------------------------------------------------
-# CUP envelope
-# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Approach A: flat snapshot via FindAllBuildCache
@@ -555,183 +676,73 @@ def walk_cached_tree(element, depth: int, max_depth: int,
 
 
 # ---------------------------------------------------------------------------
-# Main
+# WindowsAdapter — PlatformAdapter implementation
 # ---------------------------------------------------------------------------
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Fast Windows a11y tree benchmark -> CUP format (raw UIA COM)")
-    parser.add_argument("--depth", type=int, default=0,
-                        help="Max tree depth (0 = unlimited, default: unlimited)")
-    parser.add_argument("--app", type=str, default=None,
-                        help="Filter to window title containing this string")
-    parser.add_argument("--foreground", action="store_true",
-                        help="Only walk the foreground window")
-    parser.add_argument("--flat", action="store_true",
-                        help="Use flat FindAll (no hierarchy)")
-    parser.add_argument("--legacy", action="store_true",
-                        help="Use old TreeWalker (one COM call per node)")
-    parser.add_argument("--json-out", type=str, default=None,
-                        help="Write pruned CUP JSON to file")
-    parser.add_argument("--full-json-out", type=str, default=None,
-                        help="Write full (unpruned) CUP JSON to file")
-    parser.add_argument("--compact-out", type=str, default=None,
-                        help="Write compact LLM-friendly text to file")
-    args = parser.parse_args()
+class WindowsAdapter(PlatformAdapter):
+    """CUP adapter for Windows via UIA COM."""
 
-    max_depth = args.depth if args.depth > 0 else 999
-    if args.flat:
-        mode = "flat FindAll"
-    elif args.legacy:
-        mode = "TreeWalker (legacy)"
-    else:
-        mode = "CachedSubtree (one-shot)"
-    scope = "foreground" if args.foreground else (f"app={args.app}" if args.app else "all windows")
+    def __init__(self):
+        self._uia = None
+        self._subtree_cr = None
 
-    print("=== Windows A11y Tree -> CUP Benchmark (raw UIA COM) ===")
-    print(f"Max depth : {'unlimited' if args.depth == 0 else args.depth}")
-    print(f"Scope     : {scope}")
-    print(f"Mode      : {mode}")
-    print(f"CUP props : {len(PROP_IDS)} cached per element")
-    print()
+    @property
+    def platform_name(self) -> str:
+        return "windows"
 
-    # -- Step 1: init UIA COM -------------------------------------------
-    t0 = time.perf_counter()
-    uia = init_uia()
-    live_cr = make_cache_request(uia, element_mode=AutomationElementMode_Full)
-    subtree_cr = make_cache_request(uia, element_mode=AutomationElementMode_Full,
-                                    tree_scope=TreeScope_Subtree)
+    def initialize(self) -> None:
+        if self._uia is not None:
+            return  # already initialized
+        self._uia = init_uia()
+        self._subtree_cr = make_cache_request(
+            self._uia,
+            element_mode=AutomationElementMode_Full,
+            tree_scope=TreeScope_Subtree,
+        )
 
-    t_init = time.perf_counter() - t0
-    print(f"[1] {'Init UIA COM + CacheRequests':33s} : {t_init*1000:8.1f} ms")
+    def get_screen_info(self) -> tuple[int, int, float]:
+        w, h = _win32_screen_size()
+        scale = _win32_screen_scale()
+        return w, h, scale
 
-    # -- Step 2: enumerate windows via Win32 ----------------------------
-    t0 = time.perf_counter()
-    app_name = None
-    if args.foreground:
-        fg = get_foreground_window()
-        win_list = [fg]
-        app_name = fg[1]
-        t_enum = time.perf_counter() - t0
-        print(f"[2] GetForegroundWindow (Win32)    : {t_enum*1000:8.1f} ms  (\"{fg[1].encode('ascii', 'replace').decode()}\")")
-    else:
-        win_list = enum_top_level_windows(visible_only=True)
-        t_enum = time.perf_counter() - t0
-        print(f"[2] EnumWindows (Win32)           : {t_enum*1000:8.1f} ms  ({len(win_list)} visible windows)")
+    def get_foreground_window(self) -> dict[str, Any]:
+        hwnd, title = _win32_foreground_window()
+        pid = get_window_pid(hwnd)
+        return {
+            "handle": hwnd,
+            "title": title,
+            "pid": pid,
+            "bundle_id": None,
+        }
 
-        # filter by app title
-        if args.app:
-            win_list = [(h, t) for h, t in win_list if args.app.lower() in t.lower()]
-            if not win_list:
-                print(f"  No window found matching '{args.app}'")
-                return
-            print(f"  Matched {len(win_list)} window(s)")
-            app_name = win_list[0][1] if len(win_list) == 1 else None
+    def get_all_windows(self) -> list[dict[str, Any]]:
+        results = []
+        for hwnd, title in _win32_enum_windows(visible_only=True):
+            results.append({
+                "handle": hwnd,
+                "title": title,
+                "pid": get_window_pid(hwnd),
+                "bundle_id": None,
+            })
+        return results
 
-    # -- Step 3: resolve + walk -----------------------------------------
-    t0 = time.perf_counter()
-    id_gen = itertools.count()
-    total_nodes = 0
-    all_roles: dict[str, int] = {}
-    max_depth_seen = 0
-
-    # Pick cache request: subtree (one-shot) vs element-only (per-node walk)
-    use_subtree = not args.flat and not args.legacy
-    cr = subtree_cr if use_subtree else live_cr
-
-    roots = []
-    for hwnd, title in win_list:
-        try:
-            el = uia.ElementFromHandleBuildCache(hwnd, cr)
-            roots.append((hwnd, title, el))
-        except comtypes.COMError:
-            pass
-
-    if args.flat:
-        all_nodes = []
-        for _, _, el in roots:
-            stats = {"nodes": 0, "max_depth": 0, "roles": {}}
-            nodes = flat_snapshot(uia, el, live_cr, max_depth, id_gen, stats)
-            all_nodes.extend(nodes)
-            total_nodes += stats["nodes"]
-            max_depth_seen = max(max_depth_seen, stats["max_depth"])
-            for r, c in stats["roles"].items():
-                all_roles[r] = all_roles.get(r, 0) + c
-        tree_or_flat = all_nodes
-    elif args.legacy:
-        walker = uia.ControlViewWalker
-        stats = {"nodes": 0, "max_depth": 0, "roles": {}}
-        tree = []
-        for _, _, el in roots:
-            node = walk_tree(walker, el, live_cr, 0, max_depth, id_gen, stats)
-            if node:
-                tree.append(node)
-        total_nodes = stats["nodes"]
-        max_depth_seen = stats["max_depth"]
-        all_roles = stats["roles"]
-        tree_or_flat = tree
-    else:
-        # Default: walk pre-cached subtree (zero additional COM calls)
-        stats = {"nodes": 0, "max_depth": 0, "roles": {}}
-        tree = []
-        for _, _, el in roots:
+    def capture_tree(
+        self,
+        windows: list[dict[str, Any]],
+        *,
+        max_depth: int = 999,
+    ) -> tuple[list[dict], dict]:
+        self.initialize()
+        id_gen = itertools.count()
+        stats: dict = {"nodes": 0, "max_depth": 0, "roles": {}}
+        tree: list[dict] = []
+        for win in windows:
+            hwnd = win["handle"]
+            try:
+                el = self._uia.ElementFromHandleBuildCache(hwnd, self._subtree_cr)
+            except Exception:
+                continue
             node = walk_cached_tree(el, 0, max_depth, id_gen, stats)
             if node:
                 tree.append(node)
-        total_nodes = stats["nodes"]
-        max_depth_seen = stats["max_depth"]
-        all_roles = stats["roles"]
-        tree_or_flat = tree
-
-    t_walk = time.perf_counter() - t0
-
-    walk_label = "Resolve + FindAll" if args.flat else ("Resolve + TreeWalk" if args.legacy else "Resolve + CachedSubtree")
-    print(f"[3] {walk_label:33s} : {t_walk*1000:8.1f} ms  ({total_nodes} nodes)")
-
-    # -- Step 4: wrap in CUP envelope + serialise -----------------------
-    t0 = time.perf_counter()
-    sw, sh = get_screen_size()
-    envelope = build_envelope(tree_or_flat, platform="windows",
-                              screen_w=sw, screen_h=sh, app_name=app_name)
-    json_str = json.dumps(envelope, ensure_ascii=False)
-    t_json = time.perf_counter() - t0
-    json_kb = len(json_str) / 1024
-    print(f"[4] CUP envelope + JSON           : {t_json*1000:8.1f} ms  ({json_kb:.1f} KB)")
-
-    # -- Summary --------------------------------------------------------
-    total = (t_init + t_enum + t_walk + t_json) * 1000
-    print()
-    print(f"    TOTAL                         : {total:8.1f} ms")
-    print(f"    Nodes                         : {total_nodes}")
-    print(f"    Max depth reached             : {max_depth_seen}")
-    print(f"    Unique roles (UIA)            : {len(all_roles)}")
-    print()
-    print("  Role distribution (top 15):")
-    for role, count in sorted(all_roles.items(), key=lambda kv: -kv[1])[:15]:
-        print(f"    {role:30s} {count:6d}")
-
-    if args.json_out:
-        pruned_tree = prune_tree(envelope["tree"])
-        pruned_envelope = {**envelope, "tree": pruned_tree}
-        pruned_str = json.dumps(pruned_envelope, ensure_ascii=False)
-        with open(args.json_out, "w", encoding="utf-8") as f:
-            json.dump(pruned_envelope, f, indent=2, ensure_ascii=False)
-        pruned_kb = len(pruned_str) / 1024
-        print(f"\n  Pruned JSON written to {args.json_out} ({pruned_kb:.1f} KB, {total_nodes} -> {pruned_kb:.1f} KB)")
-
-    if args.full_json_out:
-        with open(args.full_json_out, "w", encoding="utf-8") as f:
-            json.dump(envelope, f, indent=2, ensure_ascii=False)
-        print(f"  Full JSON written to {args.full_json_out} ({json_kb:.1f} KB)")
-
-    if args.compact_out:
-        compact_str = serialize_compact(envelope)
-        with open(args.compact_out, "w", encoding="utf-8") as f:
-            f.write(compact_str)
-        compact_kb = len(compact_str) / 1024
-        ratio = (1 - compact_kb / json_kb) * 100 if json_kb > 0 else 0
-        print(f"  Compact written to {args.compact_out} ({compact_kb:.1f} KB, {ratio:.0f}% smaller)")
-
-
-if __name__ == "__main__":
-    main()
+        return tree, stats
