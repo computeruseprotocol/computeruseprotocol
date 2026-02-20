@@ -1,42 +1,49 @@
 """
 CUP format utilities: envelope builder and compact text serializer.
 
-Shared between bench_a11y_tree.py and bench_a11y_tree_fast.py.
+Shared across platform-specific tree capture scripts.
 """
 
 from __future__ import annotations
 
-import ctypes
 import time
-
-
-# ---------------------------------------------------------------------------
-# Screen metrics
-# ---------------------------------------------------------------------------
-
-user32 = ctypes.windll.user32
-
-
-def get_screen_size() -> tuple[int, int]:
-    """Return (width, height) of the primary monitor in pixels."""
-    return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 
 # ---------------------------------------------------------------------------
 # CUP envelope
 # ---------------------------------------------------------------------------
 
-def build_envelope(tree_data: list[dict], *, app_name: str | None = None) -> dict:
+def build_envelope(
+    tree_data: list[dict],
+    *,
+    platform: str,
+    screen_w: int,
+    screen_h: int,
+    screen_scale: float | None = None,
+    app_name: str | None = None,
+    app_pid: int | None = None,
+    app_bundle_id: str | None = None,
+) -> dict:
     """Wrap tree nodes in the CUP envelope with metadata."""
-    sw, sh = get_screen_size()
+    screen: dict = {"w": screen_w, "h": screen_h}
+    if screen_scale is not None and screen_scale != 1.0:
+        screen["scale"] = screen_scale
+
     envelope: dict = {
         "version": "0.1.0",
-        "platform": "windows",
+        "platform": platform,
         "timestamp": int(time.time() * 1000),
-        "screen": {"w": sw, "h": sh},
+        "screen": screen,
     }
-    if app_name:
-        envelope["app"] = {"name": app_name}
+    if app_name or app_pid is not None or app_bundle_id:
+        app_info: dict = {}
+        if app_name:
+            app_info["name"] = app_name
+        if app_pid is not None:
+            app_info["pid"] = app_pid
+        if app_bundle_id:
+            app_info["bundleId"] = app_bundle_id
+        envelope["app"] = app_info
     envelope["tree"] = tree_data
     return envelope
 
@@ -91,6 +98,16 @@ def _should_hoist(node: dict) -> bool:
     # Unnamed generic nodes are structural wrappers -- hoist children
     if role == "generic" and not name:
         return True
+
+    # Unnamed group nodes without meaningful actions are structural wrappers.
+    # On Windows, these map to Pane->generic and get hoisted above.
+    # On macOS, AXGroup is used for both semantic and structural containers,
+    # so we hoist only when there's no name and no actions (pure wrapper).
+    if role == "group" and not name:
+        actions = node.get("actions", [])
+        meaningful = [a for a in actions if a != "focus"]
+        if not meaningful:
+            return True
 
     return False
 
@@ -170,6 +187,25 @@ def _format_line(node: dict) -> str:
         truncated_val = value[:40] + ("..." if len(value) > 40 else "")
         truncated_val = truncated_val.replace('"', '\\"').replace("\n", " ")
         parts.append(f'val="{truncated_val}"')
+
+    # Compact attributes (only the most useful ones for LLM context)
+    attrs = node.get("attributes", {})
+    if attrs:
+        attr_parts = []
+        if "level" in attrs:
+            attr_parts.append(f"L{attrs['level']}")
+        if "placeholder" in attrs:
+            ph = attrs["placeholder"][:30]
+            ph = ph.replace('"', '\\"').replace("\n", " ")
+            attr_parts.append(f'ph="{ph}"')
+        if "orientation" in attrs:
+            attr_parts.append(attrs["orientation"][:1])  # "h" or "v"
+        if "valueMin" in attrs or "valueMax" in attrs:
+            vmin = attrs.get("valueMin", "")
+            vmax = attrs.get("valueMax", "")
+            attr_parts.append(f"range={vmin}..{vmax}")
+        if attr_parts:
+            parts.append("(" + " ".join(attr_parts) + ")")
 
     return " ".join(parts)
 

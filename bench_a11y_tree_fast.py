@@ -690,7 +690,9 @@ def main() -> None:
 
     # -- Step 4: wrap in CUP envelope + serialise -----------------------
     t0 = time.perf_counter()
-    envelope = build_envelope(tree_or_flat, app_name=app_name)
+    sw, sh = get_screen_size()
+    envelope = build_envelope(tree_or_flat, platform="windows",
+                              screen_w=sw, screen_h=sh, app_name=app_name)
     json_str = json.dumps(envelope, ensure_ascii=False)
     t_json = time.perf_counter() - t0
     json_kb = len(json_str) / 1024

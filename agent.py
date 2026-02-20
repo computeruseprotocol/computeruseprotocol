@@ -216,7 +216,10 @@ def capture_foreground(uia, subtree_cr) -> tuple[str, dict, str]:
     if root is None:
         return "# Empty tree", {}, title
 
-    envelope = build_envelope([root], app_name=title)
+    from bench_a11y_tree_fast import get_screen_size
+    sw, sh = get_screen_size()
+    envelope = build_envelope([root], platform="windows",
+                              screen_w=sw, screen_h=sh, app_name=title)
     compact = serialize_compact(envelope)
     return compact, ref_map, title
 
