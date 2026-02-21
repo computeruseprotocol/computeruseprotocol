@@ -14,6 +14,9 @@ venv/
 runs/
 benchmark/
 
+# Testing
+.pytest_cache/
+
 # IDE
 .vscode/
 .idea/

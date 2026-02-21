@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://computer-use-protocol.org/schema/cup.schema.json",
+  "$id": "https://computeruseprotocol.com/schema/cup.schema.json",
   "title": "Computer Use Protocol — UI Tree",
   "description": "Universal structured representation of UI accessibility trees across platforms. Converts Windows UIA, macOS AXUIElement, Linux AT-SPI2, Web ARIA, Android AccessibilityNodeInfo, and iOS UIAccessibility into a single canonical format.",
 

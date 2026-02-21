@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cup"
+version = "0.1.0"
+description = "Computer Use Protocol — universal cross-platform UI accessibility tree format"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+keywords = ["accessibility", "ui-automation", "ai-agents", "computer-use", "aria"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.optional-dependencies]
+windows = ["comtypes>=1.2"]
+macos = [
+    "pyobjc-framework-ApplicationServices>=10.0",
+    "pyobjc-framework-Cocoa>=10.0",
+    "pyobjc-framework-Quartz>=10.0",
+]
+web = ["websocket-client>=1.6"]
+dev = ["pytest>=8.0", "jsonschema>=4.20"]
+
+[project.scripts]
+cup = "cup.__main__:main"
+
+[project.urls]
+Homepage = "https://computeruseprotocol.com"
+Repository = "https://github.com/k4cper-g/computer-use-protocol"
+Documentation = "https://computeruseprotocol.com"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cup"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
