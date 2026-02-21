@@ -29,7 +29,7 @@ def main() -> None:
     parser.add_argument("--compact", action="store_true",
                         help="Print compact text to stdout")
     parser.add_argument("--platform", type=str, default=None,
-                        choices=["windows", "macos", "web"],
+                        choices=["windows", "macos", "linux", "web"],
                         help="Force platform (default: auto-detect)")
     parser.add_argument("--cdp-port", type=int, default=None,
                         help="CDP port for web platform (default: 9222)")

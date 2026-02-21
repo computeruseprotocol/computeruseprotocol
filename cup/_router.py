@@ -48,13 +48,16 @@ def get_adapter(platform: str | None = None) -> PlatformAdapter:
     elif platform == "macos":
         from cup.platforms.macos import MacosAdapter
         _adapter_instance = MacosAdapter()
+    elif platform == "linux":
+        from cup.platforms.linux import LinuxAdapter
+        _adapter_instance = LinuxAdapter()
     elif platform == "web":
         from cup.platforms.web import WebAdapter
         _adapter_instance = WebAdapter()
     else:
         raise RuntimeError(
             f"No adapter available for platform '{platform}'. "
-            f"Currently supported: windows, macos, web."
+            f"Currently supported: windows, macos, linux, web."
         )
 
     _adapter_instance.initialize()
