@@ -12,6 +12,7 @@ venv/
 
 # Runs / output data
 runs/
+benchmark/
 
 # IDE
 .vscode/

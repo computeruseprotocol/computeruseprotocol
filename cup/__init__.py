@@ -58,6 +58,11 @@ def _capture(foreground: bool, max_depth: int = 999) -> dict:
 
     tree, stats = adapter.capture_tree(windows, max_depth=max_depth)
 
+    # Collect WebMCP tools when the adapter supports it (web platform)
+    tools = None
+    if hasattr(adapter, "get_last_tools"):
+        tools = adapter.get_last_tools() or None
+
     envelope = build_envelope(
         tree,
         platform=adapter.platform_name,
@@ -67,6 +72,7 @@ def _capture(foreground: bool, max_depth: int = 999) -> dict:
         app_name=app_name,
         app_pid=app_pid,
         app_bundle_id=app_bundle_id,
+        tools=tools,
     )
     return envelope
 

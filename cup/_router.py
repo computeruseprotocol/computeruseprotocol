@@ -27,7 +27,7 @@ def get_adapter(platform: str | None = None) -> PlatformAdapter:
     """Return the appropriate platform adapter, creating it if needed.
 
     Args:
-        platform: Force a specific platform ('windows', 'macos').
+        platform: Force a specific platform ('windows', 'macos', 'web').
                   If None, auto-detects from sys.platform.
 
     Raises:
@@ -48,10 +48,13 @@ def get_adapter(platform: str | None = None) -> PlatformAdapter:
     elif platform == "macos":
         from cup.platforms.macos import MacosAdapter
         _adapter_instance = MacosAdapter()
+    elif platform == "web":
+        from cup.platforms.web import WebAdapter
+        _adapter_instance = WebAdapter()
     else:
         raise RuntimeError(
             f"No adapter available for platform '{platform}'. "
-            f"Currently supported: windows, macos."
+            f"Currently supported: windows, macos, web."
         )
 
     _adapter_instance.initialize()

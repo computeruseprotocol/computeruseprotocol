@@ -1,8 +1,8 @@
 """
 CUP Agent: Interactive AI UI automation powered by Gemini and the CUP format.
 
-Captures the foreground window's accessibility tree in CUP compact format,
-sends it to Gemini with tool definitions, and executes the returned actions
+Captures all visible windows' accessibility trees in CUP compact format,
+sends them to Gemini with tool definitions, and executes the returned actions
 via UIA COM patterns.
 
 Usage:
@@ -34,7 +34,7 @@ from cup.platforms.windows import (
     init_uia,
     make_cache_request,
     build_cup_node,
-    _win32_foreground_window,
+    _win32_enum_windows,
     _win32_screen_size,
     AutomationElementMode_Full,
     TreeScope_Subtree,
@@ -201,27 +201,33 @@ def walk_cached_tree_with_refs(
     return node
 
 
-def capture_foreground(uia, subtree_cr) -> tuple[str, dict, str]:
-    """Capture foreground window tree. Returns (compact_text, ref_map, app_name)."""
-    hwnd, title = _win32_foreground_window()
-    try:
-        el = uia.ElementFromHandleBuildCache(hwnd, subtree_cr)
-    except comtypes.COMError as e:
-        return f"# Failed to capture window: {e}", {}, title
+def capture_all_windows(uia, subtree_cr) -> tuple[str, dict, str]:
+    """Capture all visible windows. Returns (compact_text, ref_map, summary)."""
+    windows = _win32_enum_windows(visible_only=True)
 
     id_gen = itertools.count()
     stats = {"nodes": 0, "max_depth": 0, "roles": {}}
     ref_map: dict[str, object] = {}
+    roots: list[dict] = []
 
-    root = walk_cached_tree_with_refs(el, 0, 999, id_gen, stats, ref_map)
-    if root is None:
-        return "# Empty tree", {}, title
+    for hwnd, title in windows:
+        try:
+            el = uia.ElementFromHandleBuildCache(hwnd, subtree_cr)
+        except comtypes.COMError:
+            continue
+        root = walk_cached_tree_with_refs(el, 0, 999, id_gen, stats, ref_map)
+        if root is not None:
+            roots.append(root)
 
+    if not roots:
+        return "# Empty tree", {}, "(no windows)"
+
+    summary = f"{len(roots)} windows"
     sw, sh = _win32_screen_size()
-    envelope = build_envelope([root], platform="windows",
-                              screen_w=sw, screen_h=sh, app_name=title)
+    envelope = build_envelope(roots, platform="windows",
+                              screen_w=sw, screen_h=sh)
     compact = serialize_compact(envelope)
-    return compact, ref_map, title
+    return compact, ref_map, summary
 
 
 # ---------------------------------------------------------------------------
@@ -435,7 +441,7 @@ def handle_tool_call(name: str, inp: dict, ref_map: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """\
-You are a Windows UI automation agent. You read the accessibility tree (CUP compact format) and execute actions to accomplish the user's goal.
+You are a Windows UI automation agent. You read the accessibility tree (CUP compact format) of all visible windows and execute actions to accomplish the user's goal.
 
 ## CUP Compact Format
 
@@ -623,13 +629,13 @@ def main() -> None:
 
         # Show tree on demand
         if user_input.lower() == "tree":
-            compact, _, title = capture_foreground(uia, subtree_cr)
+            compact, _, _ = capture_all_windows(uia, subtree_cr)
             print(compact)
             continue
 
         # Capture current UI state
-        compact, ref_map, title = capture_foreground(uia, subtree_cr)
-        print(f"  Captured '{title}' — {len(ref_map)} elements")
+        compact, ref_map, summary = capture_all_windows(uia, subtree_cr)
+        print(f"  Captured {summary} — {len(ref_map)} elements")
         save_step(session_dir, step_counter, compact, "initial")
         step_counter += 1
 
@@ -691,7 +697,7 @@ def main() -> None:
                         # that open new windows/menus)
                         delay = 1.0 if fc.name == "keypress" else 0.5
                         time.sleep(delay)
-                        compact, ref_map, _ = capture_foreground(uia, subtree_cr)
+                        compact, ref_map, _ = capture_all_windows(uia, subtree_cr)
                         save_step(session_dir, step_counter, compact, fc.name)
                         step_counter += 1
 

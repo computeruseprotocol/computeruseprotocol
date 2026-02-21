@@ -23,6 +23,7 @@ def build_envelope(
     app_name: str | None = None,
     app_pid: int | None = None,
     app_bundle_id: str | None = None,
+    tools: list[dict] | None = None,
 ) -> dict:
     """Wrap tree nodes in the CUP envelope with metadata."""
     screen: dict = {"w": screen_w, "h": screen_h}
@@ -45,6 +46,8 @@ def build_envelope(
             app_info["bundleId"] = app_bundle_id
         envelope["app"] = app_info
     envelope["tree"] = tree_data
+    if tools:
+        envelope["tools"] = tools
     return envelope
 
 
@@ -244,6 +247,9 @@ def serialize_compact(envelope: dict) -> str:
     if envelope.get("app"):
         header_lines.append(f"# app: {envelope['app'].get('name', '')}")
     header_lines.append(f"# {counter[0]} nodes ({total_before} before pruning)")
+    if envelope.get("tools"):
+        n = len(envelope["tools"])
+        header_lines.append(f"# {n} WebMCP tool{'s' if n != 1 else ''} available")
     header_lines.append("")
 
     return "\n".join(header_lines + lines) + "\n"

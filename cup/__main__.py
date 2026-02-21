@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 
 from cup._router import get_adapter, detect_platform
@@ -28,12 +29,23 @@ def main() -> None:
     parser.add_argument("--compact", action="store_true",
                         help="Print compact text to stdout")
     parser.add_argument("--platform", type=str, default=None,
-                        choices=["windows", "macos"],
+                        choices=["windows", "macos", "web"],
                         help="Force platform (default: auto-detect)")
+    parser.add_argument("--cdp-port", type=int, default=None,
+                        help="CDP port for web platform (default: 9222)")
+    parser.add_argument("--cdp-host", type=str, default=None,
+                        help="CDP host for web platform (default: localhost)")
     args = parser.parse_args()
 
     max_depth = args.depth if args.depth > 0 else 999
     platform = args.platform or detect_platform()
+
+    # Pass CDP connection args via env vars for the web adapter
+    if platform == "web":
+        if args.cdp_port:
+            os.environ["CUP_CDP_PORT"] = str(args.cdp_port)
+        if args.cdp_host:
+            os.environ["CUP_CDP_HOST"] = args.cdp_host
 
     print(f"=== CUP Tree Capture ({platform}) ===")
 
@@ -71,10 +83,16 @@ def main() -> None:
     app_pid = windows[0]["pid"] if len(windows) == 1 else None
     app_bundle_id = windows[0].get("bundle_id") if len(windows) == 1 else None
 
+    # Collect WebMCP tools when available (web platform)
+    tools = None
+    if hasattr(adapter, "get_last_tools"):
+        tools = adapter.get_last_tools() or None
+
     envelope = build_envelope(
         tree, platform=platform,
         screen_w=sw, screen_h=sh, screen_scale=scale,
         app_name=app_name, app_pid=app_pid, app_bundle_id=app_bundle_id,
+        tools=tools,
     )
 
     json_str = json.dumps(envelope, ensure_ascii=False)
@@ -85,6 +103,14 @@ def main() -> None:
     print(f"\nRole distribution (top 15):")
     for role, count in sorted(stats["roles"].items(), key=lambda kv: -kv[1])[:15]:
         print(f"  {role:45s} {count:6d}")
+
+    # -- WebMCP tools --
+    if tools:
+        print(f"\nWebMCP tools ({len(tools)}):")
+        for tool in tools:
+            desc = tool.get("description", "")
+            desc_str = f" - {desc}" if desc else ""
+            print(f"  {tool['name']}{desc_str}")
 
     # -- Output options --
     if args.json_out:
