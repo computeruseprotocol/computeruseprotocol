@@ -1,8 +1,8 @@
-"""Tests for CUP format utilities: envelope builder, compact serializer, and tree pruning."""
+"""Tests for CUP format utilities: envelope builder, compact serializer, overview, and tree pruning."""
 
 from __future__ import annotations
 
-from cup.format import build_envelope, serialize_compact, prune_tree
+from cup.format import build_envelope, serialize_compact, serialize_overview, prune_tree
 
 
 # ---------------------------------------------------------------------------
@@ -71,6 +71,14 @@ class TestBuildEnvelope:
     def test_tools_omitted_when_none(self):
         env = _make_envelope([], tools=None)
         assert "tools" not in env
+
+    def test_scope_included(self):
+        env = _make_envelope([], scope="foreground")
+        assert env["scope"] == "foreground"
+
+    def test_scope_omitted_when_none(self):
+        env = _make_envelope([])
+        assert "scope" not in env
 
 
 # ---------------------------------------------------------------------------
@@ -241,8 +249,201 @@ class TestSerializeCompact:
         text = serialize_compact(env)
         assert "A" * 80 + "..." in text
 
+    def test_value_truncation_at_120(self):
+        long_value = "x" * 150
+        env = _make_envelope([_make_node(
+            "e0", "textbox", "Input", value=long_value,
+        )])
+        text = serialize_compact(env)
+        assert 'val="' + "x" * 120 + '..."' in text
+        assert "x" * 150 not in text
+
+    def test_value_not_truncated_under_120(self):
+        short_value = "y" * 100
+        env = _make_envelope([_make_node(
+            "e0", "textbox", "Input", value=short_value,
+        )])
+        text = serialize_compact(env)
+        assert 'val="' + "y" * 100 + '"' in text
+
     def test_webmcp_tools_header(self):
         tools = [{"name": "search"}, {"name": "navigate"}]
         env = _make_envelope([_make_node("e0", "button", "OK")], tools=tools)
         text = serialize_compact(env)
         assert "2 WebMCP tools available" in text
+
+    def test_window_list_in_header(self):
+        """When window_list is provided, compact output includes window names."""
+        env = _make_envelope([_make_node("e0", "button", "OK")], app_name="VS Code")
+        window_list = [
+            {"title": "VS Code", "pid": 1234, "foreground": True, "bounds": None},
+            {"title": "Firefox", "pid": 5678, "foreground": False, "bounds": None},
+        ]
+        text = serialize_compact(env, window_list=window_list)
+        assert "# --- 2 open windows ---" in text
+        assert "#   VS Code [fg]" in text
+        assert "#   Firefox" in text
+        # Foreground marker should NOT appear on non-fg windows
+        lines = text.split("\n")
+        firefox_line = [l for l in lines if "Firefox" in l and l.startswith("#")]
+        assert len(firefox_line) == 1
+        assert "[fg]" not in firefox_line[0]
+
+    def test_no_window_list_when_none(self):
+        """When window_list is None, no window section in header."""
+        env = _make_envelope([_make_node("e0", "button", "OK")])
+        text = serialize_compact(env)
+        assert "open windows" not in text
+
+
+# ---------------------------------------------------------------------------
+# serialize_overview
+# ---------------------------------------------------------------------------
+
+class TestSerializeOverview:
+    def test_header_format(self):
+        windows = [
+            {"title": "VS Code", "pid": 1234, "foreground": True, "bounds": None},
+        ]
+        text = serialize_overview(
+            windows, platform="windows", screen_w=1920, screen_h=1080,
+        )
+        assert "# CUP 0.1.0 | windows | 1920x1080" in text
+        assert "# overview | 1 windows" in text
+
+    def test_foreground_marker(self):
+        windows = [
+            {"title": "VS Code", "pid": 1234, "foreground": True, "bounds": None},
+            {"title": "Firefox", "pid": 5678, "foreground": False, "bounds": None},
+        ]
+        text = serialize_overview(
+            windows, platform="windows", screen_w=1920, screen_h=1080,
+        )
+        assert "* [fg] VS Code" in text
+        assert "  Firefox" in text
+
+    def test_pid_included(self):
+        windows = [
+            {"title": "App", "pid": 42, "foreground": False, "bounds": None},
+        ]
+        text = serialize_overview(
+            windows, platform="linux", screen_w=2560, screen_h=1440,
+        )
+        assert "(pid:42)" in text
+
+    def test_bounds_included(self):
+        windows = [
+            {
+                "title": "App",
+                "pid": 1,
+                "foreground": False,
+                "bounds": {"x": 100, "y": 50, "w": 800, "h": 600},
+            },
+        ]
+        text = serialize_overview(
+            windows, platform="windows", screen_w=1920, screen_h=1080,
+        )
+        assert "@100,50 800x600" in text
+
+    def test_url_included_for_web(self):
+        windows = [
+            {
+                "title": "GitHub",
+                "pid": None,
+                "foreground": True,
+                "bounds": None,
+                "url": "https://github.com",
+            },
+        ]
+        text = serialize_overview(
+            windows, platform="web", screen_w=1280, screen_h=720,
+        )
+        assert "url:https://github.com" in text
+
+    def test_empty_window_list(self):
+        text = serialize_overview(
+            [], platform="windows", screen_w=1920, screen_h=1080,
+        )
+        assert "# overview | 0 windows" in text
+
+    def test_no_element_ids(self):
+        """Overview should NOT contain element IDs (no tree walking)."""
+        windows = [
+            {"title": "App", "pid": 1, "foreground": True, "bounds": None},
+        ]
+        text = serialize_overview(
+            windows, platform="windows", screen_w=1920, screen_h=1080,
+        )
+        assert "[e" not in text
+
+
+# ---------------------------------------------------------------------------
+# Detail pruning levels
+# ---------------------------------------------------------------------------
+
+class TestDetailPruning:
+    def test_detail_full_no_pruning(self):
+        """detail='full' should preserve all nodes including unnamed generics."""
+        tree = [_make_node("e0", "generic", "", children=[
+            _make_node("e1", "button", "OK"),
+        ])]
+        pruned = prune_tree(tree, detail="full")
+        assert len(pruned) == 1
+        assert pruned[0]["role"] == "generic"
+        assert len(pruned[0]["children"]) == 1
+
+    def test_detail_standard_prunes_generics(self):
+        """detail='standard' (default) should hoist unnamed generics."""
+        tree = [_make_node("e0", "generic", "", children=[
+            _make_node("e1", "button", "OK"),
+        ])]
+        pruned = prune_tree(tree, detail="standard")
+        assert len(pruned) == 1
+        assert pruned[0]["role"] == "button"
+
+    def test_detail_minimal_keeps_only_interactive(self):
+        """detail='minimal' should keep only nodes with meaningful actions."""
+        tree = [_make_node("e0", "window", "App", children=[
+            _make_node("e1", "heading", "Title"),
+            _make_node("e2", "text", "Some description"),
+            _make_node("e3", "button", "Submit", actions=["click"]),
+            _make_node("e4", "textbox", "Email", actions=["type", "setvalue"]),
+            _make_node("e5", "group", "Footer", actions=["focus"]),
+        ])]
+        pruned = prune_tree(tree, detail="minimal")
+        assert len(pruned) == 1  # window kept as ancestor
+        window = pruned[0]
+        children = window.get("children", [])
+        child_roles = [c["role"] for c in children]
+        assert "button" in child_roles
+        assert "textbox" in child_roles
+        # heading, text, and focus-only group should be dropped
+        assert "heading" not in child_roles
+        assert "text" not in child_roles
+        assert "group" not in child_roles
+
+    def test_detail_minimal_preserves_ancestors(self):
+        """detail='minimal' should keep ancestors of interactive nodes."""
+        tree = [_make_node("e0", "window", "App", children=[
+            _make_node("e1", "toolbar", "Main", children=[
+                _make_node("e2", "button", "Save", actions=["click"]),
+            ]),
+            _make_node("e3", "heading", "Title"),
+        ])]
+        pruned = prune_tree(tree, detail="minimal")
+        assert len(pruned) == 1
+        window = pruned[0]
+        assert window["role"] == "window"
+        children = window.get("children", [])
+        assert len(children) == 1  # only toolbar kept (has interactive descendant)
+        toolbar = children[0]
+        assert toolbar["role"] == "toolbar"
+        assert len(toolbar["children"]) == 1
+        assert toolbar["children"][0]["role"] == "button"
+
+    def test_detail_full_returns_deep_copy(self):
+        """detail='full' should return a deep copy, not modify original."""
+        tree = [_make_node("e0", "button", "OK")]
+        pruned = prune_tree(tree, detail="full")
+        pruned[0]["name"] = "Changed"
+        assert tree[0]["name"] == "OK"

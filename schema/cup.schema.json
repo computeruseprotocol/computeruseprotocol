@@ -250,17 +250,19 @@
         "collapse",
         "decrement",
         "dismiss",
+        "doubleclick",
         "expand",
         "focus",
         "increment",
         "longpress",
+        "rightclick",
         "scroll",
         "select",
         "setvalue",
         "toggle",
         "type"
       ],
-      "description": "Canonical action the element supports. 'type' means the element accepts text input. 'setvalue' means the value can be set programmatically."
+      "description": "Canonical action the element supports. 'type' means the element accepts text input. 'setvalue' means the value can be set programmatically. 'rightclick' opens context menus. 'doubleclick' triggers double-click interactions."
     },
 
     "attributes": {

@@ -351,6 +351,8 @@ def _derive_actions(
 
     if role in _CLICKABLE_ROLES:
         actions.append("click")
+        actions.append("rightclick")
+        actions.append("doubleclick")
 
     if role in _TOGGLE_ROLES:
         actions.append("toggle")
@@ -543,6 +545,8 @@ def _build_tree_from_flat(
     max_depth: int,
     viewport_w: int,
     viewport_h: int,
+    refs: dict,
+    ws_url: str | None = None,
 ) -> list[dict]:
     """Convert the flat CDP AX node list into a nested CUP tree.
 
@@ -598,6 +602,11 @@ def _build_tree_from_flat(
         if cup_node is None:
             cup_cache[node_id] = None
             return None
+
+        if ws_url is not None:
+            backend_id = ax_node.get("backendDOMNodeId")
+            if backend_id is not None:
+                refs[cup_node["id"]] = (ws_url, backend_id)
 
         stats["max_depth"] = max(stats["max_depth"], depth)
 
@@ -812,6 +821,25 @@ class WebAdapter(PlatformAdapter):
             for t in self._page_targets()
         ]
 
+    # -- window overview ---------------------------------------------------
+
+    def get_window_list(self) -> list[dict[str, Any]]:
+        targets = self._page_targets()
+        results = []
+        for i, t in enumerate(targets):
+            results.append({
+                "title": t.get("title", ""),
+                "pid": None,
+                "bundle_id": None,
+                "foreground": i == 0,
+                "bounds": None,
+                "url": t.get("url", ""),
+            })
+        return results
+
+    def get_desktop_window(self) -> dict[str, Any] | None:
+        return None  # web platform has no desktop concept
+
     # -- tree capture ------------------------------------------------------
 
     def capture_tree(
@@ -819,10 +847,11 @@ class WebAdapter(PlatformAdapter):
         windows: list[dict[str, Any]],
         *,
         max_depth: int = 999,
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
         self.initialize()
         id_gen = itertools.count()
         stats: dict[str, Any] = {"nodes": 0, "max_depth": 0, "roles": {}}
+        refs: dict[str, Any] = {}
         tree: list[dict] = []
         all_tools: list[dict] = []
 
@@ -842,7 +871,8 @@ class WebAdapter(PlatformAdapter):
                 ax_nodes = result.get("result", {}).get("nodes", [])
 
                 roots = _build_tree_from_flat(
-                    ax_nodes, id_gen, stats, max_depth, vw, vh
+                    ax_nodes, id_gen, stats, max_depth, vw, vh,
+                    refs, ws_url,
                 )
                 tree.extend(roots)
 
@@ -855,7 +885,7 @@ class WebAdapter(PlatformAdapter):
                 _cdp_close(ws)
 
         self._last_tools = all_tools
-        return tree, stats
+        return tree, stats, refs
 
     # -- WebMCP tools ------------------------------------------------------
 

@@ -230,6 +230,43 @@ def get_window_pid(hwnd: int) -> int:
     return pid.value
 
 
+def _win32_get_window_rect(hwnd: int) -> dict[str, int] | None:
+    """Return {x, y, w, h} for a window via Win32 GetWindowRect."""
+    rect = ctypes.wintypes.RECT()
+    if user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        return {
+            "x": rect.left,
+            "y": rect.top,
+            "w": rect.right - rect.left,
+            "h": rect.bottom - rect.top,
+        }
+    return None
+
+
+def _win32_find_desktop_hwnd() -> int | None:
+    """Find the desktop window (Progman or WorkerW with SHELLDLL_DefView child)."""
+    # Try Progman first (classic desktop host)
+    progman = user32.FindWindowW("Progman", None)
+    if progman:
+        shell_view = user32.FindWindowExW(progman, 0, "SHELLDLL_DefView", None)
+        if shell_view:
+            return progman
+
+    # Fallback: enumerate WorkerW windows (Windows 10/11 wallpaper engine)
+    result: list[int | None] = [None]
+
+    @WNDENUMPROC
+    def _find_worker(hwnd, _lparam):
+        shell_view = user32.FindWindowExW(hwnd, 0, "SHELLDLL_DefView", None)
+        if shell_view:
+            result[0] = hwnd
+            return False  # stop
+        return True
+
+    user32.EnumWindows(_find_worker, 0)
+    return result[0]
+
+
 # ---------------------------------------------------------------------------
 # UIA COM bootstrap
 # ---------------------------------------------------------------------------
@@ -643,7 +680,7 @@ def walk_tree(walker, element, cache_req, depth: int, max_depth: int,
 # ---------------------------------------------------------------------------
 
 def walk_cached_tree(element, depth: int, max_depth: int,
-                     id_gen, stats) -> dict | None:
+                     id_gen, stats, refs) -> dict | None:
     """Walk a subtree that was fully pre-cached in a single COM call.
 
     Uses CachedChildren (in-process memory reads) instead of
@@ -655,6 +692,8 @@ def walk_cached_tree(element, depth: int, max_depth: int,
     node = build_cup_node(element, id_gen, stats)
     stats["max_depth"] = max(stats["max_depth"], depth)
 
+    refs[node["id"]] = element
+
     if depth < max_depth:
         children = []
         try:
@@ -663,7 +702,7 @@ def walk_cached_tree(element, depth: int, max_depth: int,
                 for i in range(cached_children.Length):
                     child = cached_children.GetElement(i)
                     child_node = walk_cached_tree(child, depth + 1, max_depth,
-                                                  id_gen, stats)
+                                                  id_gen, stats, refs)
                     if child_node is not None:
                         children.append(child_node)
         except (comtypes.COMError, Exception):
@@ -726,15 +765,42 @@ class WindowsAdapter(PlatformAdapter):
             })
         return results
 
+    def get_window_list(self) -> list[dict[str, Any]]:
+        fg_hwnd = user32.GetForegroundWindow()
+        results = []
+        for hwnd, title in _win32_enum_windows(visible_only=True):
+            if not title:
+                continue
+            results.append({
+                "title": title,
+                "pid": get_window_pid(hwnd),
+                "bundle_id": None,
+                "foreground": hwnd == fg_hwnd,
+                "bounds": _win32_get_window_rect(hwnd),
+            })
+        return results
+
+    def get_desktop_window(self) -> dict[str, Any] | None:
+        hwnd = _win32_find_desktop_hwnd()
+        if hwnd is None:
+            return None
+        return {
+            "handle": hwnd,
+            "title": "Desktop",
+            "pid": get_window_pid(hwnd),
+            "bundle_id": None,
+        }
+
     def capture_tree(
         self,
         windows: list[dict[str, Any]],
         *,
         max_depth: int = 999,
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
         self.initialize()
         id_gen = itertools.count()
         stats: dict = {"nodes": 0, "max_depth": 0, "roles": {}}
+        refs: dict[str, Any] = {}
         tree: list[dict] = []
         for win in windows:
             hwnd = win["handle"]
@@ -742,7 +808,7 @@ class WindowsAdapter(PlatformAdapter):
                 el = self._uia.ElementFromHandleBuildCache(hwnd, self._subtree_cr)
             except Exception:
                 continue
-            node = walk_cached_tree(el, 0, max_depth, id_gen, stats)
+            node = walk_cached_tree(el, 0, max_depth, id_gen, stats, refs)
             if node:
                 tree.append(node)
-        return tree, stats
+        return tree, stats, refs

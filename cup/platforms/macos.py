@@ -670,7 +670,7 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
 # ---------------------------------------------------------------------------
 
 def walk_tree(element, depth: int, max_depth: int,
-              id_gen, stats: dict) -> dict | None:
+              id_gen, stats: dict, refs: dict) -> dict | None:
     """Recursively walk an AXUIElement tree and build CUP nodes."""
     if depth > max_depth:
         return None
@@ -680,13 +680,15 @@ def walk_tree(element, depth: int, max_depth: int,
         return None
     node, children_refs = result
 
+    refs[node["id"]] = element
+
     stats["max_depth"] = max(stats["max_depth"], depth)
 
     if depth < max_depth and children_refs:
         children: list[dict] = []
         for child_ref in children_refs:
             child_node = walk_tree(child_ref, depth + 1, max_depth,
-                                   id_gen, stats)
+                                   id_gen, stats, refs)
             if child_node is not None:
                 children.append(child_node)
         if children:
@@ -741,13 +743,54 @@ class MacosAdapter(PlatformAdapter):
                     })
         return results
 
+    def get_window_list(self) -> list[dict[str, Any]]:
+        fg_pid, _, _ = _macos_foreground_app()
+        results: list[dict[str, Any]] = []
+        seen_pids: set[int] = set()
+        for pid, name, bundle_id in _macos_visible_apps():
+            if pid in seen_pids:
+                continue
+            seen_pids.add(pid)
+            results.append({
+                "title": name,
+                "pid": pid,
+                "bundle_id": bundle_id,
+                "foreground": pid == fg_pid,
+                "bounds": None,  # skip AX calls for speed
+            })
+        return results
+
+    def get_desktop_window(self) -> dict[str, Any] | None:
+        for pid, name, bundle_id in _macos_visible_apps():
+            if bundle_id == "com.apple.finder":
+                windows = _macos_windows_for_app(pid)
+                for win in windows:
+                    subrole = _get_attr(win, kAXSubroleAttribute)
+                    if subrole == "AXDesktop":
+                        return {
+                            "handle": win,
+                            "title": "Desktop",
+                            "pid": pid,
+                            "bundle_id": bundle_id,
+                        }
+                # Fallback: first Finder window
+                if windows:
+                    return {
+                        "handle": windows[0],
+                        "title": "Desktop",
+                        "pid": pid,
+                        "bundle_id": bundle_id,
+                    }
+        return None
+
     def capture_tree(
         self,
         windows: list[dict[str, Any]],
         *,
         max_depth: int = 999,
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
         sw, sh, _ = self.get_screen_info()
+        refs: dict[str, Any] = {}
 
         if len(windows) <= 1:
             # Single window — walk sequentially (no thread overhead)
@@ -756,10 +799,11 @@ class MacosAdapter(PlatformAdapter):
                            "screen_w": sw, "screen_h": sh}
             tree: list[dict] = []
             for win in windows:
-                node = walk_tree(win["handle"], 0, max_depth, id_gen, stats)
+                node = walk_tree(win["handle"], 0, max_depth, id_gen, stats,
+                                 refs)
                 if node is not None:
                     tree.append(node)
-            return tree, stats
+            return tree, stats, refs
         else:
             # Multiple windows — walk in parallel threads.
             # AX API calls release the GIL (C calls via pyobjc), so threads
@@ -773,7 +817,7 @@ class MacosAdapter(PlatformAdapter):
                 local_stats = {"nodes": 0, "max_depth": 0, "roles": {},
                                "screen_w": sw, "screen_h": sh}
                 node = walk_tree(win["handle"], 0, max_depth,
-                                 shared_id_gen, local_stats)
+                                 shared_id_gen, local_stats, refs)
                 return node, local_stats
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
@@ -786,4 +830,4 @@ class MacosAdapter(PlatformAdapter):
                     for k, v in local_stats["roles"].items():
                         merged_stats["roles"][k] = merged_stats["roles"].get(k, 0) + v
 
-            return tree, merged_stats
+            return tree, merged_stats, refs

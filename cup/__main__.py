@@ -8,7 +8,7 @@ import os
 import time
 
 from cup._router import get_adapter, detect_platform
-from cup.format import build_envelope, serialize_compact, prune_tree
+from cup.format import build_envelope, serialize_compact, serialize_overview, prune_tree
 
 
 def main() -> None:
@@ -16,8 +16,9 @@ def main() -> None:
         description="CUP: Capture accessibility tree in Computer Use Protocol format")
     parser.add_argument("--depth", type=int, default=0,
                         help="Max tree depth (0 = unlimited)")
-    parser.add_argument("--foreground", action="store_true",
-                        help="Only capture the foreground/focused window")
+    parser.add_argument("--scope", type=str, default=None,
+                        choices=["overview", "foreground", "desktop", "full"],
+                        help="Capture scope (default: foreground)")
     parser.add_argument("--app", type=str, default=None,
                         help="Filter to window/app title containing this string")
     parser.add_argument("--json-out", type=str, default=None,
@@ -37,6 +38,8 @@ def main() -> None:
                         help="CDP host for web platform (default: localhost)")
     args = parser.parse_args()
 
+    scope = args.scope or "foreground"
+
     max_depth = args.depth if args.depth > 0 else 999
     platform = args.platform or detect_platform()
 
@@ -54,12 +57,48 @@ def main() -> None:
     scale_str = f" @{scale}x" if scale != 1.0 else ""
     print(f"Screen: {sw}x{sh}{scale_str}")
 
+    # -- Overview scope: window list only, no tree walking --
+    if scope == "overview":
+        t0 = time.perf_counter()
+        window_list = adapter.get_window_list()
+        t_enum = (time.perf_counter() - t0) * 1000
+        print(f"Scope: overview ({len(window_list)} windows, {t_enum:.1f} ms)")
+
+        overview_str = serialize_overview(
+            window_list, platform=platform, screen_w=sw, screen_h=sh,
+        )
+        if args.compact or args.compact_out:
+            if args.compact:
+                print(f"\n{overview_str}")
+            if args.compact_out:
+                with open(args.compact_out, "w", encoding="utf-8") as f:
+                    f.write(overview_str)
+                print(f"Overview written to {args.compact_out}")
+        else:
+            print(f"\n{overview_str}")
+        return
+
     # -- Window enumeration --
     t0 = time.perf_counter()
-    if args.foreground:
+    window_list = None
+
+    if scope == "foreground":
         windows = [adapter.get_foreground_window()]
-        print(f"Target: foreground (\"{windows[0]['title']}\")")
-    else:
+        window_list = adapter.get_window_list()
+        print(f"Scope: foreground (\"{windows[0]['title']}\")")
+    elif scope == "desktop":
+        desktop_win = adapter.get_desktop_window()
+        if desktop_win is None:
+            print("No desktop window found on this platform. Falling back to overview.")
+            window_list = adapter.get_window_list()
+            overview_str = serialize_overview(
+                window_list, platform=platform, screen_w=sw, screen_h=sh,
+            )
+            print(f"\n{overview_str}")
+            return
+        windows = [desktop_win]
+        print(f"Scope: desktop")
+    else:  # "full"
         windows = adapter.get_all_windows()
         if args.app:
             windows = [w for w in windows
@@ -67,12 +106,12 @@ def main() -> None:
             if not windows:
                 print(f"No window found matching '{args.app}'")
                 return
-        print(f"Target: {len(windows)} window(s)")
+        print(f"Scope: full ({len(windows)} window(s))")
     t_enum = (time.perf_counter() - t0) * 1000
 
     # -- Tree capture --
     t0 = time.perf_counter()
-    tree, stats = adapter.capture_tree(windows, max_depth=max_depth)
+    tree, stats, _refs = adapter.capture_tree(windows, max_depth=max_depth)
     t_walk = (time.perf_counter() - t0) * 1000
 
     print(f"Captured {stats['nodes']} nodes in {t_walk:.1f} ms (enum: {t_enum:.1f} ms)")
@@ -89,7 +128,7 @@ def main() -> None:
         tools = adapter.get_last_tools() or None
 
     envelope = build_envelope(
-        tree, platform=platform,
+        tree, platform=platform, scope=scope,
         screen_w=sw, screen_h=sh, screen_scale=scale,
         app_name=app_name, app_pid=app_pid, app_bundle_id=app_bundle_id,
         tools=tools,
@@ -127,7 +166,7 @@ def main() -> None:
         print(f"Full JSON written to {args.full_json_out} ({json_kb:.1f} KB)")
 
     if args.compact_out or args.compact:
-        compact_str = serialize_compact(envelope)
+        compact_str = serialize_compact(envelope, window_list=window_list)
         compact_kb = len(compact_str) / 1024
         if args.compact:
             print(f"\n{compact_str}")

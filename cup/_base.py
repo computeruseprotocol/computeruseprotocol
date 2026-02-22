@@ -67,6 +67,36 @@ class PlatformAdapter(ABC):
         """
         ...
 
+    # ---- window overview -------------------------------------------------
+
+    @abstractmethod
+    def get_window_list(self) -> list[dict[str, Any]]:
+        """Return lightweight metadata for all visible windows.
+
+        Does NOT perform any tree walking.  Must be near-instant.
+
+        Each dict contains::
+
+            {
+                "title": str,
+                "pid": int | None,
+                "bundle_id": str | None,
+                "foreground": bool,
+                "bounds": {"x": int, "y": int, "w": int, "h": int} | None,
+            }
+        """
+        ...
+
+    @abstractmethod
+    def get_desktop_window(self) -> dict[str, Any] | None:
+        """Return metadata for the desktop surface window.
+
+        Returns a window metadata dict (same shape as get_foreground_window)
+        pointing at the desktop surface (icons, widgets), or None if the
+        platform has no desktop concept (e.g., web).
+        """
+        ...
+
     # ---- tree capture ----------------------------------------------------
 
     @abstractmethod
@@ -75,7 +105,7 @@ class PlatformAdapter(ABC):
         windows: list[dict[str, Any]],
         *,
         max_depth: int = 999,
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
         """Walk the accessibility tree for the given windows.
 
         Args:
@@ -84,8 +114,10 @@ class PlatformAdapter(ABC):
             max_depth: Maximum tree depth to walk.
 
         Returns:
-            (tree_roots, stats) where:
+            (tree_roots, stats, refs) where:
                 tree_roots: list of CUP node dicts (the "tree" field of the envelope)
                 stats: dict with at least {"nodes": int, "max_depth": int}
+                refs: dict mapping element IDs (e.g. "e14") to native platform
+                      element references, used by the action execution layer
         """
         ...

@@ -423,6 +423,7 @@ def _build_cup_node(
     max_depth: int,
     screen_w: int,
     screen_h: int,
+    refs: dict,
 ) -> dict | None:
     """Build a CUP node dict from an AT-SPI2 accessible object.
 
@@ -658,6 +659,8 @@ def _build_cup_node(
         plat["actions"] = raw_actions
     node["platform"] = {"linux": plat}
 
+    refs[node["id"]] = accessible
+
     # ── Children ──
     if depth < max_depth:
         children: list[dict] = []
@@ -670,7 +673,7 @@ def _build_cup_node(
                         continue
                     child_node = _build_cup_node(
                         child_acc, id_gen, stats, depth + 1, max_depth,
-                        screen_w, screen_h,
+                        screen_w, screen_h, refs,
                     )
                     if child_node is not None:
                         children.append(child_node)
@@ -820,13 +823,95 @@ class LinuxAdapter(PlatformAdapter):
 
         return windows
 
+    def get_window_list(self) -> list[dict[str, Any]]:
+        self.initialize()
+        desktop = self._atspi.get_desktop(0)
+        results: list[dict[str, Any]] = []
+
+        # Find foreground PID for marking
+        fg_info = self.get_foreground_window()
+        fg_pid = fg_info.get("pid")
+        fg_title = fg_info.get("title")
+
+        for i in range(desktop.get_child_count()):
+            try:
+                app = desktop.get_child_at_index(i)
+                if app is None:
+                    continue
+                app_name = app.get_name() or ""
+                pid = _get_pid(app)
+
+                for j in range(app.get_child_count()):
+                    try:
+                        win = app.get_child_at_index(j)
+                        if win is None:
+                            continue
+                        state_set = win.get_state_set()
+                        from gi.repository import Atspi
+                        if not state_set.contains(Atspi.StateType.VISIBLE):
+                            continue
+                        title = win.get_name() or app_name
+                        is_fg = (
+                            state_set.contains(Atspi.StateType.ACTIVE)
+                            or (pid == fg_pid and title == fg_title)
+                        )
+                        results.append({
+                            "title": title,
+                            "pid": pid,
+                            "bundle_id": None,
+                            "foreground": is_fg,
+                            "bounds": _atspi_get_bounds(win),
+                        })
+                    except Exception:
+                        continue
+            except Exception:
+                continue
+
+        return results
+
+    def get_desktop_window(self) -> dict[str, Any] | None:
+        self.initialize()
+        desktop = self._atspi.get_desktop(0)
+        desktop_apps = {"nautilus", "nemo", "caja", "pcmanfm", "pcmanfm-qt", "thunar"}
+
+        for i in range(desktop.get_child_count()):
+            try:
+                app = desktop.get_child_at_index(i)
+                if app is None:
+                    continue
+                app_name = (app.get_name() or "").lower()
+                if app_name not in desktop_apps:
+                    continue
+                pid = _get_pid(app)
+
+                for j in range(app.get_child_count()):
+                    try:
+                        win = app.get_child_at_index(j)
+                        if win is None:
+                            continue
+                        role = win.get_role_name() or ""
+                        if role == "desktop frame":
+                            return {
+                                "handle": win,
+                                "title": "Desktop",
+                                "pid": pid,
+                                "bundle_id": None,
+                            }
+                    except Exception:
+                        continue
+            except Exception:
+                continue
+
+        return None
+
     def capture_tree(
         self,
         windows: list[dict[str, Any]],
         *,
         max_depth: int = 999,
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
         self.initialize()
+        refs: dict[str, Any] = {}
 
         if len(windows) <= 1:
             # Single window — sequential walk
@@ -836,21 +921,23 @@ class LinuxAdapter(PlatformAdapter):
             for win in windows:
                 node = _build_cup_node(
                     win["handle"], id_gen, stats, 0, max_depth,
-                    self._screen_w, self._screen_h,
+                    self._screen_w, self._screen_h, refs,
                 )
                 if node is not None:
                     tree.append(node)
-            return tree, stats
+            return tree, stats, refs
         else:
             # Multiple windows — parallel walk with merged stats
-            return self._parallel_capture(windows, max_depth=max_depth)
+            return self._parallel_capture(windows, max_depth=max_depth,
+                                          refs=refs)
 
     def _parallel_capture(
         self,
         windows: list[dict[str, Any]],
         *,
         max_depth: int = 999,
-    ) -> tuple[list[dict], dict]:
+        refs: dict[str, Any],
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
         """Walk multiple window trees in parallel threads."""
         # Shared counter for globally unique IDs
         id_gen = itertools.count()
@@ -865,7 +952,7 @@ class LinuxAdapter(PlatformAdapter):
             local_stats: dict = {"nodes": 0, "max_depth": 0, "roles": {}}
             node = _build_cup_node(
                 win["handle"], id_gen, local_stats, 0, max_depth,
-                self._screen_w, self._screen_h,
+                self._screen_w, self._screen_h, refs,
             )
             per_window_results[idx] = (node, local_stats)
 
@@ -887,7 +974,7 @@ class LinuxAdapter(PlatformAdapter):
                     merged_stats["roles"].get(role, 0) + count
                 )
 
-        return tree, merged_stats
+        return tree, merged_stats, refs
 
 
 # ---------------------------------------------------------------------------

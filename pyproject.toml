@@ -10,6 +10,12 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 keywords = ["accessibility", "ui-automation", "ai-agents", "computer-use", "aria"]
+dependencies = [
+    "comtypes>=1.2; sys_platform == 'win32'",
+    "pyobjc-framework-ApplicationServices>=10.0; sys_platform == 'darwin'",
+    "pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'",
+    "pyobjc-framework-Quartz>=10.0; sys_platform == 'darwin'",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -27,17 +33,14 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-windows = ["comtypes>=1.2"]
-macos = [
-    "pyobjc-framework-ApplicationServices>=10.0",
-    "pyobjc-framework-Cocoa>=10.0",
-    "pyobjc-framework-Quartz>=10.0",
-]
 web = ["websocket-client>=1.6"]
+screenshot = ["mss>=6.0"]
+mcp = ["mcp>=1.6", "mss>=6.0"]
 dev = ["pytest>=8.0", "jsonschema>=4.20"]
 
 [project.scripts]
 cup = "cup.__main__:main"
+cup-mcp = "cup.mcp.__main__:main"
 
 [project.urls]
 Homepage = "https://computeruseprotocol.com"
