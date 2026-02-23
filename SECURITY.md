@@ -8,31 +8,23 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in CUP, please report it responsibly.
+If you discover a security issue in the CUP specification, please report it responsibly.
 
 **Do not open a public issue.**
 
 Instead, email **cup@computeruseprotocol.com** with:
 
 - A description of the vulnerability
-- Steps to reproduce the issue
 - The potential impact
 - Any suggested fixes (optional)
 
 We will acknowledge receipt within 48 hours and aim to provide an initial assessment within 7 days.
 
-## Security Considerations
+## Security Considerations for Implementers
 
-CUP interacts with OS accessibility APIs and can execute UI actions on behalf of AI agents. Developers integrating CUP should be aware of:
+The CUP specification defines how AI agents perceive and interact with UI elements. SDK implementers should consider:
 
-- **Action execution scope** — CUP can click, type, and interact with any accessible UI element. Always validate and constrain which actions an agent is allowed to perform.
-- **Element references** — Element IDs are ephemeral and scoped to a single tree capture. They cannot be reused across sessions.
-- **MCP server** — The `cup-mcp` server runs locally over stdio. It does not expose a network interface by default.
-- **No credential storage** — CUP does not store, transmit, or handle credentials. API keys for LLM providers belong in your application layer, not in CUP.
-
-## Best Practices for Integrators
-
-- Run CUP with the minimum OS permissions needed for your use case
-- Implement action allowlists in your agent layer — don't give agents unrestricted access to all CUP actions
-- Review tree captures before sending them to external LLM APIs, as accessibility trees may contain sensitive on-screen content
-- Keep CUP updated to receive security fixes
+- **Action execution scope** — CUP actions can interact with any accessible UI element. Implementations should provide mechanisms for consumers to constrain which actions are permitted.
+- **Element references** — Element IDs are ephemeral and scoped to a single tree capture. Implementations must not allow IDs to be reused across captures.
+- **Sensitive content** — Accessibility trees may contain sensitive on-screen content (passwords in cleartext, personal data, etc.). Implementations should document this risk for consumers who transmit trees to external services.
+- **No credential storage** — CUP does not define any credential or authentication mechanisms. API keys for LLM providers belong in the application layer.

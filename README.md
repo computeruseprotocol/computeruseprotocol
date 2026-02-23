@@ -11,13 +11,11 @@
 <br>
 
 <p align="center">
-  <a href="https://pypi.org/project/cup"><img src="https://img.shields.io/pypi/v/cup?style=for-the-badge&color=FF6F61&labelColor=000000" alt="PyPI"></a>
-  <a href="https://github.com/k4cper-g/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-0cc0df?style=for-the-badge&labelColor=000000" alt="MIT License"></a>
+  <a href="https://github.com/computeruseprotocol/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-0cc0df?style=for-the-badge&labelColor=000000" alt="MIT License"></a>
   <a href="https://computeruseprotocol.com"><img src="https://img.shields.io/badge/Website-7ed957?style=for-the-badge&logo=google-chrome&logoColor=white&labelColor=000000" alt="Website"></a>
 </p>
 
-The Computer Use Protocol (CUP) is an open protocol that provides a universal way for AI agents to perceive and interact with any desktop UI. Every platform exposes accessibility differently - CUP unifies them into one schema, one format, and one library. Whether you're building an AI-powered desktop assistant, automating UI testing, or creating autonomous agent workflows, CUP provides a standardized way to connect AI models with the interfaces they need to control.
-
+The Computer Use Protocol (CUP) is an open specification that defines a universal way for AI agents to perceive and interact with any desktop UI. Every platform exposes accessibility differently — CUP unifies them into one schema and one format.
 
 ## The problem
 
@@ -32,79 +30,7 @@ Every platform exposes UI accessibility trees differently:
 | Android | AccessibilityNodeInfo | Java class names | Binder |
 | iOS | UIAccessibility | ~15 trait flags | In-process |
 
-AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO² each independently reinvent UI perception. CUP solves this with one schema, one format, one library.
-
-## Quick start
-
-```python
-import cup
-
-# Full accessibility tree as a CUP envelope (dict)
-envelope = cup.get_tree()
-
-# Just the foreground window
-envelope = cup.get_foreground_tree()
-
-# Compact text format — optimized for LLM context windows
-text = cup.get_compact()
-print(text)
-```
-
-Output (compact format):
-
-```
-# CUP 0.1.0 | windows | 2560x1440
-# app: Discord
-# 87 nodes (353 before pruning)
-
-[e0] window "Discord" @509,62 1992x1274
-    [e1] document "General | Lechownia" @509,62 1992x1274 {readonly}
-        [e2] button "Back" @518,66 26x24 [click]
-        [e3] button "Forward" @546,66 26x24 {disabled} [click]
-        [e7] tree "Servers" @509,94 72x1242
-            [e8] treeitem "Lechownia" @513,190 64x48 {selected} [click,select]
-```
-
-## CLI
-
-```bash
-# Print compact tree of the foreground window
-python -m cup --foreground --compact
-
-# Save full JSON envelope
-python -m cup --json-out tree.json
-
-# Filter by app name
-python -m cup --app Discord --compact
-
-# Capture from Chrome via CDP
-python -m cup --platform web --cdp-port 9222 --compact
-```
-
-## Platform support
-
-| Platform | Adapter | Tree Capture | Actions |
-|----------|---------|-------------|---------|
-| Windows | UIA COM (comtypes) | Stable | Stable |
-| macOS | AXUIElement (pyobjc) | Stable | Planned |
-| Linux | AT-SPI2 (PyGObject) | Stable | Planned |
-| Web | Chrome DevTools Protocol | Stable | Stable |
-| Android | | Planned | Planned |
-| iOS | | Planned | Planned |
-
-### Platform dependencies
-
-CUP auto-detects your platform. Platform-specific dependencies (comtypes on Windows, pyobjc on macOS) are installed automatically:
-
-```bash
-pip install cup
-
-# Linux additionally requires system packages
-sudo apt install python3-gi gir1.2-atspi-2.0
-
-# Web adapter (requires websocket-client, works on any OS)
-pip install cup[web]
-```
+AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception. CUP solves this with one schema, one format, and a set of language SDKs.
 
 ## Schema
 
@@ -139,55 +65,89 @@ Key design decisions:
 
 Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format spec: [schema/compact.md](schema/compact.md) | Role mappings: [schema/mappings.json](schema/mappings.json)
 
-## Architecture
+## Roles
+
+54 ARIA-derived roles:
+
+`alert` `alertdialog` `application` `article` `banner` `button` `cell` `checkbox` `columnheader` `combobox` `complementary` `contentinfo` `definition` `dialog` `document` `feed` `figure` `form` `generic` `grid` `group` `heading` `img` `link` `list` `listbox` `listitem` `log` `main` `marquee` `math` `menu` `menubar` `menuitem` `menuitemcheckbox` `menuitemradio` `navigation` `note` `option` `progressbar` `radio` `radiogroup` `region` `row` `rowgroup` `rowheader` `scrollbar` `search` `searchbox` `separator` `slider` `spinbutton` `status` `switch` `tab` `table` `tablist` `tabpanel` `term` `text` `textbox` `timer` `toolbar` `tooltip` `tree` `treeitem` `window`
+
+## States
+
+16 state flags (only truthy/active states are listed — absence = default):
+
+`busy` `checked` `collapsed` `current` `disabled` `expanded` `focused` `grabbed` `hidden` `invalid` `modal` `multiselectable` `offscreen` `pressed` `readonly` `required` `selected`
+
+## Actions
+
+15 canonical actions:
+
+| Action | Parameters | Description |
+|--------|-----------|-------------|
+| `click` | — | Click/invoke the element |
+| `doubleclick` | — | Double-click |
+| `rightclick` | — | Right-click (context menu) |
+| `type` | `value: str` | Type text into a field |
+| `setvalue` | `value: str` | Set element value programmatically |
+| `toggle` | — | Toggle checkbox or switch |
+| `expand` | — | Expand a collapsed element |
+| `collapse` | — | Collapse an expanded element |
+| `select` | — | Select an item in a list/tree/tab |
+| `increment` | — | Increment a slider/spinbutton |
+| `decrement` | — | Decrement a slider/spinbutton |
+| `scroll` | `direction: str` | Scroll container (up/down/left/right) |
+| `focus` | — | Move keyboard focus to the element |
+| `dismiss` | — | Dismiss a dialog/popup |
+| `press_keys` | `keys: str` | Send a keyboard shortcut (global, not element-scoped) |
+
+## Compact format
+
+A token-efficient text representation optimized for LLM context windows (~75% smaller than JSON):
 
 ```
-cup/
-├── __init__.py                 # Public API: get_tree, get_compact, ...
-├── __main__.py                 # CLI entry point
-├── _base.py                    # Abstract PlatformAdapter interface
-├── _router.py                  # Platform detection & adapter dispatch
-├── format.py                   # Envelope builder, compact serializer, tree pruning
-└── platforms/
-        ├── windows.py           # Windows UIA adapter
-        ├── macos.py             # macOS AXUIElement adapter
-        ├── linux.py             # Linux AT-SPI2 adapter
-        └── web.py               # Chrome CDP adapter
+# CUP 0.1.0 | windows | 2560x1440
+# app: Discord
+# 87 nodes (353 before pruning)
+
+[e0] window "Discord" @509,62 1992x1274
+    [e1] document "General | Lechownia" @509,62 1992x1274 {readonly}
+        [e2] button "Back" @518,66 26x24 [click]
+        [e3] button "Forward" @546,66 26x24 {disabled} [click]
+        [e7] tree "Servers" @509,94 72x1242
+            [e8] treeitem "Lechownia" @513,190 64x48 {selected} [click,select]
 ```
 
-Adding a new platform means implementing `PlatformAdapter` — see [cup/_base.py](cup/_base.py) for the interface.
+Line format: `[id] role "name" @x,y wxh {states} [actions] val="value" (attrs)`
 
-## How it works
+Full spec: [schema/compact.md](schema/compact.md)
 
-1. **Detect platform** — `sys.platform` → adapter selection
-2. **Enumerate windows** — native API call to list top-level windows
-3. **Walk accessibility tree** — recursive traversal, mapping native roles/states/actions to ARIA-based CUP schema
-4. **Build envelope** — wrap tree in metadata (platform, screen size, timestamp)
-5. **Serialize** — JSON envelope or compact text (with intelligent pruning for LLM consumption)
+## SDKs
 
-The compact format applies pruning rules to reduce token count by ~75% while preserving all semantically meaningful and interactive elements. See [schema/compact.md](schema/compact.md) for the full spec.
+| Language | Repository | Package |
+|----------|-----------|---------|
+| Python | [python-sdk](https://github.com/computeruseprotocol/python-sdk) | `pip install cup` |
 
 ## Documentation
 
-- **[API Reference](docs/api-reference.md)** — Session API, actions, envelope format, MCP server
-- **[Compact Format Spec](schema/compact.md)** — LLM-optimized text format
 - **[JSON Schema](schema/cup.schema.json)** — Full envelope schema
+- **[Compact Format Spec](schema/compact.md)** — LLM-optimized text format
 - **[Role Mappings](schema/mappings.json)** — 54 roles mapped across 6 platforms
-
-## Contributing
-
-CUP is in early development (v0.1.0). Contributions welcome — especially:
-
-- Android adapter (`cup/platforms/android.py`)
-- iOS adapter (`cup/platforms/ios.py`)
-- Tests and CI across platforms
-- Language bindings (JS, Go, Rust)
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
+- **[Example Envelope](schema/example.json)** — Sample CUP output
 
 ## Research
 
 For a deep dive into the problem space — why this standard is needed, what exists today, and how AI agents perceive UIs — see [doc.md](doc.md).
+
+## Contributing
+
+CUP is in early development (v0.1.0). Contributions to the specification are welcome — especially:
+
+- New role or action proposals with cross-platform mapping rationale
+- Platform mapping improvements in [schema/mappings.json](schema/mappings.json)
+- Schema documentation and examples
+
+For SDK contributions (bug fixes, new platform adapters, etc.), see the language-specific repos above.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 

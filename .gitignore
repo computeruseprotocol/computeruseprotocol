@@ -1,24 +1,11 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-.venv/
-venv/
-
-# Environment
-.env
-.mcp.json
-.claude/
-
-# Runs / output data
-runs/
-benchmark/
-
-# Testing
-.pytest_cache/
-
 # IDE
 .vscode/
 .idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local
+.env
+.claude/

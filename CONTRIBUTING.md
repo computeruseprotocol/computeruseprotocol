@@ -1,83 +1,36 @@
-# Contributing to CUP
+# Contributing to the Computer Use Protocol
 
-Thanks for your interest in the Computer Use Protocol! CUP is in early development (v0.1.0) and contributions are welcome.
+Thanks for your interest in CUP! This repository contains the **protocol specification** — the schema, role mappings, compact format spec, and documentation.
 
-## Getting started
+> For SDK contributions (bug fixes, new platform adapters, tests, etc.), see the language-specific repos:
+> - [Python SDK](https://github.com/computeruseprotocol/python-sdk)
 
-1. Fork the repository and clone your fork
-2. Create a virtual environment and install dev dependencies:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-pip install -e ".[dev]"
-```
-
-3. Run the test suite to verify your setup:
-
-```bash
-pytest -v
-```
-
-## Making changes
-
-1. Create a branch from `main`:
-
-```bash
-git checkout -b my-feature
-```
-
-2. Make your changes. Follow existing code style — type hints, docstrings on public APIs, 4-space indentation.
-
-3. Add or update tests for any changed behavior. Tests live in `tests/`.
-
-4. Run the full suite and ensure it passes:
-
-```bash
-pytest -v
-```
-
-5. Run linting and type checks:
-
-```bash
-ruff check cup/ tests/
-mypy cup/
-```
-
-6. Open a pull request against `main`. Describe what you changed and why.
-
-## What we're looking for
+## Specification contributions
 
 High-impact areas where contributions are especially useful:
 
-- **Android adapter** (`cup/platforms/android.py`) — ADB + AccessibilityNodeInfo
-- **iOS adapter** (`cup/platforms/ios.py`) — XCUITest accessibility
-- **macOS / Linux action execution** — currently tree capture only
-- **Tests** — especially cross-platform integration tests
-- **Language bindings** — TypeScript/Node, Go, Rust SDKs
-- **Documentation** — tutorials, examples, API reference improvements
+- **Role proposals** — propose new ARIA-derived roles with mappings across at least 2 platforms
+- **Action proposals** — propose new canonical actions with cross-platform semantics
+- **Platform mappings** — add or improve entries in [schema/mappings.json](schema/mappings.json)
+- **Schema improvements** — tighten validation, add documentation, fix edge cases
+- **Compact format** — propose changes to the text serialization format
+- **Examples** — add or improve example envelopes in [schema/example.json](schema/example.json)
+
+## How to contribute
+
+1. Open an issue describing the proposed change
+2. For schema changes, include:
+   - Rationale for the change
+   - Mapping examples for at least 2 platforms (e.g., Windows UIA + Web ARIA)
+   - Impact on existing consumers
+3. Submit a PR against `main`
 
 ## Pull request guidelines
 
-- Keep PRs focused. One feature or fix per PR.
-- Include tests for new functionality.
-- Update documentation if you change public APIs.
-- Ensure CI passes before requesting review.
-
-## Reporting bugs
-
-Open an issue with:
-- Platform and Python version
-- Minimal reproduction steps
-- Expected vs. actual behavior
-- Full traceback if applicable
-
-## Code style
-
-- Python 3.10+ with `from __future__ import annotations`
-- Type hints on all public function signatures
-- Docstrings on public classes and functions (Google style)
-- No unnecessary dependencies — platform deps are conditional
+- Keep PRs focused. One change per PR.
+- Validate that `schema/cup.schema.json` remains valid JSON Schema.
+- Update documentation if you change the schema or format spec.
+- Ensure the example envelope in `schema/example.json` validates against the schema.
 
 ## License
 
