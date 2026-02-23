@@ -1,22 +1,21 @@
 <p align="center">
   <a href="https://computeruseprotocol.com">
-    <img src="assets/cup.png" height="128">
+    <img src="assets/banner.png" alt="Computer Use Protocol">
   </a>
 </p>
 
-<h1 align="center">Computer Use Protocol</h1>
-
 <p align="center">
-  <a href="https://pypi.org/project/cup"><img src="https://img.shields.io/pypi/v/cup?style=for-the-badge&color=0d1117&labelColor=0d1117" alt="PyPI"></a>
-  <a href="https://github.com/k4cper-g/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/github/license/k4cper-g/computer-use-protocol?style=for-the-badge&color=0d1117&labelColor=0d1117" alt="License"></a>
-  <a href="https://discord.gg/your-invite"><img src="https://img.shields.io/badge/join_the_community-0d1117?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+  A universal protocol for AI agents to perceive and interact with any desktop UI
 </p>
 
----
+<p align="center">
+  <a href="https://pypi.org/project/cup"><img src="https://img.shields.io/pypi/v/cup?style=for-the-badge&color=FF6F61&labelColor=0d1117" alt="PyPI"></a>
+  <a href="https://github.com/k4cper-g/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-0cc0df?style=for-the-badge&labelColor=0d1117" alt="MIT License"></a>
+  <a href="https://computeruseprotocol.com"><img src="https://img.shields.io/badge/Website-7ed957?style=for-the-badge&logo=google-chrome&logoColor=white&labelColor=0d1117" alt="Website"></a>
+</p>
 
-```
-pip install cup
-```
+The Computer Use Protocol (CUP) is an open protocol that provides a universal way for AI agents to perceive and interact with any desktop UI. Every platform exposes accessibility differently - CUP unifies them into one schema, one format, and one library. Whether you're building an AI-powered desktop assistant, automating UI testing, or creating autonomous agent workflows, CUP provides a standardized way to connect AI models with the interfaces they need to control.
+
 
 ## The problem
 
