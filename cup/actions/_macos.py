@@ -11,7 +11,8 @@ from cup.actions._handler import ActionHandler
 class MacosActionHandler(ActionHandler):
     """Execute CUP actions on macOS via AXUIElement API.
 
-    Not yet implemented — contributions welcome.
+    Not yet implemented — contributions welcome:
+    https://github.com/k4cper-g/computer-use-protocol
     """
 
     def execute(
@@ -19,11 +20,11 @@ class MacosActionHandler(ActionHandler):
     ) -> ActionResult:
         return ActionResult(
             success=False, message="",
-            error="macOS action execution is not yet implemented",
+            error=f"macOS action '{action}' is not yet implemented",
         )
 
     def press_keys(self, combo: str) -> ActionResult:
         return ActionResult(
             success=False, message="",
-            error="macOS keyboard input is not yet implemented",
+            error=f"macOS press_keys '{combo}' is not yet implemented",
         )

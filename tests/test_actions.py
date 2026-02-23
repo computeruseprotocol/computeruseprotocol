@@ -146,11 +146,118 @@ class TestActionExecutor:
 # Valid actions match schema
 # ---------------------------------------------------------------------------
 
+    def test_execute_type_without_value_rejected(self):
+        try:
+            exe = ActionExecutor(_MockAdapter())
+            exe.set_refs({"e0": "fake"})
+            result = exe.execute("e0", "type")
+            assert result.success is False
+            assert "requires a 'value' parameter" in result.error
+        except (ImportError, OSError):
+            pytest.skip("Windows-only: comtypes not available")
+
+    def test_execute_setvalue_without_value_rejected(self):
+        try:
+            exe = ActionExecutor(_MockAdapter())
+            exe.set_refs({"e0": "fake"})
+            result = exe.execute("e0", "setvalue")
+            assert result.success is False
+            assert "requires a 'value' parameter" in result.error
+        except (ImportError, OSError):
+            pytest.skip("Windows-only: comtypes not available")
+
+    def test_execute_scroll_without_direction_rejected(self):
+        try:
+            exe = ActionExecutor(_MockAdapter())
+            exe.set_refs({"e0": "fake"})
+            result = exe.execute("e0", "scroll")
+            assert result.success is False
+            assert "requires 'direction'" in result.error
+        except (ImportError, OSError):
+            pytest.skip("Windows-only: comtypes not available")
+
+    def test_execute_scroll_invalid_direction_rejected(self):
+        try:
+            exe = ActionExecutor(_MockAdapter())
+            exe.set_refs({"e0": "fake"})
+            result = exe.execute("e0", "scroll", {"direction": "sideways"})
+            assert result.success is False
+            assert "requires 'direction'" in result.error
+        except (ImportError, OSError):
+            pytest.skip("Windows-only: comtypes not available")
+
+    def test_execute_press_keys_without_keys_rejected(self):
+        try:
+            exe = ActionExecutor(_MockAdapter())
+            result = exe.execute("", "press_keys", {})
+            assert result.success is False
+            assert "keys" in result.error.lower()
+        except (ImportError, OSError):
+            pytest.skip("Windows-only: comtypes not available")
+
+    def test_execute_press_keys_skips_element_lookup(self):
+        """press_keys should not fail with 'not found in tree' even with empty refs."""
+        try:
+            exe = ActionExecutor(_MockAdapter())
+            # refs are empty — press_keys should NOT check refs
+            result = exe.execute("", "press_keys", {"keys": "ctrl+s"})
+            # It will either succeed or fail for platform reasons,
+            # but must NOT fail with "not found in current tree snapshot"
+            if result.error:
+                assert "not found in current tree" not in result.error
+        except (ImportError, OSError):
+            pytest.skip("Windows-only: comtypes not available")
+
+
+# ---------------------------------------------------------------------------
+# Valid actions match schema
+# ---------------------------------------------------------------------------
+
 class TestValidActions:
     def test_all_schema_actions_present(self):
         schema_actions = {
             "click", "collapse", "decrement", "dismiss", "doubleclick",
-            "expand", "focus", "increment", "longpress", "rightclick",
-            "scroll", "select", "setvalue", "toggle", "type",
+            "expand", "focus", "increment", "longpress", "press_keys",
+            "rightclick", "scroll", "select", "setvalue", "toggle", "type",
         }
         assert VALID_ACTIONS == schema_actions
+
+
+# ---------------------------------------------------------------------------
+# Stub handler tests (macOS / Linux)
+# ---------------------------------------------------------------------------
+
+class TestMacosStub:
+    def test_execute_returns_not_implemented(self):
+        from cup.actions._macos import MacosActionHandler
+        handler = MacosActionHandler()
+        result = handler.execute(None, "click", {})
+        assert result.success is False
+        assert "not yet implemented" in result.error.lower()
+        assert "click" in result.error
+
+    def test_press_keys_returns_not_implemented(self):
+        from cup.actions._macos import MacosActionHandler
+        handler = MacosActionHandler()
+        result = handler.press_keys("ctrl+s")
+        assert result.success is False
+        assert "not yet implemented" in result.error.lower()
+        assert "ctrl+s" in result.error
+
+
+class TestLinuxStub:
+    def test_execute_returns_not_implemented(self):
+        from cup.actions._linux import LinuxActionHandler
+        handler = LinuxActionHandler()
+        result = handler.execute(None, "click", {})
+        assert result.success is False
+        assert "not yet implemented" in result.error.lower()
+        assert "click" in result.error
+
+    def test_press_keys_returns_not_implemented(self):
+        from cup.actions._linux import LinuxActionHandler
+        handler = LinuxActionHandler()
+        result = handler.press_keys("ctrl+s")
+        assert result.success is False
+        assert "not yet implemented" in result.error.lower()
+        assert "ctrl+s" in result.error

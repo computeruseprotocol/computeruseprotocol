@@ -20,3 +20,4 @@ benchmark/
 # IDE
 .vscode/
 .idea/
+.mcp.json

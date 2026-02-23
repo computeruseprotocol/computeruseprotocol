@@ -791,6 +791,11 @@ class WindowsAdapter(PlatformAdapter):
             "bundle_id": None,
         }
 
+    # Chromium/Electron apps lazily initialise their accessibility tree.
+    # If the first capture returns fewer nodes than this threshold, we
+    # poke the window (SetForegroundWindow + short sleep) and retry once.
+    _SPARSE_TREE_THRESHOLD = 30
+
     def capture_tree(
         self,
         windows: list[dict[str, Any]],
@@ -798,6 +803,25 @@ class WindowsAdapter(PlatformAdapter):
         max_depth: int = 999,
     ) -> tuple[list[dict], dict, dict[str, Any]]:
         self.initialize()
+        tree, stats, refs = self._walk_windows(windows, max_depth=max_depth)
+
+        # If the tree is suspiciously sparse (common with Chromium/Electron
+        # apps that haven't initialised a11y yet), poke the window and retry.
+        if (stats["nodes"] < self._SPARSE_TREE_THRESHOLD
+                and len(windows) == 1):
+            hwnd = windows[0]["handle"]
+            self._poke_window(hwnd)
+            tree, stats, refs = self._walk_windows(windows, max_depth=max_depth)
+
+        return tree, stats, refs
+
+    def _walk_windows(
+        self,
+        windows: list[dict[str, Any]],
+        *,
+        max_depth: int = 999,
+    ) -> tuple[list[dict], dict, dict[str, Any]]:
+        """Walk the UIA tree for the given windows."""
         id_gen = itertools.count()
         stats: dict = {"nodes": 0, "max_depth": 0, "roles": {}}
         refs: dict[str, Any] = {}
@@ -812,3 +836,14 @@ class WindowsAdapter(PlatformAdapter):
             if node:
                 tree.append(node)
         return tree, stats, refs
+
+    @staticmethod
+    def _poke_window(hwnd: int) -> None:
+        """Nudge a window to force Chromium to initialise its a11y tree.
+
+        SetForegroundWindow triggers the renderer's accessibility mode.
+        A short sleep gives Chromium time to build the tree before we retry.
+        """
+        import time
+        user32.SetForegroundWindow(hwnd)
+        time.sleep(0.3)

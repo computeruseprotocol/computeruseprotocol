@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from cup._base import PlatformAdapter
 
-_adapter_instance: PlatformAdapter | None = None
-
 
 def detect_platform() -> str:
     """Return the current platform identifier."""
@@ -24,7 +22,10 @@ def detect_platform() -> str:
 
 
 def get_adapter(platform: str | None = None) -> PlatformAdapter:
-    """Return the appropriate platform adapter, creating it if needed.
+    """Return a fresh platform adapter instance.
+
+    Each call creates and initializes a new adapter. Callers (e.g., Session)
+    are responsible for holding onto the instance for reuse.
 
     Args:
         platform: Force a specific platform ('windows', 'macos', 'web').
@@ -33,32 +34,26 @@ def get_adapter(platform: str | None = None) -> PlatformAdapter:
     Raises:
         RuntimeError: If the platform is unsupported or dependencies are missing.
     """
-    global _adapter_instance
-
     if platform is None:
         platform = detect_platform()
 
-    # Return cached instance if it matches
-    if _adapter_instance is not None and _adapter_instance.platform_name == platform:
-        return _adapter_instance
-
     if platform == "windows":
         from cup.platforms.windows import WindowsAdapter
-        _adapter_instance = WindowsAdapter()
+        adapter = WindowsAdapter()
     elif platform == "macos":
         from cup.platforms.macos import MacosAdapter
-        _adapter_instance = MacosAdapter()
+        adapter = MacosAdapter()
     elif platform == "linux":
         from cup.platforms.linux import LinuxAdapter
-        _adapter_instance = LinuxAdapter()
+        adapter = LinuxAdapter()
     elif platform == "web":
         from cup.platforms.web import WebAdapter
-        _adapter_instance = WebAdapter()
+        adapter = WebAdapter()
     else:
         raise RuntimeError(
             f"No adapter available for platform '{platform}'. "
             f"Currently supported: windows, macos, linux, web."
         )
 
-    _adapter_instance.initialize()
-    return _adapter_instance
+    adapter.initialize()
+    return adapter

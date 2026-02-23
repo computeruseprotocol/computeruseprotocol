@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 VALID_ACTIONS = frozenset({
     "click", "collapse", "decrement", "dismiss", "doubleclick", "expand",
-    "focus", "increment", "longpress", "rightclick", "scroll", "select",
-    "setvalue", "toggle", "type",
+    "focus", "increment", "longpress", "press_keys", "rightclick", "scroll",
+    "select", "setvalue", "toggle", "type",
 })
 
 
@@ -85,12 +85,42 @@ class ActionExecutor:
                 message="",
                 error=f"Unknown action '{action}'. Valid: {sorted(VALID_ACTIONS)}",
             )
+
+        # press_keys does not require an element reference
+        if action == "press_keys":
+            keys = (params or {}).get("keys", "")
+            if not keys:
+                return ActionResult(
+                    success=False,
+                    message="",
+                    error="Action 'press_keys' requires a 'keys' parameter",
+                )
+            return self.press_keys(keys)
+
         if element_id not in self._refs:
             return ActionResult(
                 success=False,
                 message="",
                 error=f"Element '{element_id}' not found in current tree snapshot",
             )
+
+        # Validate required parameters
+        if action in ("type", "setvalue") and "value" not in (params or {}):
+            return ActionResult(
+                success=False,
+                message="",
+                error=f"Action '{action}' requires a 'value' parameter",
+            )
+        if action == "scroll":
+            direction = (params or {}).get("direction")
+            if direction not in ("up", "down", "left", "right"):
+                return ActionResult(
+                    success=False,
+                    message="",
+                    error=f"Action 'scroll' requires 'direction' "
+                          f"(up/down/left/right), got: {direction!r}",
+                )
+
         native_ref = self._refs[element_id]
         try:
             return self._handler.execute(native_ref, action, params or {})

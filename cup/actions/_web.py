@@ -160,9 +160,12 @@ class WebActionHandler(ActionHandler):
         elif action == "setvalue":
             text = params.get("value", "")
             return self._setvalue(ws, backend_node_id, text)
-        elif action in ("toggle", "expand", "collapse", "select"):
-            # These are all click-based in the browser
+        elif action == "toggle":
+            return self._toggle(ws, backend_node_id)
+        elif action in ("expand", "collapse"):
             return self._click(ws, backend_node_id)
+        elif action == "select":
+            return self._select(ws, backend_node_id)
         elif action == "scroll":
             direction = params.get("direction", "down")
             return self._scroll(ws, backend_node_id, direction)
@@ -292,6 +295,53 @@ class WebActionHandler(ActionHandler):
 
         _cdp_send(ws, "DOM.focus", {"backendNodeId": backend_node_id})
         return ActionResult(success=True, message="Focused")
+
+    def _toggle(self, ws: Any, backend_node_id: int) -> ActionResult:
+        from cup.platforms.web import _cdp_send
+
+        # Use JS .click() for reliable toggling of checkboxes/switches
+        resp = _cdp_send(ws, "DOM.resolveNode", {
+            "backendNodeId": backend_node_id,
+        })
+        object_id = resp.get("result", {}).get("object", {}).get("objectId")
+        if not object_id:
+            # Fallback to coordinate click
+            return self._click(ws, backend_node_id)
+
+        _cdp_send(ws, "Runtime.callFunctionOn", {
+            "objectId": object_id,
+            "functionDeclaration": "function() { this.click(); }",
+        })
+        return ActionResult(success=True, message="Toggled")
+
+    def _select(self, ws: Any, backend_node_id: int) -> ActionResult:
+        from cup.platforms.web import _cdp_send
+
+        # Handle <option> elements by setting selected on the option
+        # and dispatching change on the parent <select>
+        resp = _cdp_send(ws, "DOM.resolveNode", {
+            "backendNodeId": backend_node_id,
+        })
+        object_id = resp.get("result", {}).get("object", {}).get("objectId")
+        if not object_id:
+            return self._click(ws, backend_node_id)
+
+        _cdp_send(ws, "Runtime.callFunctionOn", {
+            "objectId": object_id,
+            "functionDeclaration": """function() {
+                if (this.tagName === 'OPTION') {
+                    this.selected = true;
+                    if (this.parentElement) {
+                        this.parentElement.dispatchEvent(
+                            new Event('change', {bubbles: true})
+                        );
+                    }
+                } else {
+                    this.click();
+                }
+            }""",
+        })
+        return ActionResult(success=True, message="Selected")
 
     def _dismiss(self, ws: Any) -> ActionResult:
         from cup.platforms.web import _cdp_send

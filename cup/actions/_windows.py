@@ -91,7 +91,12 @@ VK_MAP = {
     "meta": 0x5B,
 }
 
-_EXTENDED_VKS = {0x26, 0x28, 0x25, 0x27, 0x24, 0x23, 0x21, 0x22, 0x2E}
+_EXTENDED_VKS = {
+    0x26, 0x28, 0x25, 0x27,  # arrow keys
+    0x24, 0x23, 0x21, 0x22,  # home, end, pageup, pagedown
+    0x2E,                     # delete
+    0x5B, 0x5C,               # VK_LWIN, VK_RWIN
+}
 
 ULONG_PTR = ctypes.c_uint64
 
@@ -148,18 +153,26 @@ def _make_key_input(vk: int, *, down: bool = True) -> INPUT:
 
 def _send_key_combo(keys_string: str) -> None:
     """Parse 'ctrl+s', 'enter', etc. and send via SendInput."""
-    parts = [p.strip().lower() for p in keys_string.split("+")]
-    modifiers = []
+    from cup.actions._keys import parse_combo
+
+    mod_names, key_names = parse_combo(keys_string)
+
+    # Map modifier names to VK codes ("meta" → VK_LWIN via VK_MAP["win"])
+    _MOD_TO_VK = {"ctrl": 0xA2, "alt": 0xA4, "shift": 0xA0, "meta": 0x5B}
+    modifiers = [_MOD_TO_VK[m] for m in mod_names if m in _MOD_TO_VK]
+
     main_keys = []
-    for p in parts:
-        if p in ("ctrl", "alt", "shift", "win", "meta"):
-            vk = VK_MAP.get(p)
-            if vk:
-                modifiers.append(vk)
-        elif p in VK_MAP:
-            main_keys.append(VK_MAP[p])
-        elif len(p) == 1:
-            main_keys.append(ord(p.upper()))
+    for k in key_names:
+        if k in VK_MAP:
+            main_keys.append(VK_MAP[k])
+        elif len(k) == 1:
+            main_keys.append(ord(k.upper()))
+
+    # When "super"/"win"/"meta" is pressed alone (no other keys), it's a
+    # modifier-only press.  Treat it as the main key so it actually fires.
+    if modifiers and not main_keys:
+        main_keys = modifiers
+        modifiers = []
 
     inputs = []
     for mod in modifiers:
@@ -171,16 +184,35 @@ def _send_key_combo(keys_string: str) -> None:
     for mod in reversed(modifiers):
         inputs.append(_make_key_input(mod, down=False))
 
-    if inputs:
+    if not inputs:
+        raise RuntimeError(
+            f"Could not resolve any key codes from combo: {keys_string!r}"
+        )
+
+    # Send modifier-down events first, pause briefly, then the rest.
+    # This gives the OS time to register modifier state before the main key,
+    # which is important for system-level hotkeys like Win+R.
+    n_mods = len(modifiers)
+    if n_mods > 0 and len(inputs) > n_mods:
+        mod_arr = (INPUT * n_mods)(*inputs[:n_mods])
+        ctypes.windll.user32.SendInput(n_mods, mod_arr, ctypes.sizeof(INPUT))
+        time.sleep(0.02)
+        rest = inputs[n_mods:]
+        rest_arr = (INPUT * len(rest))(*rest)
+        sent = ctypes.windll.user32.SendInput(
+            len(rest), rest_arr, ctypes.sizeof(INPUT)
+        )
+    else:
         arr = (INPUT * len(inputs))(*inputs)
         sent = ctypes.windll.user32.SendInput(
             len(inputs), arr, ctypes.sizeof(INPUT)
         )
-        if sent == 0:
-            err = ctypes.get_last_error()
-            raise RuntimeError(
-                f"SendInput failed, sent 0/{len(inputs)} events (error={err})"
-            )
+
+    if sent == 0:
+        err = ctypes.get_last_error()
+        raise RuntimeError(
+            f"SendInput failed, sent 0/{len(inputs)} events (error={err})"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +351,8 @@ class WindowsActionHandler(ActionHandler):
             return self._focus(element)
         elif action == "dismiss":
             return self._dismiss(element)
+        elif action == "longpress":
+            return self._longpress(element)
         else:
             return ActionResult(
                 success=False, message="",
@@ -367,8 +401,9 @@ class WindowsActionHandler(ActionHandler):
             time.sleep(0.05)
             _send_key_combo("ctrl+a")
             time.sleep(0.05)
+            _CHAR_TO_KEY = {" ": "space", "\t": "tab", "\n": "enter"}
             for char in text:
-                _send_key_combo(char)
+                _send_key_combo(_CHAR_TO_KEY.get(char, char))
                 time.sleep(0.01)
             return ActionResult(success=True, message=f"Typed: {text}")
         except Exception as exc:
@@ -512,4 +547,47 @@ class WindowsActionHandler(ActionHandler):
         except Exception as exc:
             return ActionResult(
                 success=False, message="", error=f"Failed to dismiss: {exc}"
+            )
+
+    def _longpress(self, element) -> ActionResult:
+        """Long press: mouse down, hold 800ms, mouse up."""
+        try:
+            x, y = _get_element_click_point(element)
+            abs_x, abs_y = _screen_to_absolute(x, y)
+
+            # Move cursor
+            move = INPUT()
+            move.type = INPUT_MOUSE
+            move._input.mi.dx = abs_x
+            move._input.mi.dy = abs_y
+            move._input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE
+            arr = (INPUT * 1)(move)
+            ctypes.windll.user32.SendInput(1, arr, ctypes.sizeof(INPUT))
+
+            # Press
+            down = INPUT()
+            down.type = INPUT_MOUSE
+            down._input.mi.dx = abs_x
+            down._input.mi.dy = abs_y
+            down._input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE
+            arr = (INPUT * 1)(down)
+            ctypes.windll.user32.SendInput(1, arr, ctypes.sizeof(INPUT))
+
+            # Hold
+            time.sleep(0.8)
+
+            # Release
+            up = INPUT()
+            up.type = INPUT_MOUSE
+            up._input.mi.dx = abs_x
+            up._input.mi.dy = abs_y
+            up._input.mi.dwFlags = MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE
+            arr = (INPUT * 1)(up)
+            ctypes.windll.user32.SendInput(1, arr, ctypes.sizeof(INPUT))
+
+            return ActionResult(success=True, message="Long-pressed")
+        except Exception as exc:
+            return ActionResult(
+                success=False, message="",
+                error=f"Failed to long-press: {exc}",
             )

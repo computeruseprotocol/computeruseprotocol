@@ -2,7 +2,8 @@
   "version": "0.1.0",
   "platform": "windows",
   "timestamp": 1740067200000,
-  "screen": { "w": 2560, "h": 1440, "scale": 1.0 },
+  "screen": { "w": 2560, "h": 1440 },
+  "scope": "full",
   "tree": [
     {
       "id": "e0",

@@ -11,7 +11,8 @@ from cup.actions._handler import ActionHandler
 class LinuxActionHandler(ActionHandler):
     """Execute CUP actions on Linux via AT-SPI2.
 
-    Not yet implemented — contributions welcome.
+    Not yet implemented — contributions welcome:
+    https://github.com/k4cper-g/computer-use-protocol
     """
 
     def execute(
@@ -19,11 +20,11 @@ class LinuxActionHandler(ActionHandler):
     ) -> ActionResult:
         return ActionResult(
             success=False, message="",
-            error="Linux action execution is not yet implemented",
+            error=f"Linux action '{action}' is not yet implemented",
         )
 
     def press_keys(self, combo: str) -> ActionResult:
         return ActionResult(
             success=False, message="",
-            error="Linux keyboard input is not yet implemented",
+            error=f"Linux press_keys '{combo}' is not yet implemented",
         )

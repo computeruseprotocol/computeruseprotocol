@@ -29,10 +29,34 @@
       "$ref": "#/$defs/appInfo",
       "description": "Application the tree was captured from. Omit when tree spans the full desktop."
     },
+    "scope": {
+      "type": "string",
+      "enum": ["overview", "foreground", "desktop", "full"],
+      "description": "Capture scope that produced this tree. Indicates whether it contains a full desktop tree, foreground window only, overview (window list), or desktop surface."
+    },
     "tree": {
       "type": "array",
       "items": { "$ref": "#/$defs/node" },
       "description": "Root-level nodes. Usually one per top-level window."
+    },
+    "windows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/windowInfo" },
+      "description": "Window list for overview and foreground scopes. Lists all open top-level windows for situational awareness."
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Tool name (e.g., 'search', 'navigate')." },
+          "description": { "type": "string", "description": "Human-readable description of the tool." },
+          "parameters": { "type": "object", "description": "JSON Schema for tool parameters." }
+        },
+        "required": ["name"],
+        "additionalProperties": true
+      },
+      "description": "WebMCP tools discovered on the page. Present only for web platform when the page exposes a WebMCP bridge."
     }
   },
 
@@ -345,6 +369,24 @@
           "description": "Human-readable override for the role label (ARIA aria-roledescription)."
         }
       }
+    },
+
+    "windowInfo": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Window title." },
+        "pid": { "type": ["integer", "null"], "description": "OS process ID." },
+        "foreground": { "type": "boolean", "description": "Whether this is the foreground (focused) window." },
+        "bounds": {
+          "oneOf": [
+            { "$ref": "#/$defs/rect" },
+            { "type": "null" }
+          ],
+          "description": "Window bounding rectangle, or null if unknown."
+        },
+        "url": { "type": "string", "description": "Page URL (web platform only)." }
+      },
+      "additionalProperties": true
     },
 
     "platformWindows": {

@@ -1,13 +1,12 @@
 """CUP MCP Server — Computer Use Protocol tools for AI agents.
 
-Exposes tools for UI accessibility tree capture, element search,
-action execution, batch workflows, keyboard shortcuts, and screenshots.
+Exposes simple, focused tools for UI tree capture, element search,
+action execution, and screenshots.
 """
 
 from __future__ import annotations
 
 import json
-from typing import Literal
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.types import Image
@@ -19,25 +18,35 @@ mcp = FastMCP(
     name="cup",
     instructions=(
         "CUP (Computer Use Protocol) gives you access to the UI accessibility "
-        "tree of the user's computer. Use get_accessibility_tree to see what's "
-        "on screen, then execute_action or press_keys to interact with elements. "
-        "Element IDs (e.g., 'e14') are ephemeral — they are only valid for the "
-        "most recent tree snapshot. After any action, call get_accessibility_tree "
-        "again to get fresh IDs.\n\n"
-        "IMPORTANT: Choose the smallest scope for your needs:\n"
-        "- 'overview' for situational awareness (~5-15 lines, no tree)\n"
-        "- 'foreground' (default) to interact with the active window (~60-210 lines)\n"
-        "- 'desktop' for desktop icons and widgets (~10-50 lines)\n"
-        "- 'full' only when you need multiple windows at once (~300-1000+ lines)\n\n"
-        "Actions (execute_action, press_keys) do NOT return a tree. "
-        "You decide when to re-capture and at what scope.\n\n"
-        "Use find_element to search for specific elements by role, name, or state "
-        "without parsing the full tree text.\n\n"
-        "Use batch_actions to execute multiple actions in a single call "
-        "without re-capturing the tree between each step.\n\n"
-        "Use screenshot to capture a visual snapshot of the screen when you need "
-        "to see colors, images, or layout details that the accessibility tree "
-        "doesn't capture."
+        "tree of the user's computer.\n\n"
+
+        "WORKFLOW — follow this pattern:\n"
+        "1. get_foreground to capture the active window's UI\n"
+        "2. find_element to locate specific elements (PREFERRED over re-capturing)\n"
+        "3. execute_action to interact (click, type, press_keys, etc.)\n"
+        "4. Re-capture ONLY after actions change the UI\n\n"
+
+        "TOOLS:\n"
+        "- get_foreground() — active window tree + window list (most common)\n"
+        "- get_tree(app) — specific app by title (when not in foreground)\n"
+        "- get_overview() — just the window list, near-instant\n"
+        "- get_desktop() — desktop icons and widgets\n"
+        "- find_element(role/name/state) — search last tree without re-capturing\n"
+        "- execute_action(action, ...) — interact with elements or press keys\n"
+        "- screenshot(region) — visual context when tree isn't enough\n\n"
+
+        "IMPORTANT — minimize token usage:\n"
+        "- Use find_element(name=...) to locate elements — NOT repeated tree captures\n"
+        "- Use get_overview() to discover what apps are open\n"
+        "- Use get_tree(app='...') to target a specific app\n"
+        "- get_foreground() is your default starting point\n\n"
+
+        "Element IDs (e.g., 'e14') are ephemeral — only valid for the most "
+        "recent tree snapshot. After any action, re-capture before using IDs.\n\n"
+
+        "Use execute_action(action='press_keys', keys='ctrl+s') for keyboard shortcuts.\n\n"
+
+        "Use screenshot when you need visual context (colors, images, layout)."
     ),
 )
 
@@ -56,17 +65,12 @@ def _get_session() -> cup.Session:
 
 
 # ---------------------------------------------------------------------------
-# Tools
+# Tree capture tools
 # ---------------------------------------------------------------------------
 
 @mcp.tool()
-def get_accessibility_tree(
-    scope: Literal["overview", "foreground", "desktop", "full"] = "foreground",
-    app: str | None = None,
-    max_depth: int = 0,
-    detail: Literal["standard", "minimal", "full"] = "standard",
-) -> str:
-    """Capture the UI accessibility tree of the user's screen.
+def get_foreground() -> str:
+    """Capture the foreground (active) window's accessibility tree.
 
     Returns a structured text representation where each UI element has an ID
     (e.g., 'e14') that can be used with execute_action. The format shows:
@@ -75,63 +79,102 @@ def get_accessibility_tree(
 
     Indentation shows the element hierarchy.
 
+    Also includes a window list in the header showing all open apps.
+    This is the primary tool for interacting with the current app's UI.
+
     Element IDs are ephemeral — they are only valid for THIS snapshot.
     After executing any action, you MUST call this again for fresh IDs.
-
-    Scopes (choose the smallest scope that serves your need):
-
-        overview   — Window list only. NO tree, NO element IDs. Near-instant.
-                     ~5-15 lines. Use to check what apps are open.
-        foreground — (default) Foreground window tree + window list in header.
-                     ~60-210 lines. Use when you need to interact with the
-                     active app's UI elements.
-        desktop    — Desktop surface only (icons, widgets).
-                     ~10-50 lines. Use to see/launch desktop items.
-        full       — All windows tree. ~300-1000+ lines.
-                     Rarely needed. Use only for multi-window coordination.
-
-    Detail levels (control pruning aggressiveness):
-
-        standard — (default) Prune unnamed generics, decorative images,
-                   empty text, offscreen noise. Good balance of detail
-                   and token efficiency.
-        minimal  — Keep only interactive elements (with actions) and their
-                   ancestors. Dramatically reduces token count for large trees.
-        full     — No pruning at all. Every node from the raw tree is included.
-                   Use when you need complete structural information.
-
-    Args:
-        scope: Capture scope (see above).
-        app: Filter windows by title (only used with scope="full").
-        max_depth: Maximum tree depth (0 = unlimited).
-        detail: Pruning level (see above).
     """
     session = _get_session()
-    depth = max_depth if max_depth > 0 else 999
     return session.capture(
-        scope=scope,
-        app=app if scope == "full" else None,
-        max_depth=depth,
+        scope="foreground",
+        max_depth=999,
         compact=True,
-        detail=detail,
+        detail="standard",
     )
 
 
 @mcp.tool()
+def get_tree(app: str) -> str:
+    """Capture a specific app's window accessibility tree by title.
+
+    Use this when you need to interact with a window that is NOT in the
+    foreground, or when you know the exact app you want by name.
+
+    The 'app' parameter is a case-insensitive substring match against
+    window titles (e.g., "Spotify", "Firefox", "VS Code").
+
+    Returns the same compact format as get_foreground, with element IDs
+    that can be used with execute_action.
+
+    Element IDs are ephemeral — only valid for THIS snapshot.
+
+    Args:
+        app: Target app by window title (case-insensitive substring match).
+    """
+    session = _get_session()
+    return session.capture(
+        scope="full",
+        app=app,
+        max_depth=999,
+        compact=True,
+        detail="standard",
+    )
+
+
+@mcp.tool()
+def get_desktop() -> str:
+    """Capture the desktop surface (icons, widgets, shortcuts).
+
+    Use this to see and interact with desktop items. Falls back to a
+    window overview if the platform has no desktop concept.
+
+    Returns the same compact format with element IDs for execute_action.
+
+    Element IDs are ephemeral — only valid for THIS snapshot.
+    """
+    session = _get_session()
+    return session.capture(
+        scope="desktop",
+        max_depth=999,
+        compact=True,
+        detail="standard",
+    )
+
+
+@mcp.tool()
+def get_overview() -> str:
+    """List all open windows. Near-instant, no tree walking.
+
+    Returns a lightweight window list showing app names, PIDs, and bounds.
+    No element IDs are returned (no tree walking is performed).
+
+    Use this to quickly discover what apps are open before targeting
+    a specific one with get_tree(app='...').
+    """
+    session = _get_session()
+    return session.capture(scope="overview", compact=True)
+
+
+# ---------------------------------------------------------------------------
+# Action tools
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
 def execute_action(
-    element_id: str,
     action: str,
+    element_id: str | None = None,
     value: str | None = None,
     direction: str | None = None,
+    keys: str | None = None,
 ) -> str:
-    """Execute an action on a UI element identified by its ID.
+    """Execute an action on a UI element or send a keyboard shortcut.
 
-    Use element IDs from the most recent get_accessibility_tree call.
-    Only use actions that appear in the element's [actions] list.
+    IMPORTANT: Element IDs are only valid from the most recent tree capture
+    (get_foreground, get_tree, etc.). After executing any action, re-capture
+    for fresh IDs.
 
-    After execution, call get_accessibility_tree to see the updated UI.
-
-    Supported actions:
+    Element actions (require element_id):
         click      — Click/invoke the element
         rightclick — Right-click to open context menu
         doubleclick— Double-click the element
@@ -146,13 +189,43 @@ def execute_action(
         decrement  — Decrement a slider/spinbutton
         focus      — Move keyboard focus to the element
 
+    Keyboard shortcut (no element_id needed):
+        press_keys — Send a keyboard shortcut (pass combo in 'keys')
+                     Examples: "enter", "ctrl+s", "ctrl+shift+p", "alt+f4"
+
     Args:
-        element_id: Element ID from the tree (e.g., "e14").
-        action: The action to perform (must be in the element's [actions]).
+        action: The action to perform.
+        element_id: Element ID from the tree (e.g., "e14"). Required for
+                    all actions except press_keys.
         value: Text for 'type' or 'setvalue' actions.
         direction: Direction for 'scroll' action (up/down/left/right).
+        keys: Key combination for 'press_keys' action (e.g., "ctrl+s").
     """
     session = _get_session()
+
+    # Handle press_keys action
+    if action == "press_keys":
+        if not keys:
+            return json.dumps({
+                "success": False,
+                "message": "",
+                "error": "press_keys action requires the 'keys' parameter "
+                         "(e.g., keys='ctrl+s').",
+            })
+        result = session.press_keys(keys)
+        return json.dumps({
+            "success": result.success,
+            "message": result.message,
+            "error": result.error,
+        })
+
+    # All other actions require element_id
+    if not element_id:
+        return json.dumps({
+            "success": False,
+            "message": "",
+            "error": f"Action '{action}' requires the 'element_id' parameter.",
+        })
 
     # Build params dict from the optional arguments
     params: dict = {}
@@ -170,68 +243,60 @@ def execute_action(
     })
 
 
-@mcp.tool()
-def press_keys(keys: str) -> str:
-    """Send a keyboard shortcut to the currently focused window.
-
-    After execution, call get_accessibility_tree to see the updated UI.
-
-    Key format: modifier keys joined with '+'. Examples:
-        "enter", "escape", "tab", "space"
-        "ctrl+s", "ctrl+shift+p", "alt+f4"
-        "f1", "f5", "delete", "backspace"
-        Single characters: "a", "1", "/"
-
-    Args:
-        keys: Key combination string (e.g., "ctrl+s").
-    """
-    session = _get_session()
-    result = session.press_keys(keys)
-
-    return json.dumps({
-        "success": result.success,
-        "message": result.message,
-        "error": result.error,
-    })
-
+# ---------------------------------------------------------------------------
+# Search tool
+# ---------------------------------------------------------------------------
 
 @mcp.tool()
 def find_element(
+    query: str | None = None,
     role: str | None = None,
     name: str | None = None,
     state: str | None = None,
 ) -> str:
     """Search the last captured tree for elements matching criteria.
 
-    Searches the pruned tree (same elements you see from
-    get_accessibility_tree). If no tree has been captured yet,
-    auto-captures the foreground window.
+    Searches the FULL tree (including elements not shown in compact output)
+    with semantic matching and relevance ranking. Results are sorted by
+    relevance — best matches first.
 
-    All criteria are optional but at least one should be provided.
-    When multiple criteria are given, ALL must match (AND logic).
+    If no tree has been captured yet in this session, auto-captures the
+    foreground window.
 
-    Match behavior:
-        role  — Exact match (e.g., "button", "textbox", "link")
-        name  — Case-insensitive substring (e.g., "Save" matches "Save As...")
-        state — Exact match on a state (e.g., "focused", "disabled", "checked")
+    QUERY MODE (recommended):
+        Pass a freeform ``query`` describing what you're looking for.
+        The query is automatically parsed into role and name signals.
 
-    Returns matching elements in compact format with their element IDs.
-    Use these IDs with execute_action.
+        Examples:
+            query="the play button"     -> finds buttons with "play" in the name
+            query="search input"        -> finds textbox/combobox/searchbox elements
+            query="volume slider"       -> finds sliders with "volume" in the name
+            query="Submit"              -> finds elements named "Submit"
+
+    STRUCTURED MODE (backward compatible):
+        Pass explicit role, name, and/or state filters.
+
+        role  — CUP role or natural language (e.g., "button", "search bar", "input")
+        name  — Fuzzy name match (token overlap, not just substring)
+        state — Exact state match (e.g., "focused", "disabled", "checked")
+
+    Both modes can be combined: query + state="focused" narrows to focused elements.
 
     Args:
-        role: Filter by role (exact match).
-        name: Filter by name (case-insensitive substring).
+        query: Freeform semantic query (e.g., "play button", "search input").
+        role: Filter by role (exact CUP role or natural language synonym).
+        name: Filter by name (fuzzy token matching).
         state: Filter by state (exact match).
     """
-    if role is None and name is None and state is None:
+    if query is None and role is None and name is None and state is None:
         return json.dumps({
             "success": False,
             "message": "",
-            "error": "At least one search criterion (role, name, or state) must be provided.",
+            "error": "At least one search parameter (query, role, name, or state) must be provided.",
         })
 
     session = _get_session()
-    matches = session.find_elements(role=role, name=name, state=state)
+    matches = session.find_elements(query=query, role=role, name=name, state=state)
 
     if not matches:
         return json.dumps({
@@ -247,62 +312,9 @@ def find_element(
     ] + lines) + "\n"
 
 
-@mcp.tool()
-def batch_actions(
-    actions: list[dict],
-) -> str:
-    """Execute a sequence of actions, stopping on first failure.
-
-    Each action in the list is a dict with:
-
-    Element actions (use element IDs from the last get_accessibility_tree):
-        {"element_id": "e14", "action": "click"}
-        {"element_id": "e5", "action": "type", "value": "hello"}
-        {"element_id": "e3", "action": "scroll", "direction": "down"}
-
-    Keyboard shortcuts (no element_id needed):
-        {"action": "press_keys", "keys": "ctrl+s"}
-        {"action": "press_keys", "keys": "enter"}
-
-    Executes actions in order. If any action fails, execution stops
-    and the results up to that point are returned.
-
-    After execution, call get_accessibility_tree to see the updated UI.
-
-    Args:
-        actions: List of action spec dicts to execute in order.
-    """
-    if not actions:
-        return json.dumps({
-            "success": False,
-            "message": "",
-            "error": "No actions provided.",
-        })
-
-    session = _get_session()
-    results = session.batch_execute(actions)
-
-    summary = []
-    all_success = True
-    for i, result in enumerate(results):
-        entry: dict = {
-            "step": i + 1,
-            "success": result.success,
-            "message": result.message,
-        }
-        if result.error:
-            entry["error"] = result.error
-        summary.append(entry)
-        if not result.success:
-            all_success = False
-
-    return json.dumps({
-        "success": all_success,
-        "executed": len(results),
-        "total": len(actions),
-        "results": summary,
-    })
-
+# ---------------------------------------------------------------------------
+# Screenshot
+# ---------------------------------------------------------------------------
 
 @mcp.tool()
 def screenshot(
@@ -310,13 +322,13 @@ def screenshot(
     region_y: int | None = None,
     region_w: int | None = None,
     region_h: int | None = None,
-) -> Image | str:
+) -> Image:
     """Capture a screenshot of the screen and return it as a PNG image.
 
     By default captures the full primary monitor. Optionally specify a
     region to capture only part of the screen.
 
-    Use this alongside get_accessibility_tree when you need visual context
+    Use this alongside tree capture tools when you need visual context
     (e.g., to see colors, images, or layout that the tree doesn't capture).
 
     Args:

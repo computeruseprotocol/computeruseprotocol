@@ -359,7 +359,110 @@ class TestMappings:
         missing = schema_actions - mapped_actions
         assert not missing, f"Actions in schema but not in mappings: {missing}"
 
+    def test_all_mapped_actions_in_schema(self, schema, mappings):
+        schema_actions = set(schema["$defs"]["action"]["enum"])
+        mapped_actions = {k for k in mappings["actions"] if not k.startswith("$")}
+        extra = mapped_actions - schema_actions
+        assert not extra, f"Actions in mappings but not in schema: {extra}"
+
     def test_mappings_cover_six_platforms(self, mappings):
         expected = {"windows", "macos", "linux", "web", "android", "ios"}
         first_role = next(k for k in mappings["roles"] if not k.startswith("$"))
         assert set(mappings["roles"][first_role].keys()) == expected
+
+
+# ---------------------------------------------------------------------------
+# Schema validation — scope, tools, windows fields
+# ---------------------------------------------------------------------------
+
+class TestScopeToolsWindows:
+    def test_envelope_with_scope_valid(self, schema):
+        envelope = {
+            "version": "0.1.0",
+            "platform": "windows",
+            "screen": {"w": 1920, "h": 1080},
+            "tree": [],
+            "scope": "foreground",
+        }
+        validate(instance=envelope, schema=schema)
+
+    def test_all_scopes_valid(self, schema):
+        for scope in ("overview", "foreground", "desktop", "full"):
+            envelope = {
+                "version": "0.1.0",
+                "platform": "windows",
+                "screen": {"w": 1920, "h": 1080},
+                "tree": [],
+                "scope": scope,
+            }
+            validate(instance=envelope, schema=schema)
+
+    def test_invalid_scope_rejected(self, schema):
+        envelope = {
+            "version": "0.1.0",
+            "platform": "windows",
+            "screen": {"w": 1920, "h": 1080},
+            "tree": [],
+            "scope": "imaginary",
+        }
+        with pytest.raises(ValidationError):
+            validate(instance=envelope, schema=schema)
+
+    def test_envelope_with_tools_valid(self, schema):
+        envelope = {
+            "version": "0.1.0",
+            "platform": "web",
+            "screen": {"w": 1920, "h": 1080},
+            "tree": [],
+            "tools": [{"name": "search", "description": "Find stuff"}],
+        }
+        validate(instance=envelope, schema=schema)
+
+    def test_envelope_with_empty_tools_valid(self, schema):
+        envelope = {
+            "version": "0.1.0",
+            "platform": "web",
+            "screen": {"w": 1280, "h": 720},
+            "tree": [],
+            "tools": [],
+        }
+        validate(instance=envelope, schema=schema)
+
+    def test_tool_without_name_rejected(self, schema):
+        envelope = {
+            "version": "0.1.0",
+            "platform": "web",
+            "screen": {"w": 1920, "h": 1080},
+            "tree": [],
+            "tools": [{"description": "Missing name"}],
+        }
+        with pytest.raises(ValidationError):
+            validate(instance=envelope, schema=schema)
+
+    def test_envelope_with_windows_valid(self, schema):
+        envelope = {
+            "version": "0.1.0",
+            "platform": "windows",
+            "screen": {"w": 1920, "h": 1080},
+            "tree": [],
+            "scope": "overview",
+            "windows": [
+                {"title": "VS Code", "pid": 1234, "foreground": True},
+                {"title": "Firefox", "pid": 5678, "foreground": False},
+            ],
+        }
+        validate(instance=envelope, schema=schema)
+
+    def test_build_envelope_with_scope_valid(self, schema):
+        envelope = build_envelope(
+            [], platform="windows", screen_w=1920, screen_h=1080,
+            scope="foreground",
+        )
+        validate(instance=envelope, schema=schema)
+
+    def test_build_envelope_with_tools_valid(self, schema):
+        envelope = build_envelope(
+            [], platform="web", screen_w=1280, screen_h=720,
+            tools=[{"name": "navigate"}],
+        )
+        validate(instance=envelope, schema=schema)

@@ -119,15 +119,36 @@ def _count_nodes(nodes: list[dict]) -> int:
     return total
 
 
+_CHROME_ROLES = frozenset({"scrollbar", "separator", "titlebar", "tooltip", "status"})
+
+
 def _should_skip(node: dict, parent: dict | None, siblings: int) -> bool:
-    """Decide if a node should be pruned."""
+    """Decide if a node should be pruned (entire subtree is dropped)."""
     role = node["role"]
     name = node.get("name", "")
     states = node.get("states", [])
 
-    # Skip offscreen nodes only if they have no name and no actions
-    # (scrolled-away content like chat messages should be kept)
-    if "offscreen" in states and not name:
+    # Skip window chrome / decorative roles (and their entire subtrees).
+    # Scrollbar: the parent container already has [scroll] — agents never
+    #   click scrollbar thumbs/tracks.
+    # Separator: pure visual decoration, no semantic content.
+    # Titlebar: minimize/maximize/close — agents use press_keys instead.
+    # Tooltip: transient flyouts, rarely actionable.
+    # Status: read-only info (line numbers, encoding, git branch) — agents
+    #   can still find these via find_element on the raw tree if needed.
+    if role in _CHROME_ROLES:
+        return True
+
+    # Skip zero-size elements — invisible regardless of other properties
+    bounds = node.get("bounds")
+    if bounds and (bounds.get("w", 1) == 0 or bounds.get("h", 1) == 0):
+        return True
+
+    # Skip offscreen nodes that have no meaningful actions — they can't be
+    # interacted with until scrolled into view and add no actionable info.
+    # Offscreen buttons/links/inputs ARE kept so the LLM knows what's
+    # available after scrolling.
+    if "offscreen" in states:
         actions = node.get("actions", [])
         meaningful_actions = [a for a in actions if a != "focus"]
         if not meaningful_actions:
@@ -157,6 +178,11 @@ def _should_hoist(node: dict) -> bool:
     if role == "generic" and not name:
         return True
 
+    # Unnamed region nodes — very common in Electron/Chromium apps where
+    # nested <div> wrappers get exposed as UIA regions.  Pure noise.
+    if role == "region" and not name:
+        return True
+
     # Unnamed group nodes without meaningful actions are structural wrappers.
     # On Windows, these map to Pane->generic and get hoisted above.
     # On macOS, AXGroup is used for both semantic and structural containers,
@@ -171,36 +197,135 @@ def _should_hoist(node: dict) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Viewport clipping helpers
+# ---------------------------------------------------------------------------
+
+def _is_outside_viewport(child_bounds: dict, viewport: dict) -> bool:
+    """Return True if child_bounds falls entirely outside the viewport rect."""
+    return (
+        child_bounds["x"] + child_bounds["w"] <= viewport["x"]          # fully left
+        or child_bounds["x"] >= viewport["x"] + viewport["w"]           # fully right
+        or child_bounds["y"] + child_bounds["h"] <= viewport["y"]       # fully above
+        or child_bounds["y"] >= viewport["y"] + viewport["h"]           # fully below
+    )
+
+
+def _clip_direction(child_bounds: dict, viewport: dict) -> str:
+    """Return 'above', 'below', 'left', or 'right' for a clipped child."""
+    if child_bounds["y"] + child_bounds["h"] <= viewport["y"]:
+        return "above"
+    if child_bounds["y"] >= viewport["y"] + viewport["h"]:
+        return "below"
+    if child_bounds["x"] + child_bounds["w"] <= viewport["x"]:
+        return "left"
+    return "right"
+
+
+def _is_scrollable(node: dict) -> bool:
+    """Check if a node is a scrollable container."""
+    return "scroll" in node.get("actions", [])
+
+
+def _intersect_viewports(bounds: dict, viewport: dict | None) -> dict:
+    """Intersect a scrollable container's bounds with its parent viewport.
+
+    A scrollable child may report bounds larger than its visible area (e.g. a
+    grid reporting 1888px height inside a 398px list). Intersecting ensures
+    the effective viewport is never larger than the parent's visible region.
+    """
+    if viewport is None:
+        return bounds
+    x1 = max(bounds["x"], viewport["x"])
+    y1 = max(bounds["y"], viewport["y"])
+    x2 = min(bounds["x"] + bounds["w"], viewport["x"] + viewport["w"])
+    y2 = min(bounds["y"] + bounds["h"], viewport["y"] + viewport["h"])
+    return {"x": x1, "y": y1, "w": max(0, x2 - x1), "h": max(0, y2 - y1)}
+
+
+# ---------------------------------------------------------------------------
 # JSON tree pruning
 # ---------------------------------------------------------------------------
 
-def _prune_node(node: dict, parent: dict | None, siblings: int) -> list[dict]:
+def _prune_node(
+    node: dict,
+    parent: dict | None,
+    siblings: int,
+    viewport: dict | None = None,
+) -> list[dict]:
     """Prune a single node, returning 0 or more nodes to replace it.
 
     - Hoisted nodes are removed and their (pruned) children returned in place.
     - Skipped nodes are dropped entirely (with descendants).
+    - Viewport-clipped nodes are dropped with a count tracked on the
+      scrollable ancestor (emitted as a hint in compact output).
     - Normal nodes are kept with their children recursively pruned.
+
+    Args:
+        viewport: Bounds rect of the nearest scrollable ancestor, or None.
     """
     children = node.get("children", [])
 
     if _should_hoist(node):
         result = []
         for child in children:
-            result.extend(_prune_node(child, parent, len(children)))
+            result.extend(_prune_node(child, parent, len(children), viewport))
         return result
 
     if _should_skip(node, parent, siblings):
         return []
 
-    # Keep this node — prune its children recursively
+    # Determine the viewport for this node's children: if this node is a
+    # scrollable container with bounds, its bounds become the viewport.
+    # Intersect with the inherited viewport so a scrollable child can't
+    # expand beyond its parent's visible region (e.g. a grid that reports
+    # 1888px height inside a 398px-tall list).
+    child_viewport = viewport
+    if _is_scrollable(node) and node.get("bounds"):
+        child_viewport = _intersect_viewports(node["bounds"], viewport)
+
+    # Keep this node — prune its children recursively, clipping those
+    # that fall entirely outside the active viewport.
     pruned_children = []
+    clipped = {"above": 0, "below": 0, "left": 0, "right": 0}
+    has_clipped = False
+
     for child in children:
-        pruned_children.extend(_prune_node(child, node, len(children)))
+        child_bounds = child.get("bounds")
+        # Clip children outside the viewport of a scrollable container
+        if child_viewport and child_bounds and _is_outside_viewport(child_bounds, child_viewport):
+            direction = _clip_direction(child_bounds, child_viewport)
+            clipped[direction] += _count_nodes([child])
+            has_clipped = True
+            continue
+        pruned_children.extend(
+            _prune_node(child, node, len(children), child_viewport)
+        )
+
+    # Single-child structural collapse: unnamed structural containers that
+    # ended up wrapping a single child after pruning (and carry no actions
+    # of their own) are pure wrappers — replace them with the child.
+    if (len(pruned_children) == 1
+            and node["role"] in _COLLAPSIBLE_ROLES
+            and not node.get("name")
+            and not _has_meaningful_actions(node)):
+        return pruned_children
 
     pruned = {k: v for k, v in node.items() if k != "children"}
     if pruned_children:
         pruned["children"] = pruned_children
+    if has_clipped:
+        pruned["_clipped"] = clipped
     return [pruned]
+
+
+# Structural container roles eligible for single-child collapse.
+# When an unnamed node with one of these roles ends up with exactly one
+# child after pruning (and has no actions of its own), it's a pure wrapper
+# and the child is hoisted in its place.
+_COLLAPSIBLE_ROLES = frozenset({
+    "region", "document", "main", "complementary", "navigation",
+    "search", "banner", "contentinfo", "form",
+})
 
 
 def _has_meaningful_actions(node: dict) -> bool:
@@ -234,7 +359,12 @@ def _prune_minimal_node(node: dict) -> dict | None:
     return None
 
 
-def prune_tree(tree: list[dict], *, detail: Detail = "standard") -> list[dict]:
+def prune_tree(
+    tree: list[dict],
+    *,
+    detail: Detail = "standard",
+    screen: dict | None = None,
+) -> list[dict]:
     """Apply pruning to a CUP tree, returning a new pruned tree.
 
     Args:
@@ -246,6 +376,9 @@ def prune_tree(tree: list[dict], *, detail: Detail = "standard") -> list[dict]:
                          focus) and their ancestors. Dramatically reduces
                          token count.
             "full"     — No pruning; return every node from the raw tree.
+        screen: Screen dimensions dict with "w" and "h" keys. When provided,
+                elements entirely outside the screen bounds are clipped even
+                if no scrollable ancestor is present.
     """
     if detail == "full":
         return copy.deepcopy(tree)
@@ -258,10 +391,15 @@ def prune_tree(tree: list[dict], *, detail: Detail = "standard") -> list[dict]:
                 result.append(pruned)
         return result
 
-    # "standard" — existing behavior
+    # "standard" — use screen as baseline viewport so elements far offscreen
+    # (e.g. in web-based apps with virtual scroll) are clipped even when no
+    # ancestor exposes the "scroll" action.
+    screen_viewport = None
+    if screen:
+        screen_viewport = {"x": 0, "y": 0, "w": screen["w"], "h": screen["h"]}
     result = []
     for root in tree:
-        result.extend(_prune_node(root, None, len(tree)))
+        result.extend(_prune_node(root, None, len(tree), viewport=screen_viewport))
     return result
 
 
@@ -328,12 +466,44 @@ def _emit_compact(node: dict, depth: int, lines: list[str],
     for child in node.get("children", []):
         _emit_compact(child, depth + 1, lines, counter)
 
+    # Emit hint for viewport-clipped children
+    clipped = node.get("_clipped")
+    if clipped:
+        above = clipped.get("above", 0)
+        below = clipped.get("below", 0)
+        left = clipped.get("left", 0)
+        right = clipped.get("right", 0)
+        v_total = above + below
+        h_total = left + right
+        total = v_total + h_total
+        if total > 0:
+            directions = []
+            if above > 0:
+                directions.append("up")
+            if below > 0:
+                directions.append("down")
+            if left > 0:
+                directions.append("left")
+            if right > 0:
+                directions.append("right")
+            hint_indent = "  " * (depth + 1)
+            lines.append(
+                f"{hint_indent}# {total} more items — scroll {'/'.join(directions)} to see"
+            )
+
+
+# Maximum output size in characters. Prevents token-limit explosions when
+# agents accidentally request very large trees. Kept well under typical
+# MCP host limits (~100K) to leave room for JSON wrapping and other context.
+MAX_OUTPUT_CHARS = 40_000
+
 
 def serialize_compact(
     envelope: dict,
     *,
     window_list: list[dict] | None = None,
     detail: Detail = "standard",
+    max_chars: int = MAX_OUTPUT_CHARS,
 ) -> str:
     """Serialize a CUP envelope to compact LLM-friendly text.
 
@@ -346,9 +516,11 @@ def serialize_compact(
         window_list: Optional list of open windows to include in header
                      for situational awareness (used by foreground scope).
         detail: Pruning level ("standard", "minimal", or "full").
+        max_chars: Hard character limit for output. When exceeded, the
+                   output is truncated with a diagnostic message.
     """
     total_before = _count_nodes(envelope["tree"])
-    pruned = prune_tree(envelope["tree"], detail=detail)
+    pruned = prune_tree(envelope["tree"], detail=detail, screen=envelope.get("screen"))
 
     lines: list[str] = []
     counter = [0]
@@ -378,4 +550,20 @@ def serialize_compact(
 
     header_lines.append("")
 
-    return "\n".join(header_lines + lines) + "\n"
+    output = "\n".join(header_lines + lines) + "\n"
+
+    # Hard truncation safety net
+    if max_chars > 0 and len(output) > max_chars:
+        truncated = output[:max_chars]
+        # Cut at last newline to avoid partial lines
+        last_nl = truncated.rfind("\n")
+        if last_nl > 0:
+            truncated = truncated[:last_nl]
+        truncated += (
+            "\n\n# OUTPUT TRUNCATED — exceeded character limit.\n"
+            "# Use find_element(name=...) to locate specific elements instead.\n"
+            "# Or use get_tree(app='<title>') to target a specific window.\n"
+        )
+        return truncated
+
+    return output

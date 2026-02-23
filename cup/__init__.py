@@ -133,6 +133,7 @@ class Session:
         self._adapter = get_adapter(platform)
         self._executor = ActionExecutor(self._adapter)
         self._last_tree: list[dict] | None = None
+        self._last_raw_tree: list[dict] | None = None
 
     def capture(
         self,
@@ -177,6 +178,7 @@ class Session:
                 "platform": self._adapter.platform_name,
                 "screen": {"w": sw, "h": sh},
                 "scope": "overview",
+                "tree": [],
                 "windows": window_list,
             }
 
@@ -208,6 +210,7 @@ class Session:
                     "platform": self._adapter.platform_name,
                     "screen": {"w": sw, "h": sh},
                     "scope": "overview",
+                    "tree": [],
                     "windows": window_list,
                 }
             windows = [desktop_win]
@@ -248,7 +251,8 @@ class Session:
             tools=tools,
         )
 
-        # Store pruned tree for find_elements()
+        # Store raw tree for semantic search + pruned tree for compact output
+        self._last_raw_tree = envelope["tree"]
         self._last_tree = prune_tree(envelope["tree"], detail=detail)
 
         if compact:
@@ -282,66 +286,41 @@ class Session:
     def find_elements(
         self,
         *,
+        query: str | None = None,
         role: str | None = None,
         name: str | None = None,
         state: str | None = None,
+        limit: int = 5,
     ) -> list[dict]:
         """Search the last captured tree for matching elements.
 
-        Searches the pruned tree (matches what agents see in compact text).
-        If no tree has been captured yet, auto-captures foreground.
+        Searches the full unpruned tree with semantic role matching,
+        fuzzy name matching, and relevance ranking.
 
         Args:
-            role: Exact role match (e.g., "button", "textbox").
-            name: Case-insensitive substring match on element name.
-            state: Exact match on a state (e.g., "focused", "disabled").
+            query: Freeform semantic query (e.g., "play button", "search input").
+            role: Role filter — exact CUP role or synonym (e.g., "search bar").
+            name: Name filter — fuzzy token matching.
+            state: State filter — exact match (e.g., "focused", "disabled").
+            limit: Maximum results to return (default 5).
 
         Returns:
-            List of matching CUP node dicts (without children).
+            List of matching CUP node dicts (without children), ranked by relevance.
         """
-        if self._last_tree is None:
+        if self._last_raw_tree is None:
             self.capture(scope="foreground", compact=True)
 
-        matches: list[dict] = []
-        self._search_tree(
-            self._last_tree, role=role, name=name, state=state, results=matches,
+        from cup.search import search_tree
+
+        results = search_tree(
+            self._last_raw_tree,
+            query=query,
+            role=role,
+            name=name,
+            state=state,
+            limit=limit,
         )
-        return matches
-
-    def _search_tree(
-        self,
-        nodes: list[dict],
-        *,
-        role: str | None,
-        name: str | None,
-        state: str | None,
-        results: list[dict],
-    ) -> None:
-        for node in nodes:
-            if self._node_matches(node, role=role, name=name, state=state):
-                match = {k: v for k, v in node.items() if k != "children"}
-                results.append(match)
-            children = node.get("children", [])
-            if children:
-                self._search_tree(
-                    children, role=role, name=name, state=state, results=results,
-                )
-
-    @staticmethod
-    def _node_matches(
-        node: dict,
-        *,
-        role: str | None,
-        name: str | None,
-        state: str | None,
-    ) -> bool:
-        if role is not None and node.get("role") != role:
-            return False
-        if name is not None and name.lower() not in node.get("name", "").lower():
-            return False
-        if state is not None and state not in node.get("states", []):
-            return False
-        return True
+        return [r.node for r in results]
 
     # -- batch_execute -----------------------------------------------------
 
@@ -355,16 +334,23 @@ class Session:
             {"element_id": "e14", "action": "click"}
             {"element_id": "e5", "action": "type", "value": "hello"}
             {"action": "press_keys", "keys": "ctrl+s"}
+            {"action": "wait", "ms": 500}
 
         Returns:
             List of ActionResults — one per executed action.
             If an action fails, the list stops at that failure.
         """
+        import time
+
         results: list[ActionResult] = []
         for spec in actions:
             action = spec.get("action", "")
 
-            if action == "press_keys":
+            if action == "wait":
+                ms = max(50, min(int(spec.get("ms", 500)), 5000))
+                time.sleep(ms / 1000)
+                result = ActionResult(success=True, message=f"Waited {ms}ms")
+            elif action == "press_keys":
                 keys = spec.get("keys", "")
                 if not keys:
                     results.append(ActionResult(
