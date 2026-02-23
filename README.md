@@ -1,9 +1,6 @@
 <p align="center">
   <a href="https://computeruseprotocol.com">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="assets/logo.svg">
-      <img src="assets/logo.svg" height="128">
-    </picture>
+    <img src="assets/cup.png" height="128">
   </a>
 </p>
 
