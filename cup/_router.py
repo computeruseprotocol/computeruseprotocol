@@ -39,15 +39,19 @@ def get_adapter(platform: str | None = None) -> PlatformAdapter:
 
     if platform == "windows":
         from cup.platforms.windows import WindowsAdapter
+
         adapter = WindowsAdapter()
     elif platform == "macos":
         from cup.platforms.macos import MacosAdapter
+
         adapter = MacosAdapter()
     elif platform == "linux":
         from cup.platforms.linux import LinuxAdapter
+
         adapter = LinuxAdapter()
     elif platform == "web":
         from cup.platforms.web import WebAdapter
+
         adapter = WebAdapter()
     else:
         raise RuntimeError(

@@ -27,15 +27,15 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from cup._router import detect_platform, get_adapter
+from cup.actions import ActionExecutor, ActionResult
 from cup.format import (
+    Detail,
     build_envelope,
+    prune_tree,
     serialize_compact,
     serialize_overview,
-    prune_tree,
-    Detail,
 )
-from cup._router import get_adapter, detect_platform
-from cup.actions import ActionExecutor, ActionResult
 
 Scope = Literal["overview", "foreground", "desktop", "full"]
 
@@ -76,31 +76,40 @@ def _get_default_session() -> Session:
 # Convenience functions (thin wrappers around Session)
 # ---------------------------------------------------------------------------
 
+
 def get_tree(*, max_depth: int = 999) -> dict:
     """Capture the full accessibility tree (all windows) as a CUP envelope dict."""
     return _get_default_session().capture(
-        scope="full", max_depth=max_depth, compact=False,
+        scope="full",
+        max_depth=max_depth,
+        compact=False,
     )
 
 
 def get_foreground_tree(*, max_depth: int = 999) -> dict:
     """Capture the foreground window's tree as a CUP envelope dict."""
     return _get_default_session().capture(
-        scope="foreground", max_depth=max_depth, compact=False,
+        scope="foreground",
+        max_depth=max_depth,
+        compact=False,
     )
 
 
 def get_compact(*, max_depth: int = 999) -> str:
     """Capture full tree and return CUP compact text (for LLM context)."""
     return _get_default_session().capture(
-        scope="full", max_depth=max_depth, compact=True,
+        scope="full",
+        max_depth=max_depth,
+        compact=True,
     )
 
 
 def get_foreground_compact(*, max_depth: int = 999) -> str:
     """Capture foreground window and return CUP compact text (for LLM context)."""
     return _get_default_session().capture(
-        scope="foreground", max_depth=max_depth, compact=True,
+        scope="foreground",
+        max_depth=max_depth,
+        compact=True,
     )
 
 
@@ -112,6 +121,7 @@ def get_overview() -> str:
 # ---------------------------------------------------------------------------
 # Session — stateful tree capture with action execution
 # ---------------------------------------------------------------------------
+
 
 class Session:
     """A CUP session that captures trees with element references for action execution.
@@ -221,16 +231,14 @@ class Session:
             windows = self._adapter.get_all_windows()
             if app:
                 app_lower = app.lower()
-                windows = [
-                    w for w in windows
-                    if app_lower in (w.get("title") or "").lower()
-                ]
+                windows = [w for w in windows if app_lower in (w.get("title") or "").lower()]
             app_name = None
             app_pid = None
             app_bundle_id = None
 
         tree, stats, refs = self._adapter.capture_tree(
-            windows, max_depth=max_depth,
+            windows,
+            max_depth=max_depth,
         )
         self._executor.set_refs(refs)
 
@@ -257,12 +265,17 @@ class Session:
 
         if compact:
             return serialize_compact(
-                envelope, window_list=window_list, detail=detail,
+                envelope,
+                window_list=window_list,
+                detail=detail,
             )
         return envelope
 
     def execute(
-        self, element_id: str, action: str, **params: Any,
+        self,
+        element_id: str,
+        action: str,
+        **params: Any,
     ) -> ActionResult:
         """Execute an action on an element from the last capture.
 
@@ -365,22 +378,27 @@ class Session:
             elif action == "press_keys":
                 keys = spec.get("keys", "")
                 if not keys:
-                    results.append(ActionResult(
-                        success=False, message="",
-                        error="press_keys action requires 'keys' parameter",
-                    ))
+                    results.append(
+                        ActionResult(
+                            success=False,
+                            message="",
+                            error="press_keys action requires 'keys' parameter",
+                        )
+                    )
                     break
                 result = self.press_keys(keys)
             else:
                 element_id = spec.get("element_id", "")
                 if not element_id:
-                    results.append(ActionResult(
-                        success=False, message="",
-                        error=f"Element action '{action}' requires 'element_id' parameter",
-                    ))
+                    results.append(
+                        ActionResult(
+                            success=False,
+                            message="",
+                            error=f"Element action '{action}' requires 'element_id' parameter",
+                        )
+                    )
                     break
-                params = {k: v for k, v in spec.items()
-                          if k not in ("element_id", "action")}
+                params = {k: v for k, v in spec.items() if k not in ("element_id", "action")}
                 result = self.execute(element_id, action, **params)
 
             results.append(result)

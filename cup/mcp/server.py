@@ -19,13 +19,11 @@ mcp = FastMCP(
     instructions=(
         "CUP (Computer Use Protocol) gives you access to the UI accessibility "
         "tree of the user's computer.\n\n"
-
         "WORKFLOW — follow this pattern:\n"
         "1. get_foreground to capture the active window's UI\n"
         "2. find_element to locate specific elements (PREFERRED over re-capturing)\n"
         "3. execute_action to interact (click, type, press_keys, etc.)\n"
         "4. Re-capture ONLY after actions change the UI\n\n"
-
         "TOOLS:\n"
         "- get_foreground() — active window tree + window list (most common)\n"
         "- get_tree(app) — specific app by title (when not in foreground)\n"
@@ -35,18 +33,14 @@ mcp = FastMCP(
         "- execute_action(action, ...) — interact with elements or press keys\n"
         "- launch_app(name) — launch an app by name with fuzzy matching\n"
         "- screenshot(region) — visual context when tree isn't enough\n\n"
-
         "IMPORTANT — minimize token usage:\n"
         "- Use find_element(name=...) to locate elements — NOT repeated tree captures\n"
         "- Use get_overview() to discover what apps are open\n"
         "- Use get_tree(app='...') to target a specific app\n"
         "- get_foreground() is your default starting point\n\n"
-
         "Element IDs (e.g., 'e14') are ephemeral — only valid for the most "
         "recent tree snapshot. After any action, re-capture before using IDs.\n\n"
-
         "Use execute_action(action='press_keys', keys='ctrl+s') for keyboard shortcuts.\n\n"
-
         "Use screenshot when you need visual context (colors, images, layout)."
     ),
 )
@@ -68,6 +62,7 @@ def _get_session() -> cup.Session:
 # ---------------------------------------------------------------------------
 # Tree capture tools
 # ---------------------------------------------------------------------------
+
 
 @mcp.tool()
 def get_foreground() -> str:
@@ -161,6 +156,7 @@ def get_overview() -> str:
 # Action tools
 # ---------------------------------------------------------------------------
 
+
 @mcp.tool()
 def execute_action(
     action: str,
@@ -207,26 +203,32 @@ def execute_action(
     # Handle press_keys action
     if action == "press_keys":
         if not keys:
-            return json.dumps({
-                "success": False,
-                "message": "",
-                "error": "press_keys action requires the 'keys' parameter "
-                         "(e.g., keys='ctrl+s').",
-            })
+            return json.dumps(
+                {
+                    "success": False,
+                    "message": "",
+                    "error": "press_keys action requires the 'keys' parameter "
+                    "(e.g., keys='ctrl+s').",
+                }
+            )
         result = session.press_keys(keys)
-        return json.dumps({
-            "success": result.success,
-            "message": result.message,
-            "error": result.error,
-        })
+        return json.dumps(
+            {
+                "success": result.success,
+                "message": result.message,
+                "error": result.error,
+            }
+        )
 
     # All other actions require element_id
     if not element_id:
-        return json.dumps({
-            "success": False,
-            "message": "",
-            "error": f"Action '{action}' requires the 'element_id' parameter.",
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "message": "",
+                "error": f"Action '{action}' requires the 'element_id' parameter.",
+            }
+        )
 
     # Build params dict from the optional arguments
     params: dict = {}
@@ -237,16 +239,19 @@ def execute_action(
 
     result = session.execute(element_id, action, **params)
 
-    return json.dumps({
-        "success": result.success,
-        "message": result.message,
-        "error": result.error,
-    })
+    return json.dumps(
+        {
+            "success": result.success,
+            "message": result.message,
+            "error": result.error,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Launch app tool
 # ---------------------------------------------------------------------------
+
 
 @mcp.tool()
 def launch_app(name: str) -> str:
@@ -265,16 +270,19 @@ def launch_app(name: str) -> str:
     """
     session = _get_session()
     result = session.launch_app(name)
-    return json.dumps({
-        "success": result.success,
-        "message": result.message,
-        "error": result.error,
-    })
+    return json.dumps(
+        {
+            "success": result.success,
+            "message": result.message,
+            "error": result.error,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Search tool
 # ---------------------------------------------------------------------------
+
 
 @mcp.tool()
 def find_element(
@@ -318,32 +326,43 @@ def find_element(
         state: Filter by state (exact match).
     """
     if query is None and role is None and name is None and state is None:
-        return json.dumps({
-            "success": False,
-            "message": "",
-            "error": "At least one search parameter (query, role, name, or state) must be provided.",
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "message": "",
+                "error": "At least one search parameter (query, role, name, or state) must be provided.",
+            }
+        )
 
     session = _get_session()
     matches = session.find_elements(query=query, role=role, name=name, state=state)
 
     if not matches:
-        return json.dumps({
-            "success": True,
-            "message": "No matching elements found.",
-            "matches": 0,
-        })
+        return json.dumps(
+            {
+                "success": True,
+                "message": "No matching elements found.",
+                "matches": 0,
+            }
+        )
 
     lines = [_format_line(node) for node in matches]
-    return "\n".join([
-        f"# {len(matches)} match{'es' if len(matches) != 1 else ''} found",
-        "",
-    ] + lines) + "\n"
+    return (
+        "\n".join(
+            [
+                f"# {len(matches)} match{'es' if len(matches) != 1 else ''} found",
+                "",
+            ]
+            + lines
+        )
+        + "\n"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Screenshot
 # ---------------------------------------------------------------------------
+
 
 @mcp.tool()
 def screenshot(
@@ -371,12 +390,14 @@ def screenshot(
     has_all = all(v is not None for v in region_params)
 
     if has_any and not has_all:
-        return json.dumps({
-            "success": False,
-            "message": "",
-            "error": "All region parameters (region_x, region_y, region_w, region_h) "
-                     "must be provided together, or none at all.",
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "message": "",
+                "error": "All region parameters (region_x, region_y, region_w, region_h) "
+                "must be provided together, or none at all.",
+            }
+        )
 
     region = None
     if has_all:
@@ -386,11 +407,13 @@ def screenshot(
     try:
         png_bytes = session.screenshot(region=region)
     except ImportError:
-        return json.dumps({
-            "success": False,
-            "message": "",
-            "error": "Screenshot support requires the 'mss' package. "
-                     "Install with: pip install cup[screenshot]",
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "message": "",
+                "error": "Screenshot support requires the 'mss' package. "
+                "Install with: pip install cup[screenshot]",
+            }
+        )
 
     return Image(data=png_bytes, format="png")

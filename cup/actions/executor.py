@@ -3,23 +3,39 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from cup._base import PlatformAdapter
     from cup.actions._handler import ActionHandler
 
 
-VALID_ACTIONS = frozenset({
-    "click", "collapse", "decrement", "dismiss", "doubleclick", "expand",
-    "focus", "increment", "longpress", "press_keys", "rightclick", "scroll",
-    "select", "setvalue", "toggle", "type",
-})
+VALID_ACTIONS = frozenset(
+    {
+        "click",
+        "collapse",
+        "decrement",
+        "dismiss",
+        "doubleclick",
+        "expand",
+        "focus",
+        "increment",
+        "longpress",
+        "press_keys",
+        "rightclick",
+        "scroll",
+        "select",
+        "setvalue",
+        "toggle",
+        "type",
+    }
+)
 
 
 @dataclass
 class ActionResult:
     """Result of an action execution."""
+
     success: bool
     message: str
     error: str | None = None
@@ -29,15 +45,19 @@ def _get_action_handler(platform_name: str) -> ActionHandler:
     """Lazily import and instantiate the action handler for the given platform."""
     if platform_name == "windows":
         from cup.actions._windows import WindowsActionHandler
+
         return WindowsActionHandler()
     elif platform_name == "macos":
         from cup.actions._macos import MacosActionHandler
+
         return MacosActionHandler()
     elif platform_name == "linux":
         from cup.actions._linux import LinuxActionHandler
+
         return LinuxActionHandler()
     elif platform_name == "web":
         from cup.actions._web import WebActionHandler
+
         return WebActionHandler()
     else:
         raise RuntimeError(
@@ -118,7 +138,7 @@ class ActionExecutor:
                     success=False,
                     message="",
                     error=f"Action 'scroll' requires 'direction' "
-                          f"(up/down/left/right), got: {direction!r}",
+                    f"(up/down/left/right), got: {direction!r}",
                 )
 
         native_ref = self._refs[element_id]

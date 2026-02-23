@@ -7,35 +7,46 @@ import json
 import os
 import time
 
-from cup._router import get_adapter, detect_platform
-from cup.format import build_envelope, serialize_compact, serialize_overview, prune_tree
+from cup._router import detect_platform, get_adapter
+from cup.format import build_envelope, prune_tree, serialize_compact, serialize_overview
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="CUP: Capture accessibility tree in Computer Use Protocol format")
-    parser.add_argument("--depth", type=int, default=0,
-                        help="Max tree depth (0 = unlimited)")
-    parser.add_argument("--scope", type=str, default=None,
-                        choices=["overview", "foreground", "desktop", "full"],
-                        help="Capture scope (default: foreground)")
-    parser.add_argument("--app", type=str, default=None,
-                        help="Filter to window/app title containing this string")
-    parser.add_argument("--json-out", type=str, default=None,
-                        help="Write pruned CUP JSON to file")
-    parser.add_argument("--full-json-out", type=str, default=None,
-                        help="Write full (unpruned) CUP JSON to file")
-    parser.add_argument("--compact-out", type=str, default=None,
-                        help="Write compact LLM text to file")
-    parser.add_argument("--compact", action="store_true",
-                        help="Print compact text to stdout")
-    parser.add_argument("--platform", type=str, default=None,
-                        choices=["windows", "macos", "linux", "web"],
-                        help="Force platform (default: auto-detect)")
-    parser.add_argument("--cdp-port", type=int, default=None,
-                        help="CDP port for web platform (default: 9222)")
-    parser.add_argument("--cdp-host", type=str, default=None,
-                        help="CDP host for web platform (default: localhost)")
+        description="CUP: Capture accessibility tree in Computer Use Protocol format"
+    )
+    parser.add_argument("--depth", type=int, default=0, help="Max tree depth (0 = unlimited)")
+    parser.add_argument(
+        "--scope",
+        type=str,
+        default=None,
+        choices=["overview", "foreground", "desktop", "full"],
+        help="Capture scope (default: foreground)",
+    )
+    parser.add_argument(
+        "--app", type=str, default=None, help="Filter to window/app title containing this string"
+    )
+    parser.add_argument("--json-out", type=str, default=None, help="Write pruned CUP JSON to file")
+    parser.add_argument(
+        "--full-json-out", type=str, default=None, help="Write full (unpruned) CUP JSON to file"
+    )
+    parser.add_argument(
+        "--compact-out", type=str, default=None, help="Write compact LLM text to file"
+    )
+    parser.add_argument("--compact", action="store_true", help="Print compact text to stdout")
+    parser.add_argument(
+        "--platform",
+        type=str,
+        default=None,
+        choices=["windows", "macos", "linux", "web"],
+        help="Force platform (default: auto-detect)",
+    )
+    parser.add_argument(
+        "--cdp-port", type=int, default=None, help="CDP port for web platform (default: 9222)"
+    )
+    parser.add_argument(
+        "--cdp-host", type=str, default=None, help="CDP host for web platform (default: localhost)"
+    )
     args = parser.parse_args()
 
     scope = args.scope or "foreground"
@@ -65,7 +76,10 @@ def main() -> None:
         print(f"Scope: overview ({len(window_list)} windows, {t_enum:.1f} ms)")
 
         overview_str = serialize_overview(
-            window_list, platform=platform, screen_w=sw, screen_h=sh,
+            window_list,
+            platform=platform,
+            screen_w=sw,
+            screen_h=sh,
         )
         if args.compact or args.compact_out:
             if args.compact:
@@ -85,24 +99,26 @@ def main() -> None:
     if scope == "foreground":
         windows = [adapter.get_foreground_window()]
         window_list = adapter.get_window_list()
-        print(f"Scope: foreground (\"{windows[0]['title']}\")")
+        print(f'Scope: foreground ("{windows[0]["title"]}")')
     elif scope == "desktop":
         desktop_win = adapter.get_desktop_window()
         if desktop_win is None:
             print("No desktop window found on this platform. Falling back to overview.")
             window_list = adapter.get_window_list()
             overview_str = serialize_overview(
-                window_list, platform=platform, screen_w=sw, screen_h=sh,
+                window_list,
+                platform=platform,
+                screen_w=sw,
+                screen_h=sh,
             )
             print(f"\n{overview_str}")
             return
         windows = [desktop_win]
-        print(f"Scope: desktop")
+        print("Scope: desktop")
     else:  # "full"
         windows = adapter.get_all_windows()
         if args.app:
-            windows = [w for w in windows
-                       if args.app.lower() in w["title"].lower()]
+            windows = [w for w in windows if args.app.lower() in w["title"].lower()]
             if not windows:
                 print(f"No window found matching '{args.app}'")
                 return
@@ -128,9 +144,15 @@ def main() -> None:
         tools = adapter.get_last_tools() or None
 
     envelope = build_envelope(
-        tree, platform=platform, scope=scope,
-        screen_w=sw, screen_h=sh, screen_scale=scale,
-        app_name=app_name, app_pid=app_pid, app_bundle_id=app_bundle_id,
+        tree,
+        platform=platform,
+        scope=scope,
+        screen_w=sw,
+        screen_h=sh,
+        screen_scale=scale,
+        app_name=app_name,
+        app_pid=app_pid,
+        app_bundle_id=app_bundle_id,
         tools=tools,
     )
 
@@ -139,7 +161,7 @@ def main() -> None:
     print(f"JSON size: {json_kb:.1f} KB")
 
     # -- Role distribution --
-    print(f"\nRole distribution (top 15):")
+    print("\nRole distribution (top 15):")
     for role, count in sorted(stats["roles"].items(), key=lambda kv: -kv[1])[:15]:
         print(f"  {role:45s} {count:6d}")
 
@@ -174,7 +196,9 @@ def main() -> None:
             with open(args.compact_out, "w", encoding="utf-8") as f:
                 f.write(compact_str)
             ratio = (1 - compact_kb / json_kb) * 100 if json_kb > 0 else 0
-            print(f"Compact written to {args.compact_out} ({compact_kb:.1f} KB, {ratio:.0f}% smaller)")
+            print(
+                f"Compact written to {args.compact_out} ({compact_kb:.1f} KB, {ratio:.0f}% smaller)"
+            )
 
 
 if __name__ == "__main__":

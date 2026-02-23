@@ -9,6 +9,8 @@ venv/
 
 # Environment
 .env
+.mcp.json
+.claude/
 
 # Runs / output data
 runs/
@@ -20,4 +22,3 @@ benchmark/
 # IDE
 .vscode/
 .idea/
-.mcp.json

@@ -6,7 +6,7 @@ import json
 import pathlib
 
 import pytest
-from jsonschema import validate, ValidationError
+from jsonschema import ValidationError, validate
 
 from cup.format import build_envelope
 
@@ -16,6 +16,7 @@ SCHEMA_DIR = pathlib.Path(__file__).resolve().parent.parent / "schema"
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def schema():
@@ -44,6 +45,7 @@ def _make_node(id: str, role: str, name: str = "", **kwargs) -> dict:
 # ---------------------------------------------------------------------------
 # Schema structure
 # ---------------------------------------------------------------------------
+
 
 class TestSchemaStructure:
     def test_schema_valid_json(self, schema):
@@ -85,6 +87,7 @@ class TestSchemaStructure:
 # ---------------------------------------------------------------------------
 # Schema validation — valid envelopes
 # ---------------------------------------------------------------------------
+
 
 class TestSchemaValidation:
     def test_minimal_envelope_valid(self, schema):
@@ -200,6 +203,7 @@ class TestSchemaValidation:
 # Schema validation — invalid envelopes
 # ---------------------------------------------------------------------------
 
+
 class TestSchemaRejection:
     def test_missing_version(self, schema):
         envelope = {
@@ -311,6 +315,7 @@ class TestSchemaRejection:
 # Example envelope — full schema validation
 # ---------------------------------------------------------------------------
 
+
 class TestExample:
     def test_example_validates_against_schema(self, example, schema):
         """The shipped example.json must be valid according to cup.schema.json."""
@@ -333,6 +338,7 @@ class TestExample:
 # ---------------------------------------------------------------------------
 # Mappings consistency
 # ---------------------------------------------------------------------------
+
 
 class TestMappings:
     def test_all_schema_roles_mapped(self, schema, mappings):
@@ -374,6 +380,7 @@ class TestMappings:
 # ---------------------------------------------------------------------------
 # Schema validation — scope, tools, windows fields
 # ---------------------------------------------------------------------------
+
 
 class TestScopeToolsWindows:
     def test_envelope_with_scope_valid(self, schema):
@@ -455,14 +462,20 @@ class TestScopeToolsWindows:
 
     def test_build_envelope_with_scope_valid(self, schema):
         envelope = build_envelope(
-            [], platform="windows", screen_w=1920, screen_h=1080,
+            [],
+            platform="windows",
+            screen_w=1920,
+            screen_h=1080,
             scope="foreground",
         )
         validate(instance=envelope, schema=schema)
 
     def test_build_envelope_with_tools_valid(self, schema):
         envelope = build_envelope(
-            [], platform="web", screen_w=1280, screen_h=720,
+            [],
+            platform="web",
+            screen_w=1280,
+            screen_h=720,
             tools=[{"name": "navigate"}],
         )
         validate(instance=envelope, schema=schema)

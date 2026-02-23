@@ -17,41 +17,40 @@ import concurrent.futures
 import itertools
 from typing import Any
 
+from AppKit import NSApplicationActivationPolicyRegular, NSArray, NSScreen, NSWorkspace
 from ApplicationServices import (
-    AXUIElementCreateApplication,
+    AXUIElementCopyActionNames,
     AXUIElementCopyAttributeValue,
     AXUIElementCopyMultipleAttributeValues,
-    AXUIElementCopyActionNames,
+    AXUIElementCreateApplication,
     AXUIElementIsAttributeSettable,
-    AXValueGetValue,
     AXValueGetType,
+    AXValueGetValue,
+    kAXChildrenAttribute,
+    kAXDescriptionAttribute,
+    kAXElementBusyAttribute,
+    kAXEnabledAttribute,
+    kAXErrorSuccess,
+    kAXExpandedAttribute,
+    kAXFocusedAttribute,
+    kAXFocusedWindowAttribute,
+    kAXHelpAttribute,
+    kAXIdentifierAttribute,
+    kAXMainWindowAttribute,
+    kAXModalAttribute,
+    kAXPositionAttribute,
     kAXRoleAttribute,
+    kAXSelectedAttribute,
+    kAXSizeAttribute,
     kAXSubroleAttribute,
     kAXTitleAttribute,
-    kAXDescriptionAttribute,
     kAXValueAttribute,
-    kAXPositionAttribute,
-    kAXSizeAttribute,
-    kAXChildrenAttribute,
-    kAXEnabledAttribute,
-    kAXFocusedAttribute,
-    kAXSelectedAttribute,
-    kAXExpandedAttribute,
-    kAXModalAttribute,
-    kAXElementBusyAttribute,
-    kAXIdentifierAttribute,
-    kAXHelpAttribute,
-    kAXFocusedWindowAttribute,
-    kAXWindowsAttribute,
-    kAXMainWindowAttribute,
-    kAXErrorSuccess,
     kAXValueCGPointType,
     kAXValueCGSizeType,
+    kAXWindowsAttribute,
 )
-from AppKit import NSWorkspace, NSScreen, NSApplicationActivationPolicyRegular, NSArray
 
 from cup._base import PlatformAdapter
-
 
 # ---------------------------------------------------------------------------
 # AXRole -> CUP role mapping
@@ -59,104 +58,104 @@ from cup._base import PlatformAdapter
 
 # Primary: AXRole string -> CUP role
 CUP_ROLES: dict[str, str] = {
-    "AXApplication":          "application",
-    "AXWindow":               "window",
-    "AXButton":               "button",
-    "AXCheckBox":             "checkbox",
-    "AXRadioButton":          "radio",
-    "AXComboBox":             "combobox",
-    "AXPopUpButton":          "combobox",
-    "AXTextField":            "textbox",
-    "AXTextArea":             "textbox",
-    "AXStaticText":           "text",
-    "AXImage":                "img",
-    "AXLink":                 "link",
-    "AXList":                 "list",
-    "AXOutline":              "tree",
-    "AXTable":                "table",
-    "AXTabGroup":             "tablist",
-    "AXSlider":               "slider",
-    "AXProgressIndicator":    "progressbar",
-    "AXMenu":                 "menu",
-    "AXMenuBar":              "menubar",
-    "AXMenuBarItem":          "menuitem",
-    "AXMenuItem":             "menuitem",
-    "AXToolbar":              "toolbar",
-    "AXScrollBar":            "scrollbar",
-    "AXScrollArea":           "generic",
-    "AXGroup":                "group",
-    "AXSplitGroup":           "group",
-    "AXSplitter":             "separator",
-    "AXHeading":              "heading",
-    "AXWebArea":              "document",
-    "AXCell":                 "cell",
-    "AXRow":                  "row",
-    "AXColumn":               "columnheader",
-    "AXSheet":                "alertdialog",
-    "AXDrawer":               "complementary",
-    "AXGrowArea":             "generic",
-    "AXValueIndicator":       "generic",
-    "AXIncrementor":          "spinbutton",
-    "AXHelpTag":              "tooltip",
-    "AXColorWell":            "button",
-    "AXDisclosureTriangle":   "button",
-    "AXDateField":            "textbox",
-    "AXBrowser":              "tree",
-    "AXBusyIndicator":        "progressbar",
-    "AXRuler":                "generic",
-    "AXRulerMarker":          "generic",
-    "AXRelevanceIndicator":   "progressbar",
-    "AXLevelIndicator":       "slider",
-    "AXLayoutArea":           "group",
-    "AXLayoutItem":           "generic",
-    "AXHandle":               "generic",
-    "AXMatte":                "generic",
-    "AXUnknown":              "generic",
-    "AXListMarker":           "text",
-    "AXMenuButton":           "button",
-    "AXRadioGroup":           "group",
+    "AXApplication": "application",
+    "AXWindow": "window",
+    "AXButton": "button",
+    "AXCheckBox": "checkbox",
+    "AXRadioButton": "radio",
+    "AXComboBox": "combobox",
+    "AXPopUpButton": "combobox",
+    "AXTextField": "textbox",
+    "AXTextArea": "textbox",
+    "AXStaticText": "text",
+    "AXImage": "img",
+    "AXLink": "link",
+    "AXList": "list",
+    "AXOutline": "tree",
+    "AXTable": "table",
+    "AXTabGroup": "tablist",
+    "AXSlider": "slider",
+    "AXProgressIndicator": "progressbar",
+    "AXMenu": "menu",
+    "AXMenuBar": "menubar",
+    "AXMenuBarItem": "menuitem",
+    "AXMenuItem": "menuitem",
+    "AXToolbar": "toolbar",
+    "AXScrollBar": "scrollbar",
+    "AXScrollArea": "generic",
+    "AXGroup": "group",
+    "AXSplitGroup": "group",
+    "AXSplitter": "separator",
+    "AXHeading": "heading",
+    "AXWebArea": "document",
+    "AXCell": "cell",
+    "AXRow": "row",
+    "AXColumn": "columnheader",
+    "AXSheet": "alertdialog",
+    "AXDrawer": "complementary",
+    "AXGrowArea": "generic",
+    "AXValueIndicator": "generic",
+    "AXIncrementor": "spinbutton",
+    "AXHelpTag": "tooltip",
+    "AXColorWell": "button",
+    "AXDisclosureTriangle": "button",
+    "AXDateField": "textbox",
+    "AXBrowser": "tree",
+    "AXBusyIndicator": "progressbar",
+    "AXRuler": "generic",
+    "AXRulerMarker": "generic",
+    "AXRelevanceIndicator": "progressbar",
+    "AXLevelIndicator": "slider",
+    "AXLayoutArea": "group",
+    "AXLayoutItem": "generic",
+    "AXHandle": "generic",
+    "AXMatte": "generic",
+    "AXUnknown": "generic",
+    "AXListMarker": "text",
+    "AXMenuButton": "button",
+    "AXRadioGroup": "group",
 }
 
 # Subrole refinements: (AXRole, AXSubrole) -> CUP role
 CUP_SUBROLE_OVERRIDES: dict[tuple[str, str], str] = {
     # AXGroup subroles
-    ("AXGroup", "AXApplicationAlert"):      "alert",
-    ("AXGroup", "AXApplicationDialog"):     "dialog",
-    ("AXGroup", "AXApplicationStatus"):     "status",
-    ("AXGroup", "AXLandmarkNavigation"):    "navigation",
-    ("AXGroup", "AXLandmarkSearch"):        "search",
-    ("AXGroup", "AXLandmarkRegion"):        "region",
-    ("AXGroup", "AXLandmarkMain"):          "main",
+    ("AXGroup", "AXApplicationAlert"): "alert",
+    ("AXGroup", "AXApplicationDialog"): "dialog",
+    ("AXGroup", "AXApplicationStatus"): "status",
+    ("AXGroup", "AXLandmarkNavigation"): "navigation",
+    ("AXGroup", "AXLandmarkSearch"): "search",
+    ("AXGroup", "AXLandmarkRegion"): "region",
+    ("AXGroup", "AXLandmarkMain"): "main",
     ("AXGroup", "AXLandmarkComplementary"): "complementary",
-    ("AXGroup", "AXLandmarkContentInfo"):   "contentinfo",
-    ("AXGroup", "AXLandmarkBanner"):        "banner",
-    ("AXGroup", "AXDocument"):              "document",
-    ("AXGroup", "AXWebApplication"):        "application",
-    ("AXGroup", "AXTab"):                   "tabpanel",
+    ("AXGroup", "AXLandmarkContentInfo"): "contentinfo",
+    ("AXGroup", "AXLandmarkBanner"): "banner",
+    ("AXGroup", "AXDocument"): "document",
+    ("AXGroup", "AXWebApplication"): "application",
+    ("AXGroup", "AXTab"): "tabpanel",
     # AXWindow subroles
-    ("AXWindow", "AXDialog"):               "dialog",
-    ("AXWindow", "AXFloatingWindow"):       "dialog",
-    ("AXWindow", "AXSystemDialog"):         "dialog",
+    ("AXWindow", "AXDialog"): "dialog",
+    ("AXWindow", "AXFloatingWindow"): "dialog",
+    ("AXWindow", "AXSystemDialog"): "dialog",
     ("AXWindow", "AXSystemFloatingWindow"): "dialog",
     # AXButton subroles
-    ("AXButton", "AXCloseButton"):          "button",
-    ("AXButton", "AXMinimizeButton"):       "button",
-    ("AXButton", "AXFullScreenButton"):     "button",
+    ("AXButton", "AXCloseButton"): "button",
+    ("AXButton", "AXMinimizeButton"): "button",
+    ("AXButton", "AXFullScreenButton"): "button",
     # AXRadioButton used as tab
-    ("AXRadioButton", "AXTabButton"):       "tab",
+    ("AXRadioButton", "AXTabButton"): "tab",
     # AXMenuItem subroles
-    ("AXMenuItem", "AXMenuItemCheckbox"):   "menuitemcheckbox",
-    ("AXMenuItem", "AXMenuItemRadio"):      "menuitemradio",
+    ("AXMenuItem", "AXMenuItemCheckbox"): "menuitemcheckbox",
+    ("AXMenuItem", "AXMenuItemRadio"): "menuitemradio",
     # AXTextField subroles
-    ("AXTextField", "AXSearchField"):       "searchbox",
-    ("AXTextField", "AXSecureTextField"):   "textbox",
+    ("AXTextField", "AXSearchField"): "searchbox",
+    ("AXTextField", "AXSecureTextField"): "textbox",
     # AXStaticText as status
     ("AXStaticText", "AXApplicationStatus"): "status",
     # AXRow in outlines -> treeitem (parity with Windows TreeItem)
-    ("AXRow", "AXOutlineRow"):              "treeitem",
+    ("AXRow", "AXOutlineRow"): "treeitem",
     # AXCheckBox as toggle switch
-    ("AXCheckBox", "AXToggle"):             "switch",
-    ("AXCheckBox", "AXSwitch"):             "switch",
+    ("AXCheckBox", "AXToggle"): "switch",
+    ("AXCheckBox", "AXSwitch"): "switch",
 }
 
 # Roles that accept text input
@@ -169,9 +168,18 @@ TOGGLE_ROLES = {"checkbox", "switch", "menuitemcheckbox"}
 # Chromium/Electron apps set AXExpanded on nearly every element, so we
 # restrict this to AX roles that genuinely expand/collapse.
 EXPANDABLE_AX_ROLES = {
-    "AXComboBox", "AXPopUpButton", "AXOutline", "AXDisclosureTriangle",
-    "AXMenu", "AXMenuItem", "AXMenuBarItem", "AXRow", "AXBrowser",
-    "AXSheet", "AXDrawer", "AXTabGroup",
+    "AXComboBox",
+    "AXPopUpButton",
+    "AXOutline",
+    "AXDisclosureTriangle",
+    "AXMenu",
+    "AXMenuItem",
+    "AXMenuBarItem",
+    "AXRow",
+    "AXBrowser",
+    "AXSheet",
+    "AXDrawer",
+    "AXTabGroup",
 }
 
 # AX roles where AXUIElementCopyActionNames is skipped for performance.
@@ -179,12 +187,26 @@ EXPANDABLE_AX_ROLES = {
 # (their only AX actions are AXScrollToVisible/AXShowMenu which we skip anyway).
 # Actions like "scroll" for AXScrollArea are derived from the role, not from AX.
 _SKIP_ACTIONS_AX_ROLES = {
-    "AXStaticText", "AXHeading", "AXColumn",
-    "AXScrollArea", "AXSplitGroup", "AXSplitter",
-    "AXGrowArea", "AXValueIndicator", "AXRuler", "AXRulerMarker",
-    "AXLayoutArea", "AXLayoutItem", "AXHandle", "AXMatte",
-    "AXUnknown", "AXListMarker", "AXBusyIndicator",
-    "AXRelevanceIndicator", "AXLevelIndicator", "AXWebArea",
+    "AXStaticText",
+    "AXHeading",
+    "AXColumn",
+    "AXScrollArea",
+    "AXSplitGroup",
+    "AXSplitter",
+    "AXGrowArea",
+    "AXValueIndicator",
+    "AXRuler",
+    "AXRulerMarker",
+    "AXLayoutArea",
+    "AXLayoutItem",
+    "AXHandle",
+    "AXMatte",
+    "AXUnknown",
+    "AXListMarker",
+    "AXBusyIndicator",
+    "AXRelevanceIndicator",
+    "AXLevelIndicator",
+    "AXWebArea",
     # Note: AXImage is NOT skipped — clickable images (e.g. avatars) have AXPress.
 }
 
@@ -196,24 +218,24 @@ _SKIP_ACTIONS_AX_ROLES = {
 # Attributes to batch-read per element via AXUIElementCopyMultipleAttributeValues.
 # Order matters — indices are used to unpack the results array.
 _BATCH_ATTRS_LIST = [
-    kAXRoleAttribute,           # 0
-    kAXSubroleAttribute,        # 1
-    kAXTitleAttribute,          # 2
-    kAXDescriptionAttribute,    # 3
-    kAXHelpAttribute,           # 4
-    kAXIdentifierAttribute,     # 5
-    kAXValueAttribute,          # 6
-    kAXEnabledAttribute,        # 7
-    kAXFocusedAttribute,        # 8
-    kAXSelectedAttribute,       # 9
-    kAXExpandedAttribute,       # 10
-    kAXElementBusyAttribute,    # 11
-    kAXModalAttribute,          # 12
-    kAXPositionAttribute,       # 13
-    kAXSizeAttribute,           # 14
-    "AXRequired",               # 15
-    "AXIsEditable",             # 16
-    kAXChildrenAttribute,       # 17
+    kAXRoleAttribute,  # 0
+    kAXSubroleAttribute,  # 1
+    kAXTitleAttribute,  # 2
+    kAXDescriptionAttribute,  # 3
+    kAXHelpAttribute,  # 4
+    kAXIdentifierAttribute,  # 5
+    kAXValueAttribute,  # 6
+    kAXEnabledAttribute,  # 7
+    kAXFocusedAttribute,  # 8
+    kAXSelectedAttribute,  # 9
+    kAXExpandedAttribute,  # 10
+    kAXElementBusyAttribute,  # 11
+    kAXModalAttribute,  # 12
+    kAXPositionAttribute,  # 13
+    kAXSizeAttribute,  # 14
+    "AXRequired",  # 15
+    "AXIsEditable",  # 16
+    kAXChildrenAttribute,  # 17
 ]
 _BATCH_ATTRS = NSArray.arrayWithArray_(_BATCH_ATTRS_LIST)
 _BATCH_IDX = {name: i for i, name in enumerate(_BATCH_ATTRS_LIST)}
@@ -239,8 +261,7 @@ def _batch_read(element) -> list:
     Error sentinels are replaced with None.
     """
     try:
-        err, values = AXUIElementCopyMultipleAttributeValues(
-            element, _BATCH_ATTRS, 0, None)
+        err, values = AXUIElementCopyMultipleAttributeValues(element, _BATCH_ATTRS, 0, None)
         if err != kAXErrorSuccess or values is None:
             return [None] * len(_BATCH_ATTRS_LIST)
         return [None if _is_ax_error(v) else v for v in values]
@@ -293,6 +314,7 @@ def _unpack_bounds(pos_ref, size_ref) -> dict | None:
 # Screen metrics
 # ---------------------------------------------------------------------------
 
+
 def _macos_screen_info() -> tuple[int, int, float]:
     """Return (width, height, scale) of the primary display.
 
@@ -302,6 +324,7 @@ def _macos_screen_info() -> tuple[int, int, float]:
     screen = NSScreen.mainScreen()
     if screen is None:
         from Quartz import CGDisplayBounds, CGMainDisplayID
+
         bounds = CGDisplayBounds(CGMainDisplayID())
         return int(bounds.size.width), int(bounds.size.height), 1.0
     frame = screen.frame()
@@ -312,6 +335,7 @@ def _macos_screen_info() -> tuple[int, int, float]:
 # ---------------------------------------------------------------------------
 # Window enumeration
 # ---------------------------------------------------------------------------
+
 
 def _macos_foreground_app() -> tuple[int, str, str | None]:
     """Return (pid, app_name, bundle_id) of the frontmost application."""
@@ -330,11 +354,13 @@ def _macos_visible_apps() -> list[tuple[int, str, str | None]]:
     apps = []
     for app in workspace.runningApplications():
         if app.activationPolicy() == NSApplicationActivationPolicyRegular:
-            apps.append((
-                app.processIdentifier(),
-                app.localizedName() or "",
-                app.bundleIdentifier(),
-            ))
+            apps.append(
+                (
+                    app.processIdentifier(),
+                    app.localizedName() or "",
+                    app.bundleIdentifier(),
+                )
+            )
     return apps
 
 
@@ -359,6 +385,7 @@ def _macos_focused_window(pid: int):
 # ---------------------------------------------------------------------------
 # CUP node builder
 # ---------------------------------------------------------------------------
+
 
 def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
     """Build a CUP-formatted node from a macOS AXUIElement.
@@ -424,10 +451,10 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
     # ── State properties (from batch values) ──
     is_enabled_val = vals[7]  # kAXEnabledAttribute
     is_enabled = bool(is_enabled_val) if is_enabled_val is not None else True
-    is_focused = bool(vals[8])   # kAXFocusedAttribute
+    is_focused = bool(vals[8])  # kAXFocusedAttribute
     is_selected = bool(vals[9])  # kAXSelectedAttribute
-    is_busy = bool(vals[11])     # kAXElementBusyAttribute
-    is_modal = bool(vals[12])    # kAXModalAttribute
+    is_busy = bool(vals[11])  # kAXElementBusyAttribute
+    is_modal = bool(vals[12])  # kAXModalAttribute
 
     # Expanded state — only meaningful for certain AX roles (Chromium/Electron
     # apps set AXExpanded on nearly every element, causing noise)
@@ -459,9 +486,7 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
         screen_h = stats.get("screen_h", 99999)
         bx, by, bw, bh = bounds["x"], bounds["y"], bounds["w"], bounds["h"]
         # Element is offscreen if entirely outside screen or has zero size
-        if (bw <= 0 or bh <= 0
-                or bx + bw <= 0 or by + bh <= 0
-                or bx >= screen_w or by >= screen_h):
+        if bw <= 0 or bh <= 0 or bx + bw <= 0 or by + bh <= 0 or bx >= screen_w or by >= screen_h:
             is_offscreen = True
 
     # ── Build states list ──
@@ -505,8 +530,7 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
     # ── Actions ──
     # Skip the action names cross-process call for roles that never produce
     # meaningful CUP actions (saves ~30-60% of per-node overhead).
-    skip_actions = (ax_role in _SKIP_ACTIONS_AX_ROLES
-                    or (ax_role == "AXGroup" and not name))
+    skip_actions = ax_role in _SKIP_ACTIONS_AX_ROLES or (ax_role == "AXGroup" and not name)
     if skip_actions:
         ax_action_list = []
     else:
@@ -521,8 +545,15 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
         if ax_act == "AXPress":
             if role in TOGGLE_ROLES:
                 actions.append("toggle")
-            elif role in ("listitem", "option", "tab", "treeitem", "menuitem",
-                          "menuitemcheckbox", "menuitemradio"):
+            elif role in (
+                "listitem",
+                "option",
+                "tab",
+                "treeitem",
+                "menuitem",
+                "menuitemcheckbox",
+                "menuitemradio",
+            ):
                 actions.append("select")
             else:
                 actions.append("click")
@@ -633,8 +664,15 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
     desc_text = help_text if help_text else (description if title and description else "")
     if desc_text:
         node["description"] = desc_text[:200]
-    if val_str and role in ("textbox", "searchbox", "combobox", "spinbutton",
-                            "slider", "progressbar", "document"):
+    if val_str and role in (
+        "textbox",
+        "searchbox",
+        "combobox",
+        "spinbutton",
+        "slider",
+        "progressbar",
+        "document",
+    ):
         node["value"] = val_str[:200]
     if bounds:
         node["bounds"] = bounds
@@ -669,8 +707,8 @@ def build_cup_node(element, id_gen, stats: dict) -> tuple[dict, list] | None:
 # Tree walker
 # ---------------------------------------------------------------------------
 
-def walk_tree(element, depth: int, max_depth: int,
-              id_gen, stats: dict, refs: dict) -> dict | None:
+
+def walk_tree(element, depth: int, max_depth: int, id_gen, stats: dict, refs: dict) -> dict | None:
     """Recursively walk an AXUIElement tree and build CUP nodes."""
     if depth > max_depth:
         return None
@@ -687,8 +725,7 @@ def walk_tree(element, depth: int, max_depth: int,
     if depth < max_depth and children_refs:
         children: list[dict] = []
         for child_ref in children_refs:
-            child_node = walk_tree(child_ref, depth + 1, max_depth,
-                                   id_gen, stats, refs)
+            child_node = walk_tree(child_ref, depth + 1, max_depth, id_gen, stats, refs)
             if child_node is not None:
                 children.append(child_node)
         if children:
@@ -700,6 +737,7 @@ def walk_tree(element, depth: int, max_depth: int,
 # ---------------------------------------------------------------------------
 # MacosAdapter — PlatformAdapter implementation
 # ---------------------------------------------------------------------------
+
 
 class MacosAdapter(PlatformAdapter):
     """CUP adapter for macOS via pyobjc AXUIElement API."""
@@ -735,12 +773,14 @@ class MacosAdapter(PlatformAdapter):
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
             for batch in pool.map(_enum, apps):
                 for pid, name, bid, win_ref in batch:
-                    results.append({
-                        "handle": win_ref,
-                        "title": name,
-                        "pid": pid,
-                        "bundle_id": bid,
-                    })
+                    results.append(
+                        {
+                            "handle": win_ref,
+                            "title": name,
+                            "pid": pid,
+                            "bundle_id": bid,
+                        }
+                    )
         return results
 
     def get_window_list(self) -> list[dict[str, Any]]:
@@ -751,17 +791,19 @@ class MacosAdapter(PlatformAdapter):
             if pid in seen_pids:
                 continue
             seen_pids.add(pid)
-            results.append({
-                "title": name,
-                "pid": pid,
-                "bundle_id": bundle_id,
-                "foreground": pid == fg_pid,
-                "bounds": None,  # skip AX calls for speed
-            })
+            results.append(
+                {
+                    "title": name,
+                    "pid": pid,
+                    "bundle_id": bundle_id,
+                    "foreground": pid == fg_pid,
+                    "bounds": None,  # skip AX calls for speed
+                }
+            )
         return results
 
     def get_desktop_window(self) -> dict[str, Any] | None:
-        for pid, name, bundle_id in _macos_visible_apps():
+        for pid, _name, bundle_id in _macos_visible_apps():
             if bundle_id == "com.apple.finder":
                 windows = _macos_windows_for_app(pid)
                 for win in windows:
@@ -795,12 +837,10 @@ class MacosAdapter(PlatformAdapter):
         if len(windows) <= 1:
             # Single window — walk sequentially (no thread overhead)
             id_gen = itertools.count()
-            stats: dict = {"nodes": 0, "max_depth": 0, "roles": {},
-                           "screen_w": sw, "screen_h": sh}
+            stats: dict = {"nodes": 0, "max_depth": 0, "roles": {}, "screen_w": sw, "screen_h": sh}
             tree: list[dict] = []
             for win in windows:
-                node = walk_tree(win["handle"], 0, max_depth, id_gen, stats,
-                                 refs)
+                node = walk_tree(win["handle"], 0, max_depth, id_gen, stats, refs)
                 if node is not None:
                     tree.append(node)
             return tree, stats, refs
@@ -809,15 +849,24 @@ class MacosAdapter(PlatformAdapter):
             # AX API calls release the GIL (C calls via pyobjc), so threads
             # give real parallelism for cross-process attribute reads.
             shared_id_gen = itertools.count()
-            merged_stats: dict = {"nodes": 0, "max_depth": 0, "roles": {},
-                                  "screen_w": sw, "screen_h": sh}
+            merged_stats: dict = {
+                "nodes": 0,
+                "max_depth": 0,
+                "roles": {},
+                "screen_w": sw,
+                "screen_h": sh,
+            }
             tree = []
 
             def _walk_one(win):
-                local_stats = {"nodes": 0, "max_depth": 0, "roles": {},
-                               "screen_w": sw, "screen_h": sh}
-                node = walk_tree(win["handle"], 0, max_depth,
-                                 shared_id_gen, local_stats, refs)
+                local_stats = {
+                    "nodes": 0,
+                    "max_depth": 0,
+                    "roles": {},
+                    "screen_w": sw,
+                    "screen_h": sh,
+                }
+                node = walk_tree(win["handle"], 0, max_depth, shared_id_gen, local_stats, refs)
                 return node, local_stats
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
@@ -826,7 +875,8 @@ class MacosAdapter(PlatformAdapter):
                         tree.append(node)
                     merged_stats["nodes"] += local_stats["nodes"]
                     merged_stats["max_depth"] = max(
-                        merged_stats["max_depth"], local_stats["max_depth"])
+                        merged_stats["max_depth"], local_stats["max_depth"]
+                    )
                     for k, v in local_stats["roles"].items():
                         merged_stats["roles"][k] = merged_stats["roles"].get(k, 0) + v
 

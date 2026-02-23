@@ -12,26 +12,86 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-
 # ---------------------------------------------------------------------------
 # All canonical CUP roles
 # ---------------------------------------------------------------------------
 
-ALL_ROLES: frozenset[str] = frozenset({
-    "alert", "alertdialog", "application", "banner", "blockquote",
-    "button", "caption", "cell", "checkbox", "code", "columnheader",
-    "combobox", "complementary", "contentinfo", "deletion", "dialog",
-    "document", "emphasis", "figure", "form", "generic", "grid",
-    "group", "heading", "img", "insertion", "link", "list", "listitem",
-    "log", "main", "marquee", "math", "menu", "menubar", "menuitem",
-    "menuitemcheckbox", "menuitemradio", "navigation", "none", "note",
-    "option", "paragraph", "progressbar", "radio", "region", "row",
-    "rowheader", "scrollbar", "search", "searchbox", "separator",
-    "slider", "spinbutton", "status", "strong", "subscript",
-    "superscript", "switch", "tab", "table", "tablist", "tabpanel",
-    "text", "textbox", "timer", "titlebar", "toolbar", "tooltip",
-    "tree", "treeitem", "window",
-})
+ALL_ROLES: frozenset[str] = frozenset(
+    {
+        "alert",
+        "alertdialog",
+        "application",
+        "banner",
+        "blockquote",
+        "button",
+        "caption",
+        "cell",
+        "checkbox",
+        "code",
+        "columnheader",
+        "combobox",
+        "complementary",
+        "contentinfo",
+        "deletion",
+        "dialog",
+        "document",
+        "emphasis",
+        "figure",
+        "form",
+        "generic",
+        "grid",
+        "group",
+        "heading",
+        "img",
+        "insertion",
+        "link",
+        "list",
+        "listitem",
+        "log",
+        "main",
+        "marquee",
+        "math",
+        "menu",
+        "menubar",
+        "menuitem",
+        "menuitemcheckbox",
+        "menuitemradio",
+        "navigation",
+        "none",
+        "note",
+        "option",
+        "paragraph",
+        "progressbar",
+        "radio",
+        "region",
+        "row",
+        "rowheader",
+        "scrollbar",
+        "search",
+        "searchbox",
+        "separator",
+        "slider",
+        "spinbutton",
+        "status",
+        "strong",
+        "subscript",
+        "superscript",
+        "switch",
+        "tab",
+        "table",
+        "tablist",
+        "tabpanel",
+        "text",
+        "textbox",
+        "timer",
+        "titlebar",
+        "toolbar",
+        "tooltip",
+        "tree",
+        "treeitem",
+        "window",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # Semantic role synonyms
@@ -39,77 +99,77 @@ ALL_ROLES: frozenset[str] = frozenset({
 
 ROLE_SYNONYMS: dict[str, frozenset[str]] = {
     # -- text input --
-    "input":          frozenset({"textbox", "combobox", "searchbox", "spinbutton", "slider"}),
-    "text input":     frozenset({"textbox", "searchbox", "combobox"}),
-    "text field":     frozenset({"textbox", "searchbox", "combobox"}),
-    "text box":       frozenset({"textbox", "searchbox"}),
-    "textarea":       frozenset({"textbox", "document"}),
-    "edit":           frozenset({"textbox", "searchbox", "combobox", "document"}),
-    "editor":         frozenset({"textbox", "document"}),
+    "input": frozenset({"textbox", "combobox", "searchbox", "spinbutton", "slider"}),
+    "text input": frozenset({"textbox", "searchbox", "combobox"}),
+    "text field": frozenset({"textbox", "searchbox", "combobox"}),
+    "text box": frozenset({"textbox", "searchbox"}),
+    "textarea": frozenset({"textbox", "document"}),
+    "edit": frozenset({"textbox", "searchbox", "combobox", "document"}),
+    "editor": frozenset({"textbox", "document"}),
     # -- search --
-    "search":         frozenset({"search", "searchbox", "textbox", "combobox"}),
-    "search bar":     frozenset({"search", "searchbox", "textbox", "combobox"}),
-    "search box":     frozenset({"search", "searchbox", "textbox", "combobox"}),
-    "search field":   frozenset({"search", "searchbox", "textbox", "combobox"}),
-    "search input":   frozenset({"search", "searchbox", "textbox", "combobox"}),
+    "search": frozenset({"search", "searchbox", "textbox", "combobox"}),
+    "search bar": frozenset({"search", "searchbox", "textbox", "combobox"}),
+    "search box": frozenset({"search", "searchbox", "textbox", "combobox"}),
+    "search field": frozenset({"search", "searchbox", "textbox", "combobox"}),
+    "search input": frozenset({"search", "searchbox", "textbox", "combobox"}),
     # -- buttons --
-    "btn":            frozenset({"button"}),
-    "clickable":      frozenset({"button", "link", "menuitem", "tab", "treeitem", "listitem"}),
+    "btn": frozenset({"button"}),
+    "clickable": frozenset({"button", "link", "menuitem", "tab", "treeitem", "listitem"}),
     # -- links --
-    "hyperlink":      frozenset({"link"}),
-    "anchor":         frozenset({"link"}),
+    "hyperlink": frozenset({"link"}),
+    "anchor": frozenset({"link"}),
     # -- dropdowns / selects --
-    "dropdown":       frozenset({"combobox", "menu", "list"}),
-    "select":         frozenset({"combobox", "list", "listitem"}),
-    "combo":          frozenset({"combobox"}),
-    "combo box":      frozenset({"combobox"}),
+    "dropdown": frozenset({"combobox", "menu", "list"}),
+    "select": frozenset({"combobox", "list", "listitem"}),
+    "combo": frozenset({"combobox"}),
+    "combo box": frozenset({"combobox"}),
     # -- toggles --
-    "check":          frozenset({"checkbox", "switch", "menuitemcheckbox"}),
-    "toggle":         frozenset({"switch", "checkbox"}),
-    "radio button":   frozenset({"radio", "menuitemradio"}),
-    "option":         frozenset({"option", "radio", "listitem", "menuitemradio"}),
+    "check": frozenset({"checkbox", "switch", "menuitemcheckbox"}),
+    "toggle": frozenset({"switch", "checkbox"}),
+    "radio button": frozenset({"radio", "menuitemradio"}),
+    "option": frozenset({"option", "radio", "listitem", "menuitemradio"}),
     # -- sliders / ranges --
-    "range":          frozenset({"slider", "progressbar", "spinbutton"}),
-    "progress":       frozenset({"progressbar"}),
-    "progress bar":   frozenset({"progressbar"}),
-    "spinner":        frozenset({"spinbutton"}),
+    "range": frozenset({"slider", "progressbar", "spinbutton"}),
+    "progress": frozenset({"progressbar"}),
+    "progress bar": frozenset({"progressbar"}),
+    "spinner": frozenset({"spinbutton"}),
     # -- tabs --
-    "tab bar":        frozenset({"tablist"}),
-    "tab list":       frozenset({"tablist"}),
-    "tabs":           frozenset({"tablist", "tab"}),
-    "tab panel":      frozenset({"tabpanel"}),
+    "tab bar": frozenset({"tablist"}),
+    "tab list": frozenset({"tablist"}),
+    "tabs": frozenset({"tablist", "tab"}),
+    "tab panel": frozenset({"tabpanel"}),
     # -- menus --
-    "menu bar":       frozenset({"menubar"}),
-    "menu item":      frozenset({"menuitem", "menuitemcheckbox", "menuitemradio"}),
+    "menu bar": frozenset({"menubar"}),
+    "menu item": frozenset({"menuitem", "menuitemcheckbox", "menuitemradio"}),
     # -- dialogs --
-    "modal":          frozenset({"dialog", "alertdialog"}),
-    "popup":          frozenset({"dialog", "alertdialog", "tooltip", "menu"}),
-    "notification":   frozenset({"alert", "status", "log"}),
-    "message":        frozenset({"alert", "status", "log"}),
+    "modal": frozenset({"dialog", "alertdialog"}),
+    "popup": frozenset({"dialog", "alertdialog", "tooltip", "menu"}),
+    "notification": frozenset({"alert", "status", "log"}),
+    "message": frozenset({"alert", "status", "log"}),
     # -- headings / titles --
-    "title":          frozenset({"heading", "titlebar"}),
-    "header":         frozenset({"heading", "banner", "columnheader", "rowheader"}),
+    "title": frozenset({"heading", "titlebar"}),
+    "header": frozenset({"heading", "banner", "columnheader", "rowheader"}),
     # -- images --
-    "image":          frozenset({"img"}),
-    "picture":        frozenset({"img"}),
-    "icon":           frozenset({"img", "button"}),
+    "image": frozenset({"img"}),
+    "picture": frozenset({"img"}),
+    "icon": frozenset({"img", "button"}),
     # -- trees / lists --
-    "tree item":      frozenset({"treeitem"}),
-    "list item":      frozenset({"listitem"}),
+    "tree item": frozenset({"treeitem"}),
+    "list item": frozenset({"listitem"}),
     # -- tables / grids --
-    "table":          frozenset({"table", "grid"}),
+    "table": frozenset({"table", "grid"}),
     # -- navigation --
-    "nav":            frozenset({"navigation"}),
-    "sidebar":        frozenset({"complementary", "navigation"}),
+    "nav": frozenset({"navigation"}),
+    "sidebar": frozenset({"complementary", "navigation"}),
     # -- containers --
-    "panel":          frozenset({"region", "group", "tabpanel"}),
-    "section":        frozenset({"region", "group", "main"}),
-    "container":      frozenset({"region", "group", "generic"}),
+    "panel": frozenset({"region", "group", "tabpanel"}),
+    "section": frozenset({"region", "group", "main"}),
+    "container": frozenset({"region", "group", "generic"}),
     # -- misc --
-    "divider":        frozenset({"separator"}),
-    "scroll":         frozenset({"scrollbar"}),
-    "status bar":     frozenset({"status"}),
-    "tool bar":       frozenset({"toolbar"}),
+    "divider": frozenset({"separator"}),
+    "scroll": frozenset({"scrollbar"}),
+    "status bar": frozenset({"status"}),
+    "tool bar": frozenset({"toolbar"}),
 }
 
 # Add identity mappings: every CUP role maps to itself.
@@ -121,10 +181,28 @@ for _r in ALL_ROLES:
 # Noise words filtered from freeform queries
 # ---------------------------------------------------------------------------
 
-_NOISE_WORDS: frozenset[str] = frozenset({
-    "the", "a", "an", "this", "that", "for", "in", "on", "of", "with",
-    "to", "and", "or", "is", "it", "its", "my", "your",
-})
+_NOISE_WORDS: frozenset[str] = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "this",
+        "that",
+        "for",
+        "in",
+        "on",
+        "of",
+        "with",
+        "to",
+        "and",
+        "or",
+        "is",
+        "it",
+        "its",
+        "my",
+        "your",
+    }
+)
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +222,7 @@ def _tokenize(text: str) -> list[str]:
 # ---------------------------------------------------------------------------
 # Role resolution
 # ---------------------------------------------------------------------------
+
 
 def resolve_roles(role_query: str) -> frozenset[str] | None:
     """Resolve a role query to a set of matching CUP roles.
@@ -175,6 +254,7 @@ def resolve_roles(role_query: str) -> frozenset[str] | None:
 # ---------------------------------------------------------------------------
 # Query parsing
 # ---------------------------------------------------------------------------
+
 
 def _parse_query(query: str) -> tuple[str | None, list[str]]:
     """Parse a freeform query into (role_hint, name_tokens).
@@ -216,6 +296,7 @@ def _parse_query(query: str) -> tuple[str | None, list[str]]:
 # ---------------------------------------------------------------------------
 # Name scoring
 # ---------------------------------------------------------------------------
+
 
 def _score_name(
     query_tokens: list[str],
@@ -292,6 +373,7 @@ def _score_secondary(
 # Context scoring
 # ---------------------------------------------------------------------------
 
+
 def _score_context(
     node: dict,
     parent_chain: list[dict],
@@ -336,6 +418,7 @@ def _score_context(
 # ---------------------------------------------------------------------------
 # Per-node scoring
 # ---------------------------------------------------------------------------
+
 
 def _score_node(
     node: dict,
@@ -390,6 +473,7 @@ def _score_node(
 # Tree walking
 # ---------------------------------------------------------------------------
 
+
 def _walk_and_score(
     nodes: list[dict],
     parent_chain: list[dict],
@@ -424,6 +508,7 @@ def _walk_and_score(
 # Result type
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SearchResult:
     """A scored search result."""
@@ -435,6 +520,7 @@ class SearchResult:
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def search_tree(
     tree: list[dict],

@@ -17,6 +17,7 @@ Detail = Literal["standard", "minimal", "full"]
 # CUP envelope
 # ---------------------------------------------------------------------------
 
+
 def build_envelope(
     tree_data: list[dict],
     *,
@@ -62,6 +63,7 @@ def build_envelope(
 # Overview serializer (window list only, no tree)
 # ---------------------------------------------------------------------------
 
+
 def serialize_overview(
     window_list: list[dict],
     *,
@@ -92,9 +94,7 @@ def serialize_overview(
         if pid is not None:
             parts.append(f"(pid:{pid})")
         if bounds:
-            parts.append(
-                f"@{bounds['x']},{bounds['y']} {bounds['w']}x{bounds['h']}"
-            )
+            parts.append(f"@{bounds['x']},{bounds['y']} {bounds['w']}x{bounds['h']}")
 
         url = win.get("url")
         if url:
@@ -109,6 +109,7 @@ def serialize_overview(
 # ---------------------------------------------------------------------------
 # Compact text serializer
 # ---------------------------------------------------------------------------
+
 
 def _count_nodes(nodes: list[dict]) -> int:
     """Count total nodes in a tree."""
@@ -200,13 +201,14 @@ def _should_hoist(node: dict) -> bool:
 # Viewport clipping helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_outside_viewport(child_bounds: dict, viewport: dict) -> bool:
     """Return True if child_bounds falls entirely outside the viewport rect."""
     return (
-        child_bounds["x"] + child_bounds["w"] <= viewport["x"]          # fully left
-        or child_bounds["x"] >= viewport["x"] + viewport["w"]           # fully right
-        or child_bounds["y"] + child_bounds["h"] <= viewport["y"]       # fully above
-        or child_bounds["y"] >= viewport["y"] + viewport["h"]           # fully below
+        child_bounds["x"] + child_bounds["w"] <= viewport["x"]  # fully left
+        or child_bounds["x"] >= viewport["x"] + viewport["w"]  # fully right
+        or child_bounds["y"] + child_bounds["h"] <= viewport["y"]  # fully above
+        or child_bounds["y"] >= viewport["y"] + viewport["h"]  # fully below
     )
 
 
@@ -245,6 +247,7 @@ def _intersect_viewports(bounds: dict, viewport: dict | None) -> dict:
 # ---------------------------------------------------------------------------
 # JSON tree pruning
 # ---------------------------------------------------------------------------
+
 
 def _prune_node(
     node: dict,
@@ -297,17 +300,17 @@ def _prune_node(
             clipped[direction] += _count_nodes([child])
             has_clipped = True
             continue
-        pruned_children.extend(
-            _prune_node(child, node, len(children), child_viewport)
-        )
+        pruned_children.extend(_prune_node(child, node, len(children), child_viewport))
 
     # Single-child structural collapse: unnamed structural containers that
     # ended up wrapping a single child after pruning (and carry no actions
     # of their own) are pure wrappers — replace them with the child.
-    if (len(pruned_children) == 1
-            and node["role"] in _COLLAPSIBLE_ROLES
-            and not node.get("name")
-            and not _has_meaningful_actions(node)):
+    if (
+        len(pruned_children) == 1
+        and node["role"] in _COLLAPSIBLE_ROLES
+        and not node.get("name")
+        and not _has_meaningful_actions(node)
+    ):
         return pruned_children
 
     pruned = {k: v for k, v in node.items() if k != "children"}
@@ -322,10 +325,19 @@ def _prune_node(
 # When an unnamed node with one of these roles ends up with exactly one
 # child after pruning (and has no actions of its own), it's a pure wrapper
 # and the child is hoisted in its place.
-_COLLAPSIBLE_ROLES = frozenset({
-    "region", "document", "main", "complementary", "navigation",
-    "search", "banner", "contentinfo", "form",
-})
+_COLLAPSIBLE_ROLES = frozenset(
+    {
+        "region",
+        "document",
+        "main",
+        "complementary",
+        "navigation",
+        "search",
+        "banner",
+        "contentinfo",
+        "form",
+    }
+)
 
 
 def _has_meaningful_actions(node: dict) -> bool:
@@ -456,8 +468,7 @@ def _format_line(node: dict) -> str:
     return " ".join(parts)
 
 
-def _emit_compact(node: dict, depth: int, lines: list[str],
-                  counter: list[int]) -> None:
+def _emit_compact(node: dict, depth: int, lines: list[str], counter: list[int]) -> None:
     """Recursively emit compact lines for an already-pruned node."""
     counter[0] += 1
     indent = "  " * depth

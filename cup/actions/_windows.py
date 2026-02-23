@@ -15,8 +15,8 @@ import subprocess
 import time
 from typing import Any
 
-from cup.actions.executor import ActionResult
 from cup.actions._handler import ActionHandler
+from cup.actions.executor import ActionResult
 
 # ---------------------------------------------------------------------------
 # UIA pattern IDs
@@ -49,14 +49,15 @@ def _ensure_pattern_interfaces():
     if _IInvoke is not None:
         return
     from comtypes.gen.UIAutomationClient import (
+        IUIAutomationExpandCollapsePattern,
         IUIAutomationInvokePattern,
+        IUIAutomationRangeValuePattern,
+        IUIAutomationScrollPattern,
+        IUIAutomationSelectionItemPattern,
         IUIAutomationTogglePattern,
         IUIAutomationValuePattern,
-        IUIAutomationExpandCollapsePattern,
-        IUIAutomationSelectionItemPattern,
-        IUIAutomationScrollPattern,
-        IUIAutomationRangeValuePattern,
     )
+
     _IInvoke = IUIAutomationInvokePattern
     _IToggle = IUIAutomationTogglePattern
     _IValue = IUIAutomationValuePattern
@@ -69,6 +70,7 @@ def _ensure_pattern_interfaces():
 def _get_pattern(element, pattern_id, interface):
     """Get a UIA pattern from an element, returning None if unavailable."""
     import comtypes
+
     try:
         pat = element.GetCurrentPattern(pattern_id)
         if pat:
@@ -88,23 +90,53 @@ KEYEVENTF_EXTENDEDKEY = 0x0001
 KEYEVENTF_UNICODE = 0x0004
 
 VK_MAP = {
-    "enter": 0x0D, "return": 0x0D, "tab": 0x09,
-    "escape": 0x1B, "esc": 0x1B,
-    "backspace": 0x08, "delete": 0x2E, "space": 0x20,
-    "up": 0x26, "down": 0x28, "left": 0x25, "right": 0x27,
-    "home": 0x24, "end": 0x23, "pageup": 0x21, "pagedown": 0x22,
-    "f1": 0x70, "f2": 0x71, "f3": 0x72, "f4": 0x73,
-    "f5": 0x74, "f6": 0x75, "f7": 0x76, "f8": 0x77,
-    "f9": 0x78, "f10": 0x79, "f11": 0x7A, "f12": 0x7B,
-    "ctrl": 0xA2, "alt": 0xA4, "shift": 0xA0, "win": 0x5B,
+    "enter": 0x0D,
+    "return": 0x0D,
+    "tab": 0x09,
+    "escape": 0x1B,
+    "esc": 0x1B,
+    "backspace": 0x08,
+    "delete": 0x2E,
+    "space": 0x20,
+    "up": 0x26,
+    "down": 0x28,
+    "left": 0x25,
+    "right": 0x27,
+    "home": 0x24,
+    "end": 0x23,
+    "pageup": 0x21,
+    "pagedown": 0x22,
+    "f1": 0x70,
+    "f2": 0x71,
+    "f3": 0x72,
+    "f4": 0x73,
+    "f5": 0x74,
+    "f6": 0x75,
+    "f7": 0x76,
+    "f8": 0x77,
+    "f9": 0x78,
+    "f10": 0x79,
+    "f11": 0x7A,
+    "f12": 0x7B,
+    "ctrl": 0xA2,
+    "alt": 0xA4,
+    "shift": 0xA0,
+    "win": 0x5B,
     "meta": 0x5B,
 }
 
 _EXTENDED_VKS = {
-    0x26, 0x28, 0x25, 0x27,  # arrow keys
-    0x24, 0x23, 0x21, 0x22,  # home, end, pageup, pagedown
-    0x2E,                     # delete
-    0x5B, 0x5C,               # VK_LWIN, VK_RWIN
+    0x26,
+    0x28,
+    0x25,
+    0x27,  # arrow keys
+    0x24,
+    0x23,
+    0x21,
+    0x22,  # home, end, pageup, pagedown
+    0x2E,  # delete
+    0x5B,
+    0x5C,  # VK_LWIN, VK_RWIN
 }
 
 ULONG_PTR = ctypes.c_uint64
@@ -112,7 +144,8 @@ ULONG_PTR = ctypes.c_uint64
 
 class MOUSEINPUT(ctypes.Structure):
     _fields_ = [
-        ("dx", ctypes.c_long), ("dy", ctypes.c_long),
+        ("dx", ctypes.c_long),
+        ("dy", ctypes.c_long),
         ("mouseData", ctypes.wintypes.DWORD),
         ("dwFlags", ctypes.wintypes.DWORD),
         ("time", ctypes.wintypes.DWORD),
@@ -122,7 +155,8 @@ class MOUSEINPUT(ctypes.Structure):
 
 class KEYBDINPUT(ctypes.Structure):
     _fields_ = [
-        ("wVk", ctypes.wintypes.WORD), ("wScan", ctypes.wintypes.WORD),
+        ("wVk", ctypes.wintypes.WORD),
+        ("wScan", ctypes.wintypes.WORD),
         ("dwFlags", ctypes.wintypes.DWORD),
         ("time", ctypes.wintypes.DWORD),
         ("dwExtraInfo", ULONG_PTR),
@@ -139,13 +173,16 @@ class HARDWAREINPUT(ctypes.Structure):
 
 class _INPUT_UNION(ctypes.Union):
     _fields_ = [
-        ("mi", MOUSEINPUT), ("ki", KEYBDINPUT), ("hi", HARDWAREINPUT),
+        ("mi", MOUSEINPUT),
+        ("ki", KEYBDINPUT),
+        ("hi", HARDWAREINPUT),
     ]
 
 
 class INPUT(ctypes.Structure):
     _fields_ = [
-        ("type", ctypes.wintypes.DWORD), ("_input", _INPUT_UNION),
+        ("type", ctypes.wintypes.DWORD),
+        ("_input", _INPUT_UNION),
     ]
 
 
@@ -194,9 +231,7 @@ def _send_key_combo(keys_string: str) -> None:
         inputs.append(_make_key_input(mod, down=False))
 
     if not inputs:
-        raise RuntimeError(
-            f"Could not resolve any key codes from combo: {keys_string!r}"
-        )
+        raise RuntimeError(f"Could not resolve any key codes from combo: {keys_string!r}")
 
     # Send modifier-down events first, pause briefly, then the rest.
     # This gives the OS time to register modifier state before the main key,
@@ -208,20 +243,14 @@ def _send_key_combo(keys_string: str) -> None:
         time.sleep(0.02)
         rest = inputs[n_mods:]
         rest_arr = (INPUT * len(rest))(*rest)
-        sent = ctypes.windll.user32.SendInput(
-            len(rest), rest_arr, ctypes.sizeof(INPUT)
-        )
+        sent = ctypes.windll.user32.SendInput(len(rest), rest_arr, ctypes.sizeof(INPUT))
     else:
         arr = (INPUT * len(inputs))(*inputs)
-        sent = ctypes.windll.user32.SendInput(
-            len(inputs), arr, ctypes.sizeof(INPUT)
-        )
+        sent = ctypes.windll.user32.SendInput(len(inputs), arr, ctypes.sizeof(INPUT))
 
     if sent == 0:
         err = ctypes.get_last_error()
-        raise RuntimeError(
-            f"SendInput failed, sent 0/{len(inputs)} events (error={err})"
-        )
+        raise RuntimeError(f"SendInput failed, sent 0/{len(inputs)} events (error={err})")
 
 
 def _send_unicode_string(text: str) -> None:
@@ -253,15 +282,10 @@ def _send_unicode_string(text: str) -> None:
         return
 
     arr = (INPUT * len(inputs))(*inputs)
-    sent = ctypes.windll.user32.SendInput(
-        len(inputs), arr, ctypes.sizeof(INPUT)
-    )
+    sent = ctypes.windll.user32.SendInput(len(inputs), arr, ctypes.sizeof(INPUT))
     if sent == 0:
         err = ctypes.get_last_error()
-        raise RuntimeError(
-            f"SendInput (unicode) failed, sent 0/{len(inputs)} events "
-            f"(error={err})"
-        )
+        raise RuntimeError(f"SendInput (unicode) failed, sent 0/{len(inputs)} events (error={err})")
 
 
 # ---------------------------------------------------------------------------
@@ -298,7 +322,11 @@ def _screen_to_absolute(x: int, y: int) -> tuple[int, int]:
 
 
 def _send_mouse_click(
-    x: int, y: int, *, button: str = "left", count: int = 1,
+    x: int,
+    y: int,
+    *,
+    button: str = "left",
+    count: int = 1,
 ) -> None:
     """Send mouse click(s) at screen coordinates via SendInput."""
     abs_x, abs_y = _screen_to_absolute(x, y)
@@ -338,18 +366,19 @@ def _send_mouse_click(
 
     arr = (INPUT * len(inputs))(*inputs)
     sent = ctypes.windll.user32.SendInput(
-        len(inputs), arr, ctypes.sizeof(INPUT),
+        len(inputs),
+        arr,
+        ctypes.sizeof(INPUT),
     )
     if sent == 0:
         err = ctypes.get_last_error()
-        raise RuntimeError(
-            f"SendInput mouse failed, sent 0/{len(inputs)} events (error={err})"
-        )
+        raise RuntimeError(f"SendInput mouse failed, sent 0/{len(inputs)} events (error={err})")
 
 
 # ---------------------------------------------------------------------------
 # WindowsActionHandler
 # ---------------------------------------------------------------------------
+
 
 class WindowsActionHandler(ActionHandler):
     """Execute CUP actions on Windows via UIA patterns + SendInput."""
@@ -364,7 +393,10 @@ class WindowsActionHandler(ActionHandler):
         self._initialized = True
 
     def execute(
-        self, native_ref: Any, action: str, params: dict[str, Any],
+        self,
+        native_ref: Any,
+        action: str,
+        params: dict[str, Any],
     ) -> ActionResult:
         self._init()
         element = native_ref
@@ -404,7 +436,8 @@ class WindowsActionHandler(ActionHandler):
             return self._longpress(element)
         else:
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error=f"Action '{action}' not implemented for Windows",
             )
 
@@ -424,12 +457,11 @@ class WindowsActionHandler(ActionHandler):
             element.SetFocus()
             time.sleep(0.05)
             _send_key_combo("enter")
-            return ActionResult(
-                success=True, message="Clicked (focus+enter fallback)"
-            )
+            return ActionResult(success=True, message="Clicked (focus+enter fallback)")
         except Exception:
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error="Element does not support click",
             )
 
@@ -439,7 +471,8 @@ class WindowsActionHandler(ActionHandler):
             pat.Toggle()
             return ActionResult(success=True, message="Toggled")
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error="Element does not support toggle",
         )
 
@@ -453,58 +486,53 @@ class WindowsActionHandler(ActionHandler):
             _send_unicode_string(text)
             return ActionResult(success=True, message=f"Typed: {text}")
         except Exception as exc:
-            return ActionResult(
-                success=False, message="", error=f"Failed to type: {exc}"
-            )
+            return ActionResult(success=False, message="", error=f"Failed to type: {exc}")
 
     def _setvalue(self, element, text: str) -> ActionResult:
         """Set value programmatically via UIA ValuePattern."""
         import comtypes
+
         pat = _get_pattern(element, UIA_ValuePatternId, _IValue)
         if pat:
             try:
                 pat.SetValue(text)
-                return ActionResult(
-                    success=True, message=f"Set value to: {text}"
-                )
+                return ActionResult(success=True, message=f"Set value to: {text}")
             except comtypes.COMError as exc:
                 return ActionResult(
-                    success=False, message="",
+                    success=False,
+                    message="",
                     error=f"ValuePattern.SetValue failed: {exc}",
                 )
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error="Element does not support ValuePattern (setvalue)",
         )
 
     def _expand(self, element) -> ActionResult:
-        pat = _get_pattern(
-            element, UIA_ExpandCollapsePatternId, _IExpandCollapse
-        )
+        pat = _get_pattern(element, UIA_ExpandCollapsePatternId, _IExpandCollapse)
         if pat:
             pat.Expand()
             return ActionResult(success=True, message="Expanded")
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error="Element does not support expand",
         )
 
     def _collapse(self, element) -> ActionResult:
-        pat = _get_pattern(
-            element, UIA_ExpandCollapsePatternId, _IExpandCollapse
-        )
+        pat = _get_pattern(element, UIA_ExpandCollapsePatternId, _IExpandCollapse)
         if pat:
             pat.Collapse()
             return ActionResult(success=True, message="Collapsed")
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error="Element does not support collapse",
         )
 
     def _select(self, element) -> ActionResult:
-        pat = _get_pattern(
-            element, UIA_SelectionItemPatternId, _ISelectionItem
-        )
+        pat = _get_pattern(element, UIA_SelectionItemPatternId, _ISelectionItem)
         if pat:
             pat.Select()
             return ActionResult(success=True, message="Selected")
@@ -527,7 +555,8 @@ class WindowsActionHandler(ActionHandler):
             pat.Scroll(h, v)
             return ActionResult(success=True, message=f"Scrolled {direction}")
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error="Element does not support scroll",
         )
 
@@ -544,11 +573,10 @@ class WindowsActionHandler(ActionHandler):
             new_val = max(min_val, min(max_val, new_val))
             pat.SetValue(new_val)
             verb = "Incremented" if increment else "Decremented"
-            return ActionResult(
-                success=True, message=f"{verb} to {new_val}"
-            )
+            return ActionResult(success=True, message=f"{verb} to {new_val}")
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error="Element does not support range value",
         )
 
@@ -559,7 +587,8 @@ class WindowsActionHandler(ActionHandler):
             return ActionResult(success=True, message="Right-clicked")
         except Exception as exc:
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error=f"Failed to right-click: {exc}",
             )
 
@@ -570,7 +599,8 @@ class WindowsActionHandler(ActionHandler):
             return ActionResult(success=True, message="Double-clicked")
         except Exception as exc:
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error=f"Failed to double-click: {exc}",
             )
 
@@ -579,9 +609,7 @@ class WindowsActionHandler(ActionHandler):
             element.SetFocus()
             return ActionResult(success=True, message="Focused")
         except Exception as exc:
-            return ActionResult(
-                success=False, message="", error=f"Failed to focus: {exc}"
-            )
+            return ActionResult(success=False, message="", error=f"Failed to focus: {exc}")
 
     def _dismiss(self, element) -> ActionResult:
         # Try close via window pattern, fallback to Alt+F4/Escape
@@ -591,9 +619,7 @@ class WindowsActionHandler(ActionHandler):
             _send_key_combo("escape")
             return ActionResult(success=True, message="Dismissed (Escape)")
         except Exception as exc:
-            return ActionResult(
-                success=False, message="", error=f"Failed to dismiss: {exc}"
-            )
+            return ActionResult(success=False, message="", error=f"Failed to dismiss: {exc}")
 
     def _longpress(self, element) -> ActionResult:
         """Long press: mouse down, hold 800ms, mouse up."""
@@ -634,7 +660,8 @@ class WindowsActionHandler(ActionHandler):
             return ActionResult(success=True, message="Long-pressed")
         except Exception as exc:
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error=f"Failed to long-press: {exc}",
             )
 
@@ -644,7 +671,8 @@ class WindowsActionHandler(ActionHandler):
         """Launch a Windows application by name with fuzzy matching."""
         if not name or not name.strip():
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error="App name must not be empty",
             )
 
@@ -652,14 +680,16 @@ class WindowsActionHandler(ActionHandler):
             apps = self._get_start_apps()
             if not apps:
                 return ActionResult(
-                    success=False, message="",
+                    success=False,
+                    message="",
                     error="Could not discover installed applications",
                 )
 
             match = _fuzzy_match(name, list(apps.keys()))
             if match is None:
                 return ActionResult(
-                    success=False, message="",
+                    success=False,
+                    message="",
                     error=f"No installed app matching '{name}' found",
                 )
 
@@ -681,7 +711,8 @@ class WindowsActionHandler(ActionHandler):
 
         except Exception as exc:
             return ActionResult(
-                success=False, message="",
+                success=False,
+                message="",
                 error=f"Failed to launch '{name}': {exc}",
             )
 
@@ -727,9 +758,7 @@ class WindowsActionHandler(ActionHandler):
         for search_dir in search_dirs:
             if not os.path.isdir(search_dir):
                 continue
-            for lnk_path in glob.glob(
-                os.path.join(search_dir, "**", "*.lnk"), recursive=True
-            ):
+            for lnk_path in glob.glob(os.path.join(search_dir, "**", "*.lnk"), recursive=True):
                 lnk_name = os.path.splitext(os.path.basename(lnk_path))[0].lower()
                 if lnk_name not in apps:
                     apps[lnk_name] = lnk_path
@@ -740,10 +769,7 @@ class WindowsActionHandler(ActionHandler):
         if os.path.exists(appid) or "\\" in appid:
             # Path-based app (.lnk shortcut or direct .exe)
             safe = _ps_quote(appid)
-            command = (
-                f"Start-Process {safe} -PassThru "
-                f"| Select-Object -ExpandProperty Id"
-            )
+            command = f"Start-Process {safe} -PassThru | Select-Object -ExpandProperty Id"
             output, ok = _run_powershell(command)
             if ok and output.strip().isdigit():
                 return int(output.strip())
@@ -756,7 +782,10 @@ class WindowsActionHandler(ActionHandler):
             return 0
 
     def _wait_for_window(
-        self, pid: int, app_name: str, timeout: float = 8.0,
+        self,
+        pid: int,
+        app_name: str,
+        timeout: float = 8.0,
     ) -> bool:
         """Poll for a new window matching the launched app."""
         EnumWindows = ctypes.windll.user32.EnumWindows
@@ -766,7 +795,9 @@ class WindowsActionHandler(ActionHandler):
         GetWindowThreadProcessId = ctypes.windll.user32.GetWindowThreadProcessId
 
         WNDENUMPROC = ctypes.WINFUNCTYPE(
-            ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM,
+            ctypes.wintypes.BOOL,
+            ctypes.wintypes.HWND,
+            ctypes.wintypes.LPARAM,
         )
 
         deadline = time.monotonic() + timeout
@@ -813,14 +844,19 @@ class WindowsActionHandler(ActionHandler):
 # launch_app helpers
 # ---------------------------------------------------------------------------
 
+
 def _run_powershell(command: str, timeout: int = 10) -> tuple[str, bool]:
     """Run a PowerShell command using base64-encoded input. Returns (output, success)."""
     encoded = base64.b64encode(command.encode("utf-16le")).decode("ascii")
     try:
         result = subprocess.run(
             [
-                "powershell", "-NoProfile", "-OutputFormat", "Text",
-                "-EncodedCommand", encoded,
+                "powershell",
+                "-NoProfile",
+                "-OutputFormat",
+                "Text",
+                "-EncodedCommand",
+                encoded,
             ],
             capture_output=True,
             text=True,
@@ -838,7 +874,9 @@ def _ps_quote(value: str) -> str:
 
 
 def _fuzzy_match(
-    query: str, candidates: list[str], cutoff: float = 0.6,
+    query: str,
+    candidates: list[str],
+    cutoff: float = 0.6,
 ) -> str | None:
     """Find the best fuzzy match for query among candidates.
 

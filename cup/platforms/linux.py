@@ -55,7 +55,6 @@ CUP_ROLES: dict[str, str] = {
     "check-menu-item": "menuitemcheckbox",
     "radio-menu-item": "menuitemradio",
     "separator": "separator",
-
     # Containers / structure
     "frame": "window",
     "dialog": "dialog",
@@ -76,7 +75,6 @@ CUP_ROLES: dict[str, str] = {
     "desktop-frame": "group",
     "root-pane": "group",
     "option-pane": "group",
-
     # Tables / grids
     "table": "table",
     "table-cell": "cell",
@@ -84,17 +82,14 @@ CUP_ROLES: dict[str, str] = {
     "table-column-header": "columnheader",
     "table-row-header": "rowheader",
     "tree-table": "treegrid",
-
     # Lists / trees
     "list": "list",
     "list-item": "listitem",
     "tree": "tree",
     "tree-item": "treeitem",
-
     # Tabs
     "page-tab-list": "tablist",
     "page-tab": "tab",
-
     # Text / display
     "label": "text",
     "static": "text",
@@ -108,7 +103,6 @@ CUP_ROLES: dict[str, str] = {
     "animation": "img",
     "canvas": "img",
     "chart": "img",
-
     # Document / content
     "document-frame": "document",
     "document-web": "document",
@@ -118,14 +112,12 @@ CUP_ROLES: dict[str, str] = {
     "document-presentation": "document",
     "article": "article",
     "form": "form",
-
     # Toolbar / status
     "tool-bar": "toolbar",
     "tool-tip": "tooltip",
     "status-bar": "status",
     "info-bar": "status",
     "notification": "alert",
-
     # ARIA landmarks (exposed via AT-SPI when apps set ARIA roles)
     "landmark": "region",
     "log": "log",
@@ -142,7 +134,6 @@ CUP_ROLES: dict[str, str] = {
     "description-term": "term",
     "description-value": "definition",
     "comment": "note",
-
     # Navigation
     "page": "region",
     "redundant-object": "generic",
@@ -150,7 +141,6 @@ CUP_ROLES: dict[str, str] = {
     "autocomplete": "combobox",
     "embedded": "generic",
     "editbar": "toolbar",
-
     # Catch-all
     "unknown": "generic",
     "invalid": "generic",
@@ -168,17 +158,17 @@ STATE_MAP: dict[str, str] = {
     "checked": "checked",
     "pressed": "pressed",
     "expanded": "expanded",
-    "expandable": "",           # used to derive collapsed
-    "sensitive": "",            # inverse -> disabled
-    "enabled": "",              # inverse -> disabled
+    "expandable": "",  # used to derive collapsed
+    "sensitive": "",  # inverse -> disabled
+    "enabled": "",  # inverse -> disabled
     "editable": "editable",
     "required": "required",
     "modal": "modal",
     "multi-selectable": "multiselectable",
     "busy": "busy",
     "read-only": "readonly",
-    "visible": "",              # inverse -> hidden
-    "showing": "",              # inverse -> offscreen
+    "visible": "",  # inverse -> hidden
+    "showing": "",  # inverse -> offscreen
     "indeterminate": "mixed",
 }
 
@@ -198,6 +188,7 @@ ACTION_MAP: dict[str, str] = {
 # X11 helpers via ctypes (for screen info and foreground window)
 # ---------------------------------------------------------------------------
 
+
 class _X11:
     """Thin ctypes wrapper around libX11 for screen/window queries."""
 
@@ -210,15 +201,15 @@ class _X11:
             return
         libx11_name = ctypes.util.find_library("X11")
         if not libx11_name:
-            raise RuntimeError(
-                "libX11 not found. Install libx11-dev or xorg-x11-libs.")
+            raise RuntimeError("libX11 not found. Install libx11-dev or xorg-x11-libs.")
         self._lib = ctypes.cdll.LoadLibrary(libx11_name)
         display_name = os.environ.get("DISPLAY", ":0").encode()
         self._display = self._lib.XOpenDisplay(display_name)
         if not self._display:
             raise RuntimeError(
                 f"Cannot open X11 display '{display_name.decode()}'. "
-                "Ensure DISPLAY is set and X server is running.")
+                "Ensure DISPLAY is set and X server is running."
+            )
 
     def get_screen_size(self) -> tuple[int, int]:
         """Return (width, height) of the default screen."""
@@ -268,9 +259,10 @@ def _get_scale_factor() -> float:
     # gsettings (GNOME)
     try:
         result = subprocess.run(
-            ["gsettings", "get", "org.gnome.desktop.interface",
-             "text-scaling-factor"],
-            capture_output=True, text=True, timeout=2,
+            ["gsettings", "get", "org.gnome.desktop.interface", "text-scaling-factor"],
+            capture_output=True,
+            text=True,
+            timeout=2,
         )
         if result.returncode == 0:
             val = float(result.stdout.strip())
@@ -286,9 +278,11 @@ def _get_scale_factor() -> float:
 # AT-SPI2 helpers
 # ---------------------------------------------------------------------------
 
+
 def _init_atspi():
     """Import and initialize AT-SPI2 via GObject Introspection."""
     import gi
+
     gi.require_version("Atspi", "2.0")
     from gi.repository import Atspi
 
@@ -415,6 +409,7 @@ def _get_pid(accessible) -> int | None:
 # CUP node builder
 # ---------------------------------------------------------------------------
 
+
 def _build_cup_node(
     accessible,
     id_gen,
@@ -460,15 +455,30 @@ def _build_cup_node(
     if xml_role:
         # Direct ARIA role override for ambiguous base roles
         ARIA_REFINEMENTS = {
-            "heading": "heading", "dialog": "dialog", "alert": "alert",
-            "alertdialog": "alertdialog", "searchbox": "searchbox",
-            "navigation": "navigation", "main": "main", "search": "search",
-            "banner": "banner", "contentinfo": "contentinfo",
-            "complementary": "complementary", "region": "region",
-            "form": "form", "switch": "switch", "tabpanel": "tabpanel",
-            "log": "log", "status": "status", "timer": "timer",
-            "marquee": "marquee", "feed": "feed", "figure": "figure",
-            "math": "math", "note": "note", "article": "article",
+            "heading": "heading",
+            "dialog": "dialog",
+            "alert": "alert",
+            "alertdialog": "alertdialog",
+            "searchbox": "searchbox",
+            "navigation": "navigation",
+            "main": "main",
+            "search": "search",
+            "banner": "banner",
+            "contentinfo": "contentinfo",
+            "complementary": "complementary",
+            "region": "region",
+            "form": "form",
+            "switch": "switch",
+            "tabpanel": "tabpanel",
+            "log": "log",
+            "status": "status",
+            "timer": "timer",
+            "marquee": "marquee",
+            "feed": "feed",
+            "figure": "figure",
+            "math": "math",
+            "note": "note",
+            "article": "article",
             "directory": "directory",
         }
         if xml_role in ARIA_REFINEMENTS:
@@ -524,7 +534,7 @@ def _build_cup_node(
         is_offscreen = True
     elif bounds and screen_w > 0 and screen_h > 0:
         bx, by, bw, bh = bounds["x"], bounds["y"], bounds["w"], bounds["h"]
-        if (bx + bw <= 0 or by + bh <= 0 or bx >= screen_w or by >= screen_h):
+        if bx + bw <= 0 or by + bh <= 0 or bx >= screen_w or by >= screen_h:
             is_offscreen = True
     if is_offscreen:
         states.append("offscreen")
@@ -579,7 +589,10 @@ def _build_cup_node(
     if text_content:
         value_str = text_content[:200]
     elif value_current is not None and role in (
-        "slider", "progressbar", "spinbutton", "scrollbar",
+        "slider",
+        "progressbar",
+        "spinbutton",
+        "scrollbar",
     ):
         value_str = str(value_current)
 
@@ -596,14 +609,11 @@ def _build_cup_node(
                 pass
 
     # Range widget min/max
-    if value_min is not None and role in ("slider", "progressbar",
-                                          "spinbutton", "scrollbar"):
+    if value_min is not None and role in ("slider", "progressbar", "spinbutton", "scrollbar"):
         attrs["valueMin"] = value_min
-    if value_max is not None and role in ("slider", "progressbar",
-                                          "spinbutton", "scrollbar"):
+    if value_max is not None and role in ("slider", "progressbar", "spinbutton", "scrollbar"):
         attrs["valueMax"] = value_max
-    if value_current is not None and role in ("slider", "progressbar",
-                                              "spinbutton", "scrollbar"):
+    if value_current is not None and role in ("slider", "progressbar", "spinbutton", "scrollbar"):
         attrs["valueNow"] = value_current
 
     # Placeholder
@@ -613,11 +623,19 @@ def _build_cup_node(
 
     # Orientation
     if "horizontal" in raw_states and role in (
-        "scrollbar", "slider", "separator", "toolbar", "tablist",
+        "scrollbar",
+        "slider",
+        "separator",
+        "toolbar",
+        "tablist",
     ):
         attrs["orientation"] = "horizontal"
     elif "vertical" in raw_states and role in (
-        "scrollbar", "slider", "separator", "toolbar", "tablist",
+        "scrollbar",
+        "slider",
+        "separator",
+        "toolbar",
+        "tablist",
     ):
         attrs["orientation"] = "vertical"
 
@@ -672,8 +690,14 @@ def _build_cup_node(
                     if child_acc is None:
                         continue
                     child_node = _build_cup_node(
-                        child_acc, id_gen, stats, depth + 1, max_depth,
-                        screen_w, screen_h, refs,
+                        child_acc,
+                        id_gen,
+                        stats,
+                        depth + 1,
+                        max_depth,
+                        screen_w,
+                        screen_h,
+                        refs,
                     )
                     if child_node is not None:
                         children.append(child_node)
@@ -691,6 +715,7 @@ def _build_cup_node(
 # ---------------------------------------------------------------------------
 # LinuxAdapter — PlatformAdapter implementation
 # ---------------------------------------------------------------------------
+
 
 class LinuxAdapter(PlatformAdapter):
     """CUP adapter for Linux via AT-SPI2 (D-Bus accessibility)."""
@@ -751,6 +776,7 @@ class LinuxAdapter(PlatformAdapter):
                             continue
                         state_set = win.get_state_set()
                         from gi.repository import Atspi
+
                         is_active = state_set.contains(Atspi.StateType.ACTIVE)
                         is_focused = state_set.contains(Atspi.StateType.FOCUSED)
                         title = win.get_name() or app_name
@@ -763,9 +789,7 @@ class LinuxAdapter(PlatformAdapter):
                                 "bundle_id": None,
                             }
                         # Track first visible window as fallback
-                        if best is None and state_set.contains(
-                            Atspi.StateType.VISIBLE
-                        ):
+                        if best is None and state_set.contains(Atspi.StateType.VISIBLE):
                             best = {
                                 "handle": win,
                                 "title": title,
@@ -807,15 +831,18 @@ class LinuxAdapter(PlatformAdapter):
                             continue
                         state_set = win.get_state_set()
                         from gi.repository import Atspi
+
                         if not state_set.contains(Atspi.StateType.VISIBLE):
                             continue
                         title = win.get_name() or app_name
-                        windows.append({
-                            "handle": win,
-                            "title": title,
-                            "pid": pid,
-                            "bundle_id": None,
-                        })
+                        windows.append(
+                            {
+                                "handle": win,
+                                "title": title,
+                                "pid": pid,
+                                "bundle_id": None,
+                            }
+                        )
                     except Exception:
                         continue
             except Exception:
@@ -848,20 +875,22 @@ class LinuxAdapter(PlatformAdapter):
                             continue
                         state_set = win.get_state_set()
                         from gi.repository import Atspi
+
                         if not state_set.contains(Atspi.StateType.VISIBLE):
                             continue
                         title = win.get_name() or app_name
-                        is_fg = (
-                            state_set.contains(Atspi.StateType.ACTIVE)
-                            or (pid == fg_pid and title == fg_title)
+                        is_fg = state_set.contains(Atspi.StateType.ACTIVE) or (
+                            pid == fg_pid and title == fg_title
                         )
-                        results.append({
-                            "title": title,
-                            "pid": pid,
-                            "bundle_id": None,
-                            "foreground": is_fg,
-                            "bounds": _atspi_get_bounds(win),
-                        })
+                        results.append(
+                            {
+                                "title": title,
+                                "pid": pid,
+                                "bundle_id": None,
+                                "foreground": is_fg,
+                                "bounds": _atspi_get_bounds(win),
+                            }
+                        )
                     except Exception:
                         continue
             except Exception:
@@ -920,16 +949,21 @@ class LinuxAdapter(PlatformAdapter):
             tree: list[dict] = []
             for win in windows:
                 node = _build_cup_node(
-                    win["handle"], id_gen, stats, 0, max_depth,
-                    self._screen_w, self._screen_h, refs,
+                    win["handle"],
+                    id_gen,
+                    stats,
+                    0,
+                    max_depth,
+                    self._screen_w,
+                    self._screen_h,
+                    refs,
                 )
                 if node is not None:
                     tree.append(node)
             return tree, stats, refs
         else:
             # Multiple windows — parallel walk with merged stats
-            return self._parallel_capture(windows, max_depth=max_depth,
-                                          refs=refs)
+            return self._parallel_capture(windows, max_depth=max_depth, refs=refs)
 
     def _parallel_capture(
         self,
@@ -943,16 +977,20 @@ class LinuxAdapter(PlatformAdapter):
         id_gen = itertools.count()
         num_workers = min(len(windows), 8)
 
-        per_window_results: list[tuple[dict | None, dict]] = [
-            (None, {}) for _ in windows
-        ]
+        per_window_results: list[tuple[dict | None, dict]] = [(None, {}) for _ in windows]
 
         def walk_one(idx: int):
             win = windows[idx]
             local_stats: dict = {"nodes": 0, "max_depth": 0, "roles": {}}
             node = _build_cup_node(
-                win["handle"], id_gen, local_stats, 0, max_depth,
-                self._screen_w, self._screen_h, refs,
+                win["handle"],
+                id_gen,
+                local_stats,
+                0,
+                max_depth,
+                self._screen_w,
+                self._screen_h,
+                refs,
             )
             per_window_results[idx] = (node, local_stats)
 
@@ -966,13 +1004,9 @@ class LinuxAdapter(PlatformAdapter):
             if node is not None:
                 tree.append(node)
             merged_stats["nodes"] += st.get("nodes", 0)
-            merged_stats["max_depth"] = max(
-                merged_stats["max_depth"], st.get("max_depth", 0)
-            )
+            merged_stats["max_depth"] = max(merged_stats["max_depth"], st.get("max_depth", 0))
             for role, count in st.get("roles", {}).items():
-                merged_stats["roles"][role] = (
-                    merged_stats["roles"].get(role, 0) + count
-                )
+                merged_stats["roles"][role] = merged_stats["roles"].get(role, 0) + count
 
         return tree, merged_stats, refs
 
@@ -981,16 +1015,20 @@ class LinuxAdapter(PlatformAdapter):
 # Fallback screen size detection
 # ---------------------------------------------------------------------------
 
+
 def _fallback_screen_size() -> tuple[int, int]:
     """Try xrandr / xdpyinfo as fallback for screen dimensions."""
     # Try xrandr
     try:
         result = subprocess.run(
             ["xrandr", "--query"],
-            capture_output=True, text=True, timeout=3,
+            capture_output=True,
+            text=True,
+            timeout=3,
         )
         if result.returncode == 0:
             import re
+
             match = re.search(r"(\d+)x(\d+)\+0\+0", result.stdout)
             if match:
                 return (int(match.group(1)), int(match.group(2)))
@@ -1005,10 +1043,13 @@ def _fallback_screen_size() -> tuple[int, int]:
     try:
         result = subprocess.run(
             ["xdpyinfo"],
-            capture_output=True, text=True, timeout=3,
+            capture_output=True,
+            text=True,
+            timeout=3,
         )
         if result.returncode == 0:
             import re
+
             match = re.search(r"dimensions:\s+(\d+)x(\d+)", result.stdout)
             if match:
                 return (int(match.group(1)), int(match.group(2)))

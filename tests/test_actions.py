@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from cup.actions.executor import ActionExecutor, ActionResult, VALID_ACTIONS
 from cup.actions._keys import parse_combo
-
+from cup.actions.executor import VALID_ACTIONS, ActionExecutor, ActionResult
 
 # ---------------------------------------------------------------------------
 # Key combo parsing
 # ---------------------------------------------------------------------------
+
 
 class TestParseCombo:
     def test_single_key(self):
@@ -76,6 +76,7 @@ class TestParseCombo:
 # ActionResult
 # ---------------------------------------------------------------------------
 
+
 class TestActionResult:
     def test_success(self):
         r = ActionResult(success=True, message="Clicked")
@@ -92,6 +93,7 @@ class TestActionResult:
 # ---------------------------------------------------------------------------
 # ActionExecutor (with mock adapter)
 # ---------------------------------------------------------------------------
+
 
 class _MockAdapter:
     """Minimal mock to satisfy ActionExecutor init."""
@@ -141,10 +143,9 @@ class TestActionExecutor:
         except (ImportError, OSError):
             pytest.skip("Windows-only: comtypes not available")
 
-
-# ---------------------------------------------------------------------------
-# Valid actions match schema
-# ---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
+    # Valid actions match schema
+    # ---------------------------------------------------------------------------
 
     def test_execute_type_without_value_rejected(self):
         try:
@@ -213,23 +214,39 @@ class TestActionExecutor:
 # Valid actions match schema
 # ---------------------------------------------------------------------------
 
+
 class TestValidActions:
     def test_all_schema_actions_present(self):
         schema_actions = {
-            "click", "collapse", "decrement", "dismiss", "doubleclick",
-            "expand", "focus", "increment", "longpress", "press_keys",
-            "rightclick", "scroll", "select", "setvalue", "toggle", "type",
+            "click",
+            "collapse",
+            "decrement",
+            "dismiss",
+            "doubleclick",
+            "expand",
+            "focus",
+            "increment",
+            "longpress",
+            "press_keys",
+            "rightclick",
+            "scroll",
+            "select",
+            "setvalue",
+            "toggle",
+            "type",
         }
-        assert VALID_ACTIONS == schema_actions
+        assert schema_actions == VALID_ACTIONS
 
 
 # ---------------------------------------------------------------------------
 # Stub handler tests (macOS / Linux)
 # ---------------------------------------------------------------------------
 
+
 class TestMacosStub:
     def test_execute_returns_not_implemented(self):
         from cup.actions._macos import MacosActionHandler
+
         handler = MacosActionHandler()
         result = handler.execute(None, "click", {})
         assert result.success is False
@@ -238,6 +255,7 @@ class TestMacosStub:
 
     def test_press_keys_returns_not_implemented(self):
         from cup.actions._macos import MacosActionHandler
+
         handler = MacosActionHandler()
         result = handler.press_keys("ctrl+s")
         assert result.success is False
@@ -246,6 +264,7 @@ class TestMacosStub:
 
     def test_launch_app_returns_not_implemented(self):
         from cup.actions._macos import MacosActionHandler
+
         handler = MacosActionHandler()
         result = handler.launch_app("chrome")
         assert result.success is False
@@ -256,6 +275,7 @@ class TestMacosStub:
 class TestLinuxStub:
     def test_execute_returns_not_implemented(self):
         from cup.actions._linux import LinuxActionHandler
+
         handler = LinuxActionHandler()
         result = handler.execute(None, "click", {})
         assert result.success is False
@@ -264,6 +284,7 @@ class TestLinuxStub:
 
     def test_press_keys_returns_not_implemented(self):
         from cup.actions._linux import LinuxActionHandler
+
         handler = LinuxActionHandler()
         result = handler.press_keys("ctrl+s")
         assert result.success is False
@@ -272,6 +293,7 @@ class TestLinuxStub:
 
     def test_launch_app_returns_not_implemented(self):
         from cup.actions._linux import LinuxActionHandler
+
         handler = LinuxActionHandler()
         result = handler.launch_app("firefox")
         assert result.success is False
@@ -283,9 +305,11 @@ class TestLinuxStub:
 # Web stub test
 # ---------------------------------------------------------------------------
 
+
 class TestWebStub:
     def test_launch_app_returns_not_applicable(self):
         from cup.actions._web import WebActionHandler
+
         handler = WebActionHandler()
         result = handler.launch_app("chrome")
         assert result.success is False
@@ -296,33 +320,40 @@ class TestWebStub:
 # Fuzzy matching tests (Windows)
 # ---------------------------------------------------------------------------
 
+
 class TestFuzzyMatch:
     def test_exact_match(self):
         from cup.actions._windows import _fuzzy_match
+
         result = _fuzzy_match("notepad", ["notepad", "google chrome", "slack"])
         assert result == "notepad"
 
     def test_substring_match(self):
         from cup.actions._windows import _fuzzy_match
+
         result = _fuzzy_match("chrome", ["google chrome", "notepad", "slack"])
         assert result == "google chrome"
 
     def test_fuzzy_match(self):
         from cup.actions._windows import _fuzzy_match
+
         result = _fuzzy_match("chrom", ["google chrome", "notepad", "slack"])
         assert result == "google chrome"
 
     def test_no_match(self):
         from cup.actions._windows import _fuzzy_match
+
         result = _fuzzy_match("zzzznonexistent", ["notepad", "slack"])
         assert result is None
 
     def test_case_insensitive(self):
         from cup.actions._windows import _fuzzy_match
+
         result = _fuzzy_match("Chrome", ["google chrome", "notepad"])
         assert result == "google chrome"
 
     def test_empty_candidates(self):
         from cup.actions._windows import _fuzzy_match
+
         result = _fuzzy_match("chrome", [])
         assert result is None

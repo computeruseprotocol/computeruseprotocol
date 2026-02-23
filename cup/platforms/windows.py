@@ -80,24 +80,39 @@ AutomationElementMode_Full = 1
 # All properties to cache in a single COM call
 PROP_IDS = [
     # Core (3)
-    UIA_NamePropertyId, UIA_ControlTypePropertyId, UIA_BoundingRectanglePropertyId,
+    UIA_NamePropertyId,
+    UIA_ControlTypePropertyId,
+    UIA_BoundingRectanglePropertyId,
     # State / identification (7)
-    UIA_IsEnabledPropertyId, UIA_HasKeyboardFocusPropertyId, UIA_IsOffscreenPropertyId,
-    UIA_AutomationIdPropertyId, UIA_ClassNamePropertyId, UIA_HelpTextPropertyId,
-    UIA_OrientationPropertyId, UIA_IsRequiredForFormPropertyId,
+    UIA_IsEnabledPropertyId,
+    UIA_HasKeyboardFocusPropertyId,
+    UIA_IsOffscreenPropertyId,
+    UIA_AutomationIdPropertyId,
+    UIA_ClassNamePropertyId,
+    UIA_HelpTextPropertyId,
+    UIA_OrientationPropertyId,
+    UIA_IsRequiredForFormPropertyId,
     # Pattern availability (7)
-    UIA_IsInvokePatternAvailablePropertyId, UIA_IsTogglePatternAvailablePropertyId,
-    UIA_IsExpandCollapsePatternAvailablePropertyId, UIA_IsValuePatternAvailablePropertyId,
-    UIA_IsSelectionItemPatternAvailablePropertyId, UIA_IsScrollPatternAvailablePropertyId,
+    UIA_IsInvokePatternAvailablePropertyId,
+    UIA_IsTogglePatternAvailablePropertyId,
+    UIA_IsExpandCollapsePatternAvailablePropertyId,
+    UIA_IsValuePatternAvailablePropertyId,
+    UIA_IsSelectionItemPatternAvailablePropertyId,
+    UIA_IsScrollPatternAvailablePropertyId,
     UIA_IsRangeValuePatternAvailablePropertyId,
     # Pattern state values (8)
-    UIA_ToggleToggleStatePropertyId, UIA_ExpandCollapseExpandCollapseStatePropertyId,
-    UIA_SelectionItemIsSelectedPropertyId, UIA_ValueIsReadOnlyPropertyId,
-    UIA_ValueValuePropertyId, UIA_RangeValueValuePropertyId,
-    UIA_RangeValueMinimumPropertyId, UIA_RangeValueMaximumPropertyId,
+    UIA_ToggleToggleStatePropertyId,
+    UIA_ExpandCollapseExpandCollapseStatePropertyId,
+    UIA_SelectionItemIsSelectedPropertyId,
+    UIA_ValueIsReadOnlyPropertyId,
+    UIA_ValueValuePropertyId,
+    UIA_RangeValueValuePropertyId,
+    UIA_RangeValueMinimumPropertyId,
+    UIA_RangeValueMaximumPropertyId,
     UIA_WindowIsModalPropertyId,
     # ARIA (2)
-    UIA_AriaRolePropertyId, UIA_AriaPropertiesPropertyId,
+    UIA_AriaRolePropertyId,
+    UIA_AriaPropertiesPropertyId,
 ]
 
 
@@ -106,20 +121,47 @@ PROP_IDS = [
 # ---------------------------------------------------------------------------
 
 CONTROL_TYPES = {
-    50000: "Button", 50001: "Calendar", 50002: "CheckBox",
-    50003: "ComboBox", 50004: "Edit", 50005: "Hyperlink",
-    50006: "Image", 50007: "ListItem", 50008: "List",
-    50009: "Menu", 50010: "MenuBar", 50011: "MenuItem",
-    50012: "ProgressBar", 50013: "RadioButton", 50014: "ScrollBar",
-    50015: "Slider", 50016: "Spinner", 50017: "StatusBar",
-    50018: "Tab", 50019: "TabItem", 50020: "Text",
-    50021: "ToolBar", 50022: "ToolTip", 50023: "Tree",
-    50024: "TreeItem", 50025: "Custom", 50026: "Group",
-    50027: "Thumb", 50028: "DataGrid", 50029: "DataItem",
-    50030: "Document", 50031: "SplitButton", 50032: "Window",
-    50033: "Pane", 50034: "Header", 50035: "HeaderItem",
-    50036: "Table", 50037: "TitleBar", 50038: "Separator",
-    50039: "SemanticZoom", 50040: "AppBar",
+    50000: "Button",
+    50001: "Calendar",
+    50002: "CheckBox",
+    50003: "ComboBox",
+    50004: "Edit",
+    50005: "Hyperlink",
+    50006: "Image",
+    50007: "ListItem",
+    50008: "List",
+    50009: "Menu",
+    50010: "MenuBar",
+    50011: "MenuItem",
+    50012: "ProgressBar",
+    50013: "RadioButton",
+    50014: "ScrollBar",
+    50015: "Slider",
+    50016: "Spinner",
+    50017: "StatusBar",
+    50018: "Tab",
+    50019: "TabItem",
+    50020: "Text",
+    50021: "ToolBar",
+    50022: "ToolTip",
+    50023: "Tree",
+    50024: "TreeItem",
+    50025: "Custom",
+    50026: "Group",
+    50027: "Thumb",
+    50028: "DataGrid",
+    50029: "DataItem",
+    50030: "Document",
+    50031: "SplitButton",
+    50032: "Window",
+    50033: "Pane",
+    50034: "Header",
+    50035: "HeaderItem",
+    50036: "Table",
+    50037: "TitleBar",
+    50038: "Separator",
+    50039: "SemanticZoom",
+    50040: "AppBar",
 }
 
 
@@ -128,47 +170,47 @@ CONTROL_TYPES = {
 # ---------------------------------------------------------------------------
 
 CUP_ROLES = {
-    50000: "button",        # Button
-    50001: "grid",          # Calendar
-    50002: "checkbox",      # CheckBox
-    50003: "combobox",      # ComboBox
-    50004: "textbox",       # Edit
-    50005: "link",          # Hyperlink
-    50006: "img",           # Image
-    50007: "listitem",      # ListItem
-    50008: "list",          # List
-    50009: "menu",          # Menu
-    50010: "menubar",       # MenuBar
-    50011: "menuitem",      # MenuItem
-    50012: "progressbar",   # ProgressBar
-    50013: "radio",         # RadioButton
-    50014: "scrollbar",     # ScrollBar
-    50015: "slider",        # Slider
-    50016: "spinbutton",    # Spinner
-    50017: "status",        # StatusBar
-    50018: "tablist",       # Tab (the container)
-    50019: "tab",           # TabItem
-    50020: "text",          # Text
-    50021: "toolbar",       # ToolBar
-    50022: "tooltip",       # ToolTip
-    50023: "tree",          # Tree
-    50024: "treeitem",      # TreeItem
-    50025: "generic",       # Custom
-    50026: "group",         # Group
-    50027: "generic",       # Thumb
-    50028: "grid",          # DataGrid
-    50029: "row",           # DataItem
-    50030: "document",      # Document
-    50031: "button",        # SplitButton
-    50032: "window",        # Window
-    50033: "generic",       # Pane — context-dependent, refined below
-    50034: "group",         # Header
+    50000: "button",  # Button
+    50001: "grid",  # Calendar
+    50002: "checkbox",  # CheckBox
+    50003: "combobox",  # ComboBox
+    50004: "textbox",  # Edit
+    50005: "link",  # Hyperlink
+    50006: "img",  # Image
+    50007: "listitem",  # ListItem
+    50008: "list",  # List
+    50009: "menu",  # Menu
+    50010: "menubar",  # MenuBar
+    50011: "menuitem",  # MenuItem
+    50012: "progressbar",  # ProgressBar
+    50013: "radio",  # RadioButton
+    50014: "scrollbar",  # ScrollBar
+    50015: "slider",  # Slider
+    50016: "spinbutton",  # Spinner
+    50017: "status",  # StatusBar
+    50018: "tablist",  # Tab (the container)
+    50019: "tab",  # TabItem
+    50020: "text",  # Text
+    50021: "toolbar",  # ToolBar
+    50022: "tooltip",  # ToolTip
+    50023: "tree",  # Tree
+    50024: "treeitem",  # TreeItem
+    50025: "generic",  # Custom
+    50026: "group",  # Group
+    50027: "generic",  # Thumb
+    50028: "grid",  # DataGrid
+    50029: "row",  # DataItem
+    50030: "document",  # Document
+    50031: "button",  # SplitButton
+    50032: "window",  # Window
+    50033: "generic",  # Pane — context-dependent, refined below
+    50034: "group",  # Header
     50035: "columnheader",  # HeaderItem
-    50036: "table",         # Table
-    50037: "titlebar",      # TitleBar
-    50038: "separator",     # Separator
-    50039: "generic",       # SemanticZoom
-    50040: "toolbar",       # AppBar
+    50036: "table",  # Table
+    50037: "titlebar",  # TitleBar
+    50038: "separator",  # Separator
+    50039: "generic",  # SemanticZoom
+    50040: "toolbar",  # AppBar
 }
 
 # Roles that accept text input (for adding "type" action)
@@ -271,6 +313,7 @@ def _win32_find_desktop_hwnd() -> int | None:
 # UIA COM bootstrap
 # ---------------------------------------------------------------------------
 
+
 def init_uia():
     """Initialise the IUIAutomation COM interface."""
     comtypes.client.GetModule("UIAutomationCore.dll")
@@ -283,7 +326,9 @@ def init_uia():
     )
 
 
-def make_cache_request(uia, *, element_mode=AutomationElementMode_Full, tree_scope=TreeScope_Element):
+def make_cache_request(
+    uia, *, element_mode=AutomationElementMode_Full, tree_scope=TreeScope_Element
+):
     cr = uia.CreateCacheRequest()
     for pid in PROP_IDS:
         cr.AddProperty(pid)
@@ -295,6 +340,7 @@ def make_cache_request(uia, *, element_mode=AutomationElementMode_Full, tree_sco
 # ---------------------------------------------------------------------------
 # Cached property helpers
 # ---------------------------------------------------------------------------
+
 
 def _cached_bool(el, pid, default=False):
     """Read a cached boolean UIA property."""
@@ -341,7 +387,7 @@ def _cached_str(el, pid, default=""):
 def is_valid_element(el) -> bool:
     """Check if a UIA COM element is a live (non-NULL) pointer."""
     try:
-        el.CachedControlType
+        _ = el.CachedControlType
         return True
     except Exception:
         return False
@@ -350,6 +396,7 @@ def is_valid_element(el) -> bool:
 # ---------------------------------------------------------------------------
 # CUP node builder
 # ---------------------------------------------------------------------------
+
 
 def build_cup_node(el, id_gen, stats) -> dict:
     """Build a CUP-formatted node dict from a cached UIA element.
@@ -374,8 +421,7 @@ def build_cup_node(el, id_gen, stats) -> dict:
     try:
         rect = el.GetCachedPropertyValue(UIA_BoundingRectanglePropertyId)
         if rect and len(rect) == 4:
-            bounds = {"x": int(rect[0]), "y": int(rect[1]),
-                      "w": int(rect[2]), "h": int(rect[3])}
+            bounds = {"x": int(rect[0]), "y": int(rect[1]), "w": int(rect[2]), "h": int(rect[3])}
         else:
             bounds = None
     except Exception:
@@ -386,32 +432,32 @@ def build_cup_node(el, id_gen, stats) -> dict:
     stats["roles"][ct_name] = stats["roles"].get(ct_name, 0) + 1
 
     # ── State properties ──
-    is_enabled   = _cached_bool(el, UIA_IsEnabledPropertyId, True)
-    has_focus    = _cached_bool(el, UIA_HasKeyboardFocusPropertyId, False)
+    is_enabled = _cached_bool(el, UIA_IsEnabledPropertyId, True)
+    has_focus = _cached_bool(el, UIA_HasKeyboardFocusPropertyId, False)
     is_offscreen = _cached_bool(el, UIA_IsOffscreenPropertyId, False)
-    is_required  = _cached_bool(el, UIA_IsRequiredForFormPropertyId, False)
-    is_modal     = _cached_bool(el, UIA_WindowIsModalPropertyId, False)
+    is_required = _cached_bool(el, UIA_IsRequiredForFormPropertyId, False)
+    is_modal = _cached_bool(el, UIA_WindowIsModalPropertyId, False)
 
     # ── Pattern availability ──
-    has_invoke   = _cached_bool(el, UIA_IsInvokePatternAvailablePropertyId, False)
-    has_toggle   = _cached_bool(el, UIA_IsTogglePatternAvailablePropertyId, False)
-    has_expand   = _cached_bool(el, UIA_IsExpandCollapsePatternAvailablePropertyId, False)
-    has_value    = _cached_bool(el, UIA_IsValuePatternAvailablePropertyId, False)
+    has_invoke = _cached_bool(el, UIA_IsInvokePatternAvailablePropertyId, False)
+    has_toggle = _cached_bool(el, UIA_IsTogglePatternAvailablePropertyId, False)
+    has_expand = _cached_bool(el, UIA_IsExpandCollapsePatternAvailablePropertyId, False)
+    has_value = _cached_bool(el, UIA_IsValuePatternAvailablePropertyId, False)
     has_sel_item = _cached_bool(el, UIA_IsSelectionItemPatternAvailablePropertyId, False)
-    has_scroll   = _cached_bool(el, UIA_IsScrollPatternAvailablePropertyId, False)
-    has_range    = _cached_bool(el, UIA_IsRangeValuePatternAvailablePropertyId, False)
+    has_scroll = _cached_bool(el, UIA_IsScrollPatternAvailablePropertyId, False)
+    has_range = _cached_bool(el, UIA_IsRangeValuePatternAvailablePropertyId, False)
 
     # ── Pattern state values ──
     toggle_state = _cached_int(el, UIA_ToggleToggleStatePropertyId, -1)
     expand_state = _cached_int(el, UIA_ExpandCollapseExpandCollapseStatePropertyId, -1)
-    is_selected  = _cached_bool(el, UIA_SelectionItemIsSelectedPropertyId, False)
+    is_selected = _cached_bool(el, UIA_SelectionItemIsSelectedPropertyId, False)
     val_readonly = _cached_bool(el, UIA_ValueIsReadOnlyPropertyId, False) if has_value else False
-    val_str      = _cached_str(el, UIA_ValueValuePropertyId) if has_value else ""
+    val_str = _cached_str(el, UIA_ValueValuePropertyId) if has_value else ""
 
     # ── Identification ──
     automation_id = _cached_str(el, UIA_AutomationIdPropertyId)
-    class_name    = _cached_str(el, UIA_ClassNamePropertyId)
-    help_text     = _cached_str(el, UIA_HelpTextPropertyId)
+    class_name = _cached_str(el, UIA_ClassNamePropertyId)
+    help_text = _cached_str(el, UIA_HelpTextPropertyId)
 
     # ── ARIA properties (web content hosted in UIA) ──
     aria_role = _cached_str(el, UIA_AriaRolePropertyId)
@@ -425,7 +471,7 @@ def build_cup_node(el, id_gen, stats) -> dict:
 
     # ── Role (ARIA-mapped) ──
     role = CUP_ROLES.get(ct, "generic")
-    if ct == 50033 and name:   # Pane with name -> region
+    if ct == 50033 and name:  # Pane with name -> region
         role = "region"
 
     # Refine role from ARIA (web content in UIA) — only override ambiguous roles
@@ -567,8 +613,15 @@ def build_cup_node(el, id_gen, stats) -> dict:
     # Optional fields — omit when empty to keep payload compact
     if help_text:
         node["description"] = help_text[:200]
-    if val_str and role in ("textbox", "searchbox", "combobox", "spinbutton",
-                            "slider", "progressbar", "document"):
+    if val_str and role in (
+        "textbox",
+        "searchbox",
+        "combobox",
+        "spinbutton",
+        "slider",
+        "progressbar",
+        "document",
+    ):
         node["value"] = val_str[:200]
     if bounds:
         node["bounds"] = bounds
@@ -581,13 +634,20 @@ def build_cup_node(el, id_gen, stats) -> dict:
 
     # ── Platform extension (windows-specific raw data) ──
     patterns = []
-    if has_invoke:   patterns.append("Invoke")
-    if has_toggle:   patterns.append("Toggle")
-    if has_expand:   patterns.append("ExpandCollapse")
-    if has_value:    patterns.append("Value")
-    if has_sel_item: patterns.append("SelectionItem")
-    if has_scroll:   patterns.append("Scroll")
-    if has_range:    patterns.append("RangeValue")
+    if has_invoke:
+        patterns.append("Invoke")
+    if has_toggle:
+        patterns.append("Toggle")
+    if has_expand:
+        patterns.append("ExpandCollapse")
+    if has_value:
+        patterns.append("Value")
+    if has_sel_item:
+        patterns.append("SelectionItem")
+    if has_scroll:
+        patterns.append("Scroll")
+    if has_range:
+        patterns.append("RangeValue")
 
     pw = {"controlType": ct}
     if automation_id:
@@ -604,6 +664,7 @@ def build_cup_node(el, id_gen, stats) -> dict:
 # ---------------------------------------------------------------------------
 # Approach A: flat snapshot via FindAllBuildCache
 # ---------------------------------------------------------------------------
+
 
 def flat_snapshot(uia, root, cache_req, max_depth: int, id_gen, stats) -> list[dict]:
     """Breadth-first, depth-limited snapshot using FindAll(Children) per level.
@@ -644,8 +705,8 @@ def flat_snapshot(uia, root, cache_req, max_depth: int, id_gen, stats) -> list[d
 # Approach B: structured tree via TreeWalker + BuildCache
 # ---------------------------------------------------------------------------
 
-def walk_tree(walker, element, cache_req, depth: int, max_depth: int,
-              id_gen, stats) -> dict | None:
+
+def walk_tree(walker, element, cache_req, depth: int, max_depth: int, id_gen, stats) -> dict | None:
     if depth > max_depth:
         return None
 
@@ -660,8 +721,7 @@ def walk_tree(walker, element, cache_req, depth: int, max_depth: int,
             child = None
 
         while child is not None and is_valid_element(child):
-            child_node = walk_tree(walker, child, cache_req, depth + 1, max_depth,
-                                   id_gen, stats)
+            child_node = walk_tree(walker, child, cache_req, depth + 1, max_depth, id_gen, stats)
             if child_node is not None:
                 children.append(child_node)
             try:
@@ -679,8 +739,8 @@ def walk_tree(walker, element, cache_req, depth: int, max_depth: int,
 # Approach C: pre-cached subtree via CacheRequest(TreeScope_Subtree)
 # ---------------------------------------------------------------------------
 
-def walk_cached_tree(element, depth: int, max_depth: int,
-                     id_gen, stats, refs) -> dict | None:
+
+def walk_cached_tree(element, depth: int, max_depth: int, id_gen, stats, refs) -> dict | None:
     """Walk a subtree that was fully pre-cached in a single COM call.
 
     Uses CachedChildren (in-process memory reads) instead of
@@ -701,8 +761,7 @@ def walk_cached_tree(element, depth: int, max_depth: int,
             if cached_children is not None:
                 for i in range(cached_children.Length):
                     child = cached_children.GetElement(i)
-                    child_node = walk_cached_tree(child, depth + 1, max_depth,
-                                                  id_gen, stats, refs)
+                    child_node = walk_cached_tree(child, depth + 1, max_depth, id_gen, stats, refs)
                     if child_node is not None:
                         children.append(child_node)
         except (comtypes.COMError, Exception):
@@ -717,6 +776,7 @@ def walk_cached_tree(element, depth: int, max_depth: int,
 # ---------------------------------------------------------------------------
 # WindowsAdapter — PlatformAdapter implementation
 # ---------------------------------------------------------------------------
+
 
 class WindowsAdapter(PlatformAdapter):
     """CUP adapter for Windows via UIA COM."""
@@ -757,12 +817,14 @@ class WindowsAdapter(PlatformAdapter):
     def get_all_windows(self) -> list[dict[str, Any]]:
         results = []
         for hwnd, title in _win32_enum_windows(visible_only=True):
-            results.append({
-                "handle": hwnd,
-                "title": title,
-                "pid": get_window_pid(hwnd),
-                "bundle_id": None,
-            })
+            results.append(
+                {
+                    "handle": hwnd,
+                    "title": title,
+                    "pid": get_window_pid(hwnd),
+                    "bundle_id": None,
+                }
+            )
         return results
 
     def get_window_list(self) -> list[dict[str, Any]]:
@@ -771,13 +833,15 @@ class WindowsAdapter(PlatformAdapter):
         for hwnd, title in _win32_enum_windows(visible_only=True):
             if not title:
                 continue
-            results.append({
-                "title": title,
-                "pid": get_window_pid(hwnd),
-                "bundle_id": None,
-                "foreground": hwnd == fg_hwnd,
-                "bounds": _win32_get_window_rect(hwnd),
-            })
+            results.append(
+                {
+                    "title": title,
+                    "pid": get_window_pid(hwnd),
+                    "bundle_id": None,
+                    "foreground": hwnd == fg_hwnd,
+                    "bounds": _win32_get_window_rect(hwnd),
+                }
+            )
         return results
 
     def get_desktop_window(self) -> dict[str, Any] | None:
@@ -866,5 +930,6 @@ class WindowsAdapter(PlatformAdapter):
         A short sleep gives Chromium time to build the tree before we retry.
         """
         import time
+
         user32.SetForegroundWindow(hwnd)
         time.sleep(0.3)

@@ -63,6 +63,7 @@ def _cdp_connect(ws_url: str, host: str | None = None) -> websocket.WebSocket:
     if host:
         # ws://localhost:9222/devtools/... → ws://127.0.0.1:9222/devtools/...
         from urllib.parse import urlparse, urlunparse
+
         parts = urlparse(ws_url)
         ws_url = urlunparse(parts._replace(netloc=f"{host}:{parts.port}"))
     ws = websocket.WebSocket()
@@ -98,9 +99,7 @@ def _cdp_send(
             if resp.get("id") == msg_id:
                 if "error" in resp:
                     err = resp["error"]
-                    raise RuntimeError(
-                        f"CDP error {err.get('code')}: {err.get('message')}"
-                    )
+                    raise RuntimeError(f"CDP error {err.get('code')}: {err.get('message')}")
                 return resp
             # else: event notification — discard and keep waiting
     finally:
@@ -120,14 +119,16 @@ def _cdp_close(ws: websocket.WebSocket) -> None:
 # ---------------------------------------------------------------------------
 
 # Roles that should be skipped entirely (internal browser nodes)
-_SKIP_ROLES = frozenset({
-    "InlineTextBox",
-    "LineBreak",
-    "IframePresentational",
-    "none",
-    "Ignored",
-    "IgnoredRole",
-})
+_SKIP_ROLES = frozenset(
+    {
+        "InlineTextBox",
+        "LineBreak",
+        "IframePresentational",
+        "none",
+        "Ignored",
+        "IgnoredRole",
+    }
+)
 
 # Explicit mapping for CDP roles that don't match CUP names directly.
 # CDP roles not listed here fall through to the lowercase identity check.
@@ -135,7 +136,6 @@ CDP_ROLE_MAP: dict[str, str] = {
     # Document roots
     "RootWebArea": "document",
     "WebArea": "document",
-
     # Structural / generic
     "GenericContainer": "generic",
     "Iframe": "generic",
@@ -151,20 +151,16 @@ CDP_ROLE_MAP: dict[str, str] = {
     "Superscript": "generic",
     "LabelText": "generic",
     "Legend": "generic",
-
     # Text
     "StaticText": "text",
-
     # Groups
     "Blockquote": "group",
     "Figcaption": "group",
     "DescriptionListDetail": "group",
     "Details": "group",
-
     # Lists
     "DescriptionList": "list",
     "DescriptionListTerm": "listitem",
-
     # CamelCase → lowercase ARIA
     "progressIndicator": "progressbar",
     "spinButton": "spinbutton",
@@ -185,7 +181,6 @@ CDP_ROLE_MAP: dict[str, str] = {
     "contentInfo": "contentinfo",
     "radioButton": "radio",
     "scrollBar": "scrollbar",
-
     # Semantic overrides
     "Summary": "button",
     "Meter": "progressbar",
@@ -198,47 +193,140 @@ CDP_ROLE_MAP: dict[str, str] = {
 }
 
 # Valid CUP roles (for the identity-check fallback)
-_CUP_ROLES = frozenset({
-    "alert", "alertdialog", "application", "article", "banner", "button",
-    "cell", "checkbox", "columnheader", "combobox", "complementary",
-    "contentinfo", "definition", "dialog", "directory", "document",
-    "feed", "figure", "form", "generic", "grid", "gridcell", "group",
-    "heading", "img", "link", "list", "listbox", "listitem", "log",
-    "main", "marquee", "math", "menu", "menubar", "menuitem",
-    "menuitemcheckbox", "menuitemradio", "meter", "navigation", "none",
-    "note", "option", "pane", "presentation", "progressbar", "radio",
-    "radiogroup", "region", "row", "rowgroup", "rowheader", "scrollbar",
-    "search", "searchbox", "separator", "slider", "spinbutton", "status",
-    "switch", "tab", "table", "tablist", "tabpanel", "term", "text",
-    "textbox", "timer", "toolbar", "tooltip", "tree", "treegrid",
-    "treeitem", "window",
-})
+_CUP_ROLES = frozenset(
+    {
+        "alert",
+        "alertdialog",
+        "application",
+        "article",
+        "banner",
+        "button",
+        "cell",
+        "checkbox",
+        "columnheader",
+        "combobox",
+        "complementary",
+        "contentinfo",
+        "definition",
+        "dialog",
+        "directory",
+        "document",
+        "feed",
+        "figure",
+        "form",
+        "generic",
+        "grid",
+        "gridcell",
+        "group",
+        "heading",
+        "img",
+        "link",
+        "list",
+        "listbox",
+        "listitem",
+        "log",
+        "main",
+        "marquee",
+        "math",
+        "menu",
+        "menubar",
+        "menuitem",
+        "menuitemcheckbox",
+        "menuitemradio",
+        "meter",
+        "navigation",
+        "none",
+        "note",
+        "option",
+        "pane",
+        "presentation",
+        "progressbar",
+        "radio",
+        "radiogroup",
+        "region",
+        "row",
+        "rowgroup",
+        "rowheader",
+        "scrollbar",
+        "search",
+        "searchbox",
+        "separator",
+        "slider",
+        "spinbutton",
+        "status",
+        "switch",
+        "tab",
+        "table",
+        "tablist",
+        "tabpanel",
+        "term",
+        "text",
+        "textbox",
+        "timer",
+        "toolbar",
+        "tooltip",
+        "tree",
+        "treegrid",
+        "treeitem",
+        "window",
+    }
+)
 
 # Roles where text input is expected
-_TEXT_INPUT_ROLES = frozenset({
-    "textbox", "searchbox", "combobox", "spinbutton",
-})
+_TEXT_INPUT_ROLES = frozenset(
+    {
+        "textbox",
+        "searchbox",
+        "combobox",
+        "spinbutton",
+    }
+)
 
 # Roles that are inherently clickable
-_CLICKABLE_ROLES = frozenset({
-    "button", "link", "menuitem", "menuitemcheckbox", "menuitemradio",
-    "option", "tab",
-})
+_CLICKABLE_ROLES = frozenset(
+    {
+        "button",
+        "link",
+        "menuitem",
+        "menuitemcheckbox",
+        "menuitemradio",
+        "option",
+        "tab",
+    }
+)
 
 # Roles that support selection
-_SELECTABLE_ROLES = frozenset({
-    "option", "tab", "treeitem", "listitem", "row", "cell", "gridcell",
-})
+_SELECTABLE_ROLES = frozenset(
+    {
+        "option",
+        "tab",
+        "treeitem",
+        "listitem",
+        "row",
+        "cell",
+        "gridcell",
+    }
+)
 
 # Roles that are toggle-like
-_TOGGLE_ROLES = frozenset({
-    "checkbox", "switch", "menuitemcheckbox",
-})
+_TOGGLE_ROLES = frozenset(
+    {
+        "checkbox",
+        "switch",
+        "menuitemcheckbox",
+    }
+)
 
 # Roles that are range widgets
-_RANGE_ROLES = frozenset({
-    "slider", "spinbutton", "progressbar", "scrollbar", "meter",
-})
+_RANGE_ROLES = frozenset(
+    {
+        "slider",
+        "spinbutton",
+        "progressbar",
+        "scrollbar",
+        "meter",
+    }
+)
 
 
 def _map_cdp_role(cdp_role: str, name: str) -> str | None:
@@ -265,6 +353,7 @@ def _map_cdp_role(cdp_role: str, name: str) -> str | None:
 # ---------------------------------------------------------------------------
 # State extraction
 # ---------------------------------------------------------------------------
+
 
 def _extract_states(
     props: dict[str, Any],
@@ -324,11 +413,14 @@ def _extract_states(
     if bounds:
         bx, by = bounds["x"], bounds["y"]
         bw, bh = bounds["w"], bounds["h"]
-        if bw <= 0 or bh <= 0:
-            states.append("offscreen")
-        elif bx + bw <= 0 or by + bh <= 0:
-            states.append("offscreen")
-        elif bx >= viewport_w or by >= viewport_h:
+        if (
+            bw <= 0
+            or bh <= 0
+            or bx + bw <= 0
+            or by + bh <= 0
+            or bx >= viewport_w
+            or by >= viewport_h
+        ):
             states.append("offscreen")
 
     return states
@@ -337,6 +429,7 @@ def _extract_states(
 # ---------------------------------------------------------------------------
 # Action derivation
 # ---------------------------------------------------------------------------
+
 
 def _derive_actions(
     role: str,
@@ -386,6 +479,7 @@ def _derive_actions(
 # ---------------------------------------------------------------------------
 # Attribute extraction
 # ---------------------------------------------------------------------------
+
 
 def _extract_attributes(
     props: dict[str, Any],
@@ -439,6 +533,7 @@ def _extract_attributes(
 # ---------------------------------------------------------------------------
 # CUP node builder
 # ---------------------------------------------------------------------------
+
 
 def _ax_value(field: Any) -> Any:
     """Unpack a CDP AXValue object to its plain value."""
@@ -508,8 +603,14 @@ def _build_cup_node(
     if description:
         node["description"] = description
     if value_str and role in (
-        "textbox", "searchbox", "combobox", "spinbutton",
-        "slider", "progressbar", "meter", "document",
+        "textbox",
+        "searchbox",
+        "combobox",
+        "spinbutton",
+        "slider",
+        "progressbar",
+        "meter",
+        "document",
     ):
         node["value"] = value_str
     if bounds:
@@ -537,6 +638,7 @@ def _build_cup_node(
 # ---------------------------------------------------------------------------
 # Tree reconstruction from flat CDP AX node list
 # ---------------------------------------------------------------------------
+
 
 def _build_tree_from_flat(
     ax_nodes: list[dict],
@@ -596,9 +698,7 @@ def _build_tree_from_flat(
                 cup_cache[node_id] = {"_promoted": promoted}
             return cup_cache[node_id]
 
-        cup_node = _build_cup_node(
-            ax_node, id_gen, stats, viewport_w, viewport_h
-        )
+        cup_node = _build_cup_node(ax_node, id_gen, stats, viewport_w, viewport_h)
         if cup_node is None:
             cup_cache[node_id] = None
             return None
@@ -678,20 +778,22 @@ def _extract_webmcp_tools(ws: websocket.WebSocket) -> list[dict]:
     Never raises.
     """
     try:
-        resp = _cdp_send(ws, "Runtime.evaluate", {
-            "expression": _WEBMCP_JS,
-            "returnByValue": True,
-            "awaitPromise": False,
-        }, timeout=5.0)
+        resp = _cdp_send(
+            ws,
+            "Runtime.evaluate",
+            {
+                "expression": _WEBMCP_JS,
+                "returnByValue": True,
+                "awaitPromise": False,
+            },
+            timeout=5.0,
+        )
 
         remote_obj = resp.get("result", {}).get("result", {})
         raw = remote_obj.get("value", "[]")
         tools = json.loads(raw) if isinstance(raw, str) else []
         # Validate structure
-        return [
-            t for t in tools
-            if isinstance(t, dict) and t.get("name")
-        ]
+        return [t for t in tools if isinstance(t, dict) and t.get("name")]
     except Exception:
         return []
 
@@ -700,18 +802,24 @@ def _extract_webmcp_tools(ws: websocket.WebSocket) -> list[dict]:
 # Viewport info
 # ---------------------------------------------------------------------------
 
+
 def _get_viewport_info(ws: websocket.WebSocket) -> tuple[int, int, float]:
     """Get viewport width, height, and device pixel ratio."""
     try:
-        resp = _cdp_send(ws, "Runtime.evaluate", {
-            "expression": (
-                "JSON.stringify({"
-                "w:window.innerWidth,"
-                "h:window.innerHeight,"
-                "s:window.devicePixelRatio})"
-            ),
-            "returnByValue": True,
-        }, timeout=5.0)
+        resp = _cdp_send(
+            ws,
+            "Runtime.evaluate",
+            {
+                "expression": (
+                    "JSON.stringify({"
+                    "w:window.innerWidth,"
+                    "h:window.innerHeight,"
+                    "s:window.devicePixelRatio})"
+                ),
+                "returnByValue": True,
+            },
+            timeout=5.0,
+        )
 
         raw = resp.get("result", {}).get("result", {}).get("value", "{}")
         info = json.loads(raw)
@@ -728,6 +836,7 @@ def _get_viewport_info(ws: websocket.WebSocket) -> tuple[int, int, float]:
 # WebAdapter
 # ---------------------------------------------------------------------------
 
+
 class WebAdapter(PlatformAdapter):
     """CUP adapter for web pages via Chrome DevTools Protocol (CDP).
 
@@ -742,9 +851,7 @@ class WebAdapter(PlatformAdapter):
         cdp_port: int | None = None,
     ) -> None:
         self._host = cdp_host or os.environ.get("CUP_CDP_HOST", "127.0.0.1")
-        self._port = int(
-            cdp_port or os.environ.get("CUP_CDP_PORT", "9222")
-        )
+        self._port = int(cdp_port or os.environ.get("CUP_CDP_PORT", "9222"))
         self._initialized = False
         self._last_tools: list[dict] = []
 
@@ -827,14 +934,16 @@ class WebAdapter(PlatformAdapter):
         targets = self._page_targets()
         results = []
         for i, t in enumerate(targets):
-            results.append({
-                "title": t.get("title", ""),
-                "pid": None,
-                "bundle_id": None,
-                "foreground": i == 0,
-                "bounds": None,
-                "url": t.get("url", ""),
-            })
+            results.append(
+                {
+                    "title": t.get("title", ""),
+                    "pid": None,
+                    "bundle_id": None,
+                    "foreground": i == 0,
+                    "bounds": None,
+                    "url": t.get("url", ""),
+                }
+            )
         return results
 
     def get_desktop_window(self) -> dict[str, Any] | None:
@@ -871,8 +980,14 @@ class WebAdapter(PlatformAdapter):
                 ax_nodes = result.get("result", {}).get("nodes", [])
 
                 roots = _build_tree_from_flat(
-                    ax_nodes, id_gen, stats, max_depth, vw, vh,
-                    refs, ws_url,
+                    ax_nodes,
+                    id_gen,
+                    stats,
+                    max_depth,
+                    vw,
+                    vh,
+                    refs,
+                    ws_url,
                 )
                 tree.extend(roots)
 

@@ -167,6 +167,13 @@ Adding a new platform means implementing `PlatformAdapter` — see [cup/_base.py
 
 The compact format applies pruning rules to reduce token count by ~75% while preserving all semantically meaningful and interactive elements. See [schema/compact.md](schema/compact.md) for the full spec.
 
+## Documentation
+
+- **[API Reference](docs/api-reference.md)** — Session API, actions, envelope format, MCP server
+- **[Compact Format Spec](schema/compact.md)** — LLM-optimized text format
+- **[JSON Schema](schema/cup.schema.json)** — Full envelope schema
+- **[Role Mappings](schema/mappings.json)** — 54 roles mapped across 6 platforms
+
 ## Contributing
 
 CUP is in early development (v0.1.0). Contributions welcome — especially:
@@ -175,6 +182,8 @@ CUP is in early development (v0.1.0). Contributions welcome — especially:
 - iOS adapter (`cup/platforms/ios.py`)
 - Tests and CI across platforms
 - Language bindings (JS, Go, Rust)
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
 
 ## Research
 

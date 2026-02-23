@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from cup.actions._web import _get_click_point, _CDP_KEY_MAP, _CDP_MODIFIER_MAP
-
+from cup.actions._web import _CDP_KEY_MAP, _CDP_MODIFIER_MAP, _get_click_point
 
 # ---------------------------------------------------------------------------
 # CDP key mapping
 # ---------------------------------------------------------------------------
+
 
 class TestCDPKeyMap:
     def test_common_keys_mapped(self):
@@ -41,16 +41,21 @@ class TestCDPKeyMap:
 # Click point calculation
 # ---------------------------------------------------------------------------
 
+
 class TestGetClickPoint:
     def test_content_quad_center(self):
         """Center of a 100x50 element at (10, 20)."""
         box_model = {
             "model": {
                 "content": [
-                    10, 20,   # top-left
-                    110, 20,  # top-right
-                    110, 70,  # bottom-right
-                    10, 70,   # bottom-left
+                    10,
+                    20,  # top-left
+                    110,
+                    20,  # top-right
+                    110,
+                    70,  # bottom-right
+                    10,
+                    70,  # bottom-left
                 ],
             },
         }
@@ -64,10 +69,14 @@ class TestGetClickPoint:
             "model": {
                 "content": [],
                 "border": [
-                    0, 0,
-                    200, 0,
-                    200, 100,
-                    0, 100,
+                    0,
+                    0,
+                    200,
+                    0,
+                    200,
+                    100,
+                    0,
+                    100,
                 ],
             },
         }
@@ -78,6 +87,7 @@ class TestGetClickPoint:
     def test_raises_when_no_quads(self):
         """Should raise when neither content nor border quad is available."""
         import pytest
+
         with pytest.raises(RuntimeError, match="Cannot determine"):
             _get_click_point({"model": {}})
 
@@ -86,28 +96,37 @@ class TestGetClickPoint:
 # WebActionHandler dispatch (mocked CDP)
 # ---------------------------------------------------------------------------
 
+
 class TestWebActionDispatch:
     """Test action dispatch routing with mocked CDP transport."""
 
     def _make_handler(self):
         from cup.actions._web import WebActionHandler
+
         return WebActionHandler()
 
     def _mock_ws(self):
         """Create a mock websocket that records calls."""
+
         class MockWS:
             def __init__(self):
                 self.calls = []
                 self._timeout = 30
+
             def gettimeout(self):
                 return self._timeout
+
             def settimeout(self, t):
                 self._timeout = t
+
             def send(self, data):
                 import json
+
                 self.calls.append(json.loads(data))
+
             def recv(self):
                 import json
+
                 # Return a response matching the last sent ID
                 msg_id = self.calls[-1]["id"] if self.calls else 1
                 method = self.calls[-1].get("method", "") if self.calls else ""
@@ -117,10 +136,10 @@ class TestWebActionDispatch:
                 elif method == "DOM.resolveNode":
                     result = {"object": {"objectId": "obj-1"}}
                 return json.dumps({"id": msg_id, "result": result})
+
         return MockWS()
 
     def test_dispatch_click_returns_success(self):
-        from unittest.mock import patch
         handler = self._make_handler()
         ws = self._mock_ws()
 
@@ -129,7 +148,6 @@ class TestWebActionDispatch:
         assert "lick" in result.message  # "Clicked"
 
     def test_dispatch_type_returns_success(self):
-        from unittest.mock import patch
         handler = self._make_handler()
         ws = self._mock_ws()
 
@@ -220,13 +238,26 @@ class TestWebActionDispatch:
     def test_all_dispatch_paths_return_actionresult(self):
         """Every action path should return ActionResult, never raise."""
         from cup.actions.executor import ActionResult
+
         handler = self._make_handler()
         ws = self._mock_ws()
 
         all_actions = [
-            "click", "rightclick", "doubleclick", "type", "setvalue",
-            "toggle", "expand", "collapse", "select", "scroll",
-            "focus", "dismiss", "increment", "decrement", "unknown",
+            "click",
+            "rightclick",
+            "doubleclick",
+            "type",
+            "setvalue",
+            "toggle",
+            "expand",
+            "collapse",
+            "select",
+            "scroll",
+            "focus",
+            "dismiss",
+            "increment",
+            "decrement",
+            "unknown",
         ]
         for action in all_actions:
             params = {}

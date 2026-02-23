@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from cup.actions.executor import ActionResult
 from cup.actions._handler import ActionHandler
+from cup.actions.executor import ActionResult
 
 
 class LinuxActionHandler(ActionHandler):
@@ -16,21 +16,27 @@ class LinuxActionHandler(ActionHandler):
     """
 
     def execute(
-        self, native_ref: Any, action: str, params: dict[str, Any],
+        self,
+        native_ref: Any,
+        action: str,
+        params: dict[str, Any],
     ) -> ActionResult:
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error=f"Linux action '{action}' is not yet implemented",
         )
 
     def press_keys(self, combo: str) -> ActionResult:
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error=f"Linux press_keys '{combo}' is not yet implemented",
         )
 
     def launch_app(self, name: str) -> ActionResult:
         return ActionResult(
-            success=False, message="",
+            success=False,
+            message="",
             error=f"Linux launch_app '{name}' is not yet implemented",
         )

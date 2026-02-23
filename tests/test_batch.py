@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from cup.actions.executor import ActionResult
 
-
 # ---------------------------------------------------------------------------
 # Batch execution logic (mirrors Session.batch_execute without needing an adapter)
 # ---------------------------------------------------------------------------
+
 
 def _batch_execute(actions, execute_fn, press_keys_fn):
     """Simulate Session.batch_execute with injected action functions."""
@@ -17,22 +17,27 @@ def _batch_execute(actions, execute_fn, press_keys_fn):
         if action == "press_keys":
             keys = spec.get("keys", "")
             if not keys:
-                results.append(ActionResult(
-                    success=False, message="",
-                    error="press_keys action requires 'keys' parameter",
-                ))
+                results.append(
+                    ActionResult(
+                        success=False,
+                        message="",
+                        error="press_keys action requires 'keys' parameter",
+                    )
+                )
                 break
             result = press_keys_fn(keys)
         else:
             element_id = spec.get("element_id", "")
             if not element_id:
-                results.append(ActionResult(
-                    success=False, message="",
-                    error=f"Element action '{action}' requires 'element_id' parameter",
-                ))
+                results.append(
+                    ActionResult(
+                        success=False,
+                        message="",
+                        error=f"Element action '{action}' requires 'element_id' parameter",
+                    )
+                )
                 break
-            params = {k: v for k, v in spec.items()
-                      if k not in ("element_id", "action")}
+            params = {k: v for k, v in spec.items() if k not in ("element_id", "action")}
             result = execute_fn(element_id, action, **params)
         results.append(result)
         if not result.success:
