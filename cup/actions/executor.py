@@ -133,3 +133,10 @@ class ActionExecutor:
             return self._handler.press_keys(combo)
         except Exception as exc:
             return ActionResult(success=False, message="", error=str(exc))
+
+    def launch_app(self, name: str) -> ActionResult:
+        """Launch an application by name with fuzzy matching."""
+        try:
+            return self._handler.launch_app(name)
+        except Exception as exc:
+            return ActionResult(success=False, message="", error=str(exc))

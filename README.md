@@ -83,31 +83,26 @@ python -m cup --platform web --cdp-port 9222 --compact
 
 ## Platform support
 
-| Platform | Adapter | Status |
-|----------|---------|--------|
-| Windows | UIA COM (comtypes) | Stable |
-| macOS | AXUIElement (pyobjc) | Stable |
-| Linux | AT-SPI2 (PyGObject) | Stable |
-| Web | Chrome DevTools Protocol | Stable |
-| Android | | Planned |
-| iOS | | Planned |
+| Platform | Adapter | Tree Capture | Actions |
+|----------|---------|-------------|---------|
+| Windows | UIA COM (comtypes) | Stable | Stable |
+| macOS | AXUIElement (pyobjc) | Stable | Planned |
+| Linux | AT-SPI2 (PyGObject) | Stable | Planned |
+| Web | Chrome DevTools Protocol | Stable | Stable |
+| Android | | Planned | Planned |
+| iOS | | Planned | Planned |
 
 ### Platform dependencies
 
-CUP auto-detects your platform. Install the extras for your OS:
+CUP auto-detects your platform. Platform-specific dependencies (comtypes on Windows, pyobjc on macOS) are installed automatically:
 
 ```bash
-# Windows (requires comtypes)
-pip install cup[windows]
-
-# macOS (requires pyobjc)
-pip install cup[macos]
-
-# Linux (requires PyGObject — install via system package manager)
-sudo apt install python3-gi gir1.2-atspi-2.0
 pip install cup
 
-# Web (requires websocket-client, works on any OS)
+# Linux additionally requires system packages
+sudo apt install python3-gi gir1.2-atspi-2.0
+
+# Web adapter (requires websocket-client, works on any OS)
 pip install cup[web]
 ```
 
@@ -139,7 +134,7 @@ CUP defines a JSON envelope format built on ARIA roles:
 Key design decisions:
 - **54 ARIA-derived roles** — the universal subset that maps cleanly across all 6 platforms
 - **16 state flags** — only truthy/active states are listed (absence = default)
-- **13 canonical actions** — what can an agent *do* with this element?
+- **15 canonical actions** — what can an agent *do* with this element? (13 element-level + `press_keys` for keyboard shortcuts)
 - **Platform escape hatch** — raw native properties preserved in `node.platform.*` for advanced use
 
 Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format spec: [schema/compact.md](schema/compact.md) | Role mappings: [schema/mappings.json](schema/mappings.json)

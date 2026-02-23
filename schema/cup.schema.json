@@ -286,7 +286,7 @@
         "toggle",
         "type"
       ],
-      "description": "Canonical action the element supports. 'type' means the element accepts text input. 'setvalue' means the value can be set programmatically. 'rightclick' opens context menus. 'doubleclick' triggers double-click interactions."
+      "description": "Canonical element-level action. 'type' means the element accepts text input. 'setvalue' means the value can be set programmatically. 'rightclick' opens context menus. 'doubleclick' triggers double-click interactions. Note: session-level actions 'press_keys' (keyboard shortcuts) and 'wait' (batch delays) are not element actions and are therefore not in this enum."
     },
 
     "attributes": {

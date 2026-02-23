@@ -281,6 +281,18 @@ class Session:
         """
         return self._executor.press_keys(combo)
 
+    def launch_app(self, name: str) -> ActionResult:
+        """Launch an application by name.
+
+        Fuzzy-matches against installed apps (e.g., "chrome" matches
+        "Google Chrome", "code" matches "Visual Studio Code").
+        Waits for the app window to appear before returning.
+
+        Args:
+            name: Application name (fuzzy matched).
+        """
+        return self._executor.launch_app(name)
+
     # -- find_elements -----------------------------------------------------
 
     def find_elements(

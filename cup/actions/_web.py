@@ -438,3 +438,9 @@ class WebActionHandler(ActionHandler):
                     "code": info["code"],
                     "modifiers": 0,
                 })
+
+    def launch_app(self, name: str) -> ActionResult:
+        return ActionResult(
+            success=False, message="",
+            error="launch_app is not applicable for web platform",
+        )

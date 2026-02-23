@@ -33,6 +33,7 @@ mcp = FastMCP(
         "- get_desktop() — desktop icons and widgets\n"
         "- find_element(role/name/state) — search last tree without re-capturing\n"
         "- execute_action(action, ...) — interact with elements or press keys\n"
+        "- launch_app(name) — launch an app by name with fuzzy matching\n"
         "- screenshot(region) — visual context when tree isn't enough\n\n"
 
         "IMPORTANT — minimize token usage:\n"
@@ -236,6 +237,34 @@ def execute_action(
 
     result = session.execute(element_id, action, **params)
 
+    return json.dumps({
+        "success": result.success,
+        "message": result.message,
+        "error": result.error,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Launch app tool
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def launch_app(name: str) -> str:
+    """Launch an application by name.
+
+    Fuzzy-matches the name against installed apps on the system.
+    Examples: "chrome" → Google Chrome, "code" → Visual Studio Code,
+    "notepad" → Notepad, "slack" → Slack.
+
+    Waits for the app window to appear before returning success.
+
+    After launching, use get_foreground() to capture the new app's UI tree.
+
+    Args:
+        name: Application name to launch (fuzzy matched against installed apps).
+    """
+    session = _get_session()
+    result = session.launch_app(name)
     return json.dumps({
         "success": result.success,
         "message": result.message,

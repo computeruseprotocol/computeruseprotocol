@@ -28,3 +28,9 @@ class MacosActionHandler(ActionHandler):
             success=False, message="",
             error=f"macOS press_keys '{combo}' is not yet implemented",
         )
+
+    def launch_app(self, name: str) -> ActionResult:
+        return ActionResult(
+            success=False, message="",
+            error=f"macOS launch_app '{name}' is not yet implemented",
+        )

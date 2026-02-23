@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
+import base64
+import csv
 import ctypes
 import ctypes.wintypes
+import difflib
+import glob
+import io
+import os
+import re
+import subprocess
 import time
 from typing import Any
 
@@ -77,6 +85,7 @@ def _get_pattern(element, pattern_id, interface):
 INPUT_KEYBOARD = 1
 KEYEVENTF_KEYUP = 0x0002
 KEYEVENTF_EXTENDEDKEY = 0x0001
+KEYEVENTF_UNICODE = 0x0004
 
 VK_MAP = {
     "enter": 0x0D, "return": 0x0D, "tab": 0x09,
@@ -212,6 +221,46 @@ def _send_key_combo(keys_string: str) -> None:
         err = ctypes.get_last_error()
         raise RuntimeError(
             f"SendInput failed, sent 0/{len(inputs)} events (error={err})"
+        )
+
+
+def _send_unicode_string(text: str) -> None:
+    """Send a string using KEYEVENTF_UNICODE scan codes.
+
+    Unlike _send_key_combo which maps characters to virtual key codes
+    (breaking special characters like :, /, -, .), this sends each
+    character as a Unicode scan code — preserving all characters exactly.
+    """
+    inputs = []
+    for char in text:
+        code = ord(char)
+        # Key down
+        inp_down = INPUT()
+        inp_down.type = INPUT_KEYBOARD
+        inp_down._input.ki.wVk = 0
+        inp_down._input.ki.wScan = code
+        inp_down._input.ki.dwFlags = KEYEVENTF_UNICODE
+        inputs.append(inp_down)
+        # Key up
+        inp_up = INPUT()
+        inp_up.type = INPUT_KEYBOARD
+        inp_up._input.ki.wVk = 0
+        inp_up._input.ki.wScan = code
+        inp_up._input.ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP
+        inputs.append(inp_up)
+
+    if not inputs:
+        return
+
+    arr = (INPUT * len(inputs))(*inputs)
+    sent = ctypes.windll.user32.SendInput(
+        len(inputs), arr, ctypes.sizeof(INPUT)
+    )
+    if sent == 0:
+        err = ctypes.get_last_error()
+        raise RuntimeError(
+            f"SendInput (unicode) failed, sent 0/{len(inputs)} events "
+            f"(error={err})"
         )
 
 
@@ -395,16 +444,13 @@ class WindowsActionHandler(ActionHandler):
         )
 
     def _type(self, element, text: str) -> ActionResult:
-        """Type text via keyboard simulation (SetFocus + SendInput)."""
+        """Type text via Unicode SendInput (preserves all special characters)."""
         try:
             element.SetFocus()
             time.sleep(0.05)
             _send_key_combo("ctrl+a")
             time.sleep(0.05)
-            _CHAR_TO_KEY = {" ": "space", "\t": "tab", "\n": "enter"}
-            for char in text:
-                _send_key_combo(_CHAR_TO_KEY.get(char, char))
-                time.sleep(0.01)
+            _send_unicode_string(text)
             return ActionResult(success=True, message=f"Typed: {text}")
         except Exception as exc:
             return ActionResult(
@@ -591,3 +637,234 @@ class WindowsActionHandler(ActionHandler):
                 success=False, message="",
                 error=f"Failed to long-press: {exc}",
             )
+
+    # -- launch_app ------------------------------------------------------------
+
+    def launch_app(self, name: str) -> ActionResult:
+        """Launch a Windows application by name with fuzzy matching."""
+        if not name or not name.strip():
+            return ActionResult(
+                success=False, message="",
+                error="App name must not be empty",
+            )
+
+        try:
+            apps = self._get_start_apps()
+            if not apps:
+                return ActionResult(
+                    success=False, message="",
+                    error="Could not discover installed applications",
+                )
+
+            match = _fuzzy_match(name, list(apps.keys()))
+            if match is None:
+                return ActionResult(
+                    success=False, message="",
+                    error=f"No installed app matching '{name}' found",
+                )
+
+            app_name, appid = match, apps[match]
+            display_name = app_name.title()
+
+            pid = self._launch_by_appid(appid)
+
+            # Wait for window to appear
+            if self._wait_for_window(pid, app_name):
+                return ActionResult(
+                    success=True,
+                    message=f"{display_name} launched",
+                )
+            return ActionResult(
+                success=True,
+                message=f"{display_name} launch sent, but window not yet detected",
+            )
+
+        except Exception as exc:
+            return ActionResult(
+                success=False, message="",
+                error=f"Failed to launch '{name}': {exc}",
+            )
+
+    def _get_start_apps(self) -> dict[str, str]:
+        """Discover installed apps via Get-StartApps, fallback to .lnk scan."""
+        apps = self._get_apps_via_powershell()
+        if apps:
+            return apps
+        return self._get_apps_from_shortcuts()
+
+    def _get_apps_via_powershell(self) -> dict[str, str]:
+        """Run Get-StartApps and parse the CSV output."""
+        command = "Get-StartApps | ConvertTo-Csv -NoTypeInformation"
+        output, ok = _run_powershell(command)
+        if not ok or not output.strip():
+            return {}
+
+        apps: dict[str, str] = {}
+        try:
+            reader = csv.DictReader(io.StringIO(output.strip()))
+            for row in reader:
+                row_name = row.get("Name", "").strip()
+                row_appid = row.get("AppID", "").strip()
+                if row_name and row_appid:
+                    apps[row_name.lower()] = row_appid
+        except Exception:
+            return {}
+        return apps
+
+    def _get_apps_from_shortcuts(self) -> dict[str, str]:
+        """Scan Start Menu folders for .lnk shortcuts."""
+        apps: dict[str, str] = {}
+        search_dirs = [
+            os.path.join(
+                os.environ.get("ProgramData", r"C:\ProgramData"),
+                r"Microsoft\Windows\Start Menu\Programs",
+            ),
+            os.path.join(
+                os.environ.get("APPDATA", ""),
+                r"Microsoft\Windows\Start Menu\Programs",
+            ),
+        ]
+        for search_dir in search_dirs:
+            if not os.path.isdir(search_dir):
+                continue
+            for lnk_path in glob.glob(
+                os.path.join(search_dir, "**", "*.lnk"), recursive=True
+            ):
+                lnk_name = os.path.splitext(os.path.basename(lnk_path))[0].lower()
+                if lnk_name not in apps:
+                    apps[lnk_name] = lnk_path
+        return apps
+
+    def _launch_by_appid(self, appid: str) -> int:
+        """Launch an app by its AppID and return the PID (0 if unknown)."""
+        if os.path.exists(appid) or "\\" in appid:
+            # Path-based app (.lnk shortcut or direct .exe)
+            safe = _ps_quote(appid)
+            command = (
+                f"Start-Process {safe} -PassThru "
+                f"| Select-Object -ExpandProperty Id"
+            )
+            output, ok = _run_powershell(command)
+            if ok and output.strip().isdigit():
+                return int(output.strip())
+            return 0
+        else:
+            # UWP / Modern app with AppID
+            safe = _ps_quote(f"shell:AppsFolder\\{appid}")
+            command = f"Start-Process {safe}"
+            _run_powershell(command)
+            return 0
+
+    def _wait_for_window(
+        self, pid: int, app_name: str, timeout: float = 8.0,
+    ) -> bool:
+        """Poll for a new window matching the launched app."""
+        EnumWindows = ctypes.windll.user32.EnumWindows
+        GetWindowTextW = ctypes.windll.user32.GetWindowTextW
+        GetWindowTextLengthW = ctypes.windll.user32.GetWindowTextLengthW
+        IsWindowVisible = ctypes.windll.user32.IsWindowVisible
+        GetWindowThreadProcessId = ctypes.windll.user32.GetWindowThreadProcessId
+
+        WNDENUMPROC = ctypes.WINFUNCTYPE(
+            ctypes.wintypes.BOOL, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM,
+        )
+
+        deadline = time.monotonic() + timeout
+        # Build a regex from the app name for title matching
+        safe_name = re.escape(app_name)
+        pattern = re.compile(safe_name, re.IGNORECASE)
+
+        while time.monotonic() < deadline:
+            found = False
+
+            def callback(hwnd, _lparam):
+                nonlocal found
+                if not IsWindowVisible(hwnd):
+                    return True
+
+                # Check PID match
+                if pid > 0:
+                    win_pid = ctypes.wintypes.DWORD()
+                    GetWindowThreadProcessId(hwnd, ctypes.byref(win_pid))
+                    if win_pid.value == pid:
+                        found = True
+                        return False  # stop enumeration
+
+                # Check title match
+                length = GetWindowTextLengthW(hwnd)
+                if length > 0:
+                    buf = ctypes.create_unicode_buffer(length + 1)
+                    GetWindowTextW(hwnd, buf, length + 1)
+                    if pattern.search(buf.value):
+                        found = True
+                        return False
+
+                return True
+
+            EnumWindows(WNDENUMPROC(callback), 0)
+            if found:
+                return True
+            time.sleep(0.5)
+
+        return False
+
+
+# ---------------------------------------------------------------------------
+# launch_app helpers
+# ---------------------------------------------------------------------------
+
+def _run_powershell(command: str, timeout: int = 10) -> tuple[str, bool]:
+    """Run a PowerShell command using base64-encoded input. Returns (output, success)."""
+    encoded = base64.b64encode(command.encode("utf-16le")).decode("ascii")
+    try:
+        result = subprocess.run(
+            [
+                "powershell", "-NoProfile", "-OutputFormat", "Text",
+                "-EncodedCommand", encoded,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return result.stdout or "", result.returncode == 0
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        return "", False
+
+
+def _ps_quote(value: str) -> str:
+    """Quote a string for PowerShell (single-quote with escaping)."""
+    escaped = value.replace("'", "''")
+    return f"'{escaped}'"
+
+
+def _fuzzy_match(
+    query: str, candidates: list[str], cutoff: float = 0.6,
+) -> str | None:
+    """Find the best fuzzy match for query among candidates.
+
+    Returns the best matching candidate name, or None if no match
+    meets the cutoff threshold.
+    """
+    query_lower = query.lower().strip()
+
+    # Exact match first
+    if query_lower in candidates:
+        return query_lower
+
+    # Substring match (e.g., "chrome" in "google chrome")
+    for c in candidates:
+        if query_lower in c:
+            return c
+
+    # Fuzzy match via SequenceMatcher
+    best_match = None
+    best_score = 0.0
+    for c in candidates:
+        score = difflib.SequenceMatcher(None, query_lower, c).ratio()
+        if score > best_score:
+            best_score = score
+            best_match = c
+
+    if best_match and best_score >= cutoff:
+        return best_match
+    return None

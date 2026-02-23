@@ -792,8 +792,10 @@ class WindowsAdapter(PlatformAdapter):
         }
 
     # Chromium/Electron apps lazily initialise their accessibility tree.
-    # If the first capture returns fewer nodes than this threshold, we
-    # poke the window (SetForegroundWindow + short sleep) and retry once.
+    # The renderer won't expose web content to UIA until a11y is triggered.
+    # We detect this by checking for a "Document" node (the web content
+    # root) — browser chrome alone (toolbar, tabs) can produce 40+ nodes
+    # but won't include a Document until the renderer initialises a11y.
     _SPARSE_TREE_THRESHOLD = 30
 
     def capture_tree(
@@ -805,15 +807,34 @@ class WindowsAdapter(PlatformAdapter):
         self.initialize()
         tree, stats, refs = self._walk_windows(windows, max_depth=max_depth)
 
-        # If the tree is suspiciously sparse (common with Chromium/Electron
-        # apps that haven't initialised a11y yet), poke the window and retry.
-        if (stats["nodes"] < self._SPARSE_TREE_THRESHOLD
-                and len(windows) == 1):
+        if len(windows) == 1 and self._tree_needs_poke(stats):
             hwnd = windows[0]["handle"]
             self._poke_window(hwnd)
             tree, stats, refs = self._walk_windows(windows, max_depth=max_depth)
 
         return tree, stats, refs
+
+    @staticmethod
+    def _tree_needs_poke(stats: dict) -> bool:
+        """Decide whether the captured tree looks uninitialised.
+
+        Two heuristics (either triggers a retry):
+        1. Very few nodes overall (original threshold) — catches apps
+           that returned almost nothing.
+        2. Has browser-chrome roles (ToolBar, TabItem) but no Document —
+           Chromium/Electron rendered the shell but the web content
+           a11y tree hasn't been built yet.
+        """
+        if stats["nodes"] < WindowsAdapter._SPARSE_TREE_THRESHOLD:
+            return True
+
+        roles = stats.get("roles", {})
+        has_chrome = bool(roles.get("ToolBar") or roles.get("TabItem"))
+        has_document = bool(roles.get("Document"))
+        if has_chrome and not has_document:
+            return True
+
+        return False
 
     def _walk_windows(
         self,

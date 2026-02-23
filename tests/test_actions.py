@@ -244,6 +244,14 @@ class TestMacosStub:
         assert "not yet implemented" in result.error.lower()
         assert "ctrl+s" in result.error
 
+    def test_launch_app_returns_not_implemented(self):
+        from cup.actions._macos import MacosActionHandler
+        handler = MacosActionHandler()
+        result = handler.launch_app("chrome")
+        assert result.success is False
+        assert "not yet implemented" in result.error.lower()
+        assert "chrome" in result.error
+
 
 class TestLinuxStub:
     def test_execute_returns_not_implemented(self):
@@ -261,3 +269,60 @@ class TestLinuxStub:
         assert result.success is False
         assert "not yet implemented" in result.error.lower()
         assert "ctrl+s" in result.error
+
+    def test_launch_app_returns_not_implemented(self):
+        from cup.actions._linux import LinuxActionHandler
+        handler = LinuxActionHandler()
+        result = handler.launch_app("firefox")
+        assert result.success is False
+        assert "not yet implemented" in result.error.lower()
+        assert "firefox" in result.error
+
+
+# ---------------------------------------------------------------------------
+# Web stub test
+# ---------------------------------------------------------------------------
+
+class TestWebStub:
+    def test_launch_app_returns_not_applicable(self):
+        from cup.actions._web import WebActionHandler
+        handler = WebActionHandler()
+        result = handler.launch_app("chrome")
+        assert result.success is False
+        assert "not applicable" in result.error.lower()
+
+
+# ---------------------------------------------------------------------------
+# Fuzzy matching tests (Windows)
+# ---------------------------------------------------------------------------
+
+class TestFuzzyMatch:
+    def test_exact_match(self):
+        from cup.actions._windows import _fuzzy_match
+        result = _fuzzy_match("notepad", ["notepad", "google chrome", "slack"])
+        assert result == "notepad"
+
+    def test_substring_match(self):
+        from cup.actions._windows import _fuzzy_match
+        result = _fuzzy_match("chrome", ["google chrome", "notepad", "slack"])
+        assert result == "google chrome"
+
+    def test_fuzzy_match(self):
+        from cup.actions._windows import _fuzzy_match
+        result = _fuzzy_match("chrom", ["google chrome", "notepad", "slack"])
+        assert result == "google chrome"
+
+    def test_no_match(self):
+        from cup.actions._windows import _fuzzy_match
+        result = _fuzzy_match("zzzznonexistent", ["notepad", "slack"])
+        assert result is None
+
+    def test_case_insensitive(self):
+        from cup.actions._windows import _fuzzy_match
+        result = _fuzzy_match("Chrome", ["google chrome", "notepad"])
+        assert result == "google chrome"
+
+    def test_empty_candidates(self):
+        from cup.actions._windows import _fuzzy_match
+        result = _fuzzy_match("chrome", [])
+        assert result is None

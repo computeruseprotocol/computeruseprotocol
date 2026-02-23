@@ -45,3 +45,18 @@ class ActionHandler(ABC):
             ActionResult with success status and message.
         """
         ...
+
+    @abstractmethod
+    def launch_app(self, name: str) -> ActionResult:
+        """Launch an application by name.
+
+        Implementations should discover installed apps, fuzzy-match the
+        name, launch the best match, and confirm the window appeared.
+
+        Args:
+            name: Application name to launch (fuzzy matched).
+
+        Returns:
+            ActionResult with success status and message.
+        """
+        ...

@@ -1,0 +1,1057 @@
+use only windows-mcp. open chrome, go to k4cper-g/computer-use-protocol on github and star it
+I'll open Chrome and navigate to the GitHub repo.
+
+Windows-mcp [App]
+OUT
+Chrome launched.
+
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 2 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name             Depth  Status      Width    Height    Handle
+
+
+Google Chrome        3  Normal       1040       797    197524
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Pobrane — Eksplorator plików                                                  5  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        6  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+use only windows-mcp. op… - mcpplayground - Visual Studio Code                9  Normal        1717      1078    132794
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Google Chrome|Przycisk|Open szenkos profile|(1102,764)|0
+1|Google Chrome|Edytuj|Rename your profile|(1102,699)|0
+2|Google Chrome|Przycisk|More actions for szenkos|(1167,691)|0
+3|Google Chrome|Przycisk|Open Twoja przeglądarka Chrome profile|(1280,764)|0
+4|Google Chrome|Edytuj|Rename your profile|(1280,699)|0
+5|Google Chrome|Przycisk|More actions for Twoja przeglądarka Chrome|(1345,691)|0
+6|Google Chrome|Przycisk|Add|(1458,764)|0
+7|Google Chrome|Przycisk|Guest mode|(880,1028)|0
+8|Google Chrome|Pole Wyboru|Show on startup|(1622,1028)|0
+9|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+10|Pasek zadań|Przycisk|Zegar 15:15
+‎23.‎02.‎2026|(2511,1416)|0
+11|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+12|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+13|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+14|Pasek zadań|Przycisk|Google Chrome — 1 uruchomione okno|(1547,1416)|0
+15|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+16|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+17|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+18|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+19|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+20|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+21|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+22|Pasek zadań|Przycisk|Start|(1014,1416)|0
+23|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+24|Google Chrome|Grupa|Rename your profile|(1062,692)|False|0|True|0.0|0
+25|Google Chrome|Grupa|Rename your profile|(1309,693)|False|0|True|0.0|0
+
+image.png
+Chrome opened with a profile picker. I'll select the "szenkos" profile.
+
+Windows-mcp [Click]
+OUT
+{"result":"Single left clicked at (628,435)."}
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 3 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name                                              Depth  Status      Width    Height    Handle
+
+
+.mcp.json - mcpplayground - Visual Studio Code        9  Normal       1717      1078    132794
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Google Chrome                                                                 3  Normal        1040       797    197524
+Pobrane — Eksplorator plików                                                  5  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        6  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+1|Pasek zadań|Przycisk|Zegar 15:16
+‎23.‎02.‎2026|(2511,1416)|0
+2|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+3|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+4|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+5|Pasek zadań|Przycisk|Google Chrome — 1 uruchomione okno|(1547,1416)|0
+6|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+7|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+8|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+9|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+10|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+11|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+12|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+13|Pasek zadań|Przycisk|Start|(1014,1416)|0
+14|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+15|.mcp.json - mcpplayground - Visual Studio Code|Przycisk||(1906,1150)|0
+16|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Show command menu (/)|(1874,1150)|0
+17|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Add|(1845,1150)|0
+18|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|.mcp.json|(1397,1150)|0
+19|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Ask before edits|(1306,1150)|0
+20|.mcp.json - mcpplayground - Visual Studio Code|Edytuj|Message input|(1587,1111)|0
+21|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Copy code to clipboard|(1896,637)|0
+22|.mcp.json - mcpplayground - Visual Studio Code|Disclosure Triangle|Thinking|(1315,343)|0
+23|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|c:\Users\alter\Projects\mcpplayground.mcp.json|(1369,306)|0
+24|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|New session|(1919,217)|0
+25|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|use only windows-mcp. open chrome, go to k4cper-g/computer-use-protocol on github and star it|(1393,217)|0
+26|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|OVR|(1491,1196)|0
+27|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Ln 12, Col 6|(1549,1196)|0
+28|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Spaces: 2|(1621,1196)|0
+29|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|UTF-8|(1677,1196)|0
+30|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|CRLF|(1721,1196)|0
+31|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Editor Language Status: No schema validation, no JSON schema configured, next: $(copilot) No inline suggestion available, Inline suggestions|(1758,1196)|0
+32|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|JSON|(1787,1196)|0
+33|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Finish Setup|(1859,1196)|0
+34|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Notifications|(1925,1196)|0
+35|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|globe Connected to Discord, Connected to Discord|(402,1196)|0
+36|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|No Problems|(291,1196)|0
+37|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|remote|(240,1196)|0
+38|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|More Actions...|(1918,181)|0
+39|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Unlock Group|(1892,181)|0
+40|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|use only windows-mcp. op…, Editor Group 2|(1563,181)|0
+41|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(1659,181)|0
+42|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|use only cup-mcp. open c…, Editor Group 2|(1342,181)|0
+43|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(1436,181)|0
+44|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|windows-mcp|(787,210)|0
+45|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|mcpServers|(683,210)|0
+46|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|.mcp.json|(578,210)|0
+47|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|More Actions...|(1210,181)|0
+48|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Split Editor Right (Ctrl+) [Alt] Split Editor Down|(1184,181)|0
+49|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Claude Code: Open|(1158,181)|0
+50|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|mcp__cup__execute_action tool output (tmx3pd), preview, Editor Group 1|(808,181)|0
+51|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(957,181)|0
+52|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|.mcp.json, Editor Group 1|(584,181)|0
+53|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(629,181)|0
+54|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Timeline Section|(373,1174)|0
+55|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Outline Section|(373,1152)|0
+56|.mcp.json - mcpplayground - Visual Studio Code|Element Drzewa|.mcp.json|(373,311)|0
+57|.mcp.json - mcpplayground - Visual Studio Code|Element Drzewa|settings.local.json|(373,289)|0
+58|.mcp.json - mcpplayground - Visual Studio Code|Element Drzewa|.claude|(373,267)|0
+59|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Explorer Section: mcpplayground|(373,245)|0
+60|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Views and More Actions...|(500,216)|0
+61|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Containers|(449,181)|0
+62|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Python|(423,181)|0
+63|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Testing|(397,181)|0
+64|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Extensions (Ctrl+Shift+X)|(371,181)|0
+65|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Remote Explorer|(345,181)|0
+66|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Run and Debug (Ctrl+Shift+D)|(319,181)|0
+67|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Source Control (Ctrl+Shift+G)|(293,181)|0
+68|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Search (Ctrl+Shift+F)|(267,181)|0
+69|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Explorer (Ctrl+Shift+E)|(241,181)|0
+70|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Manage|(1788,146)|0
+71|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Accounts|(1762,146)|0
+72|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Toggle Secondary Side Bar (Ctrl+Alt+B)|(1736,146)|0
+73|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Toggle Panel (Ctrl+J)|(1710,146)|0
+74|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Toggle Primary Side Bar (Ctrl+B)|(1684,146)|0
+75|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Customize Layout...|(1658,146)|0
+76|.mcp.json - mcpplayground - Visual Studio Code|Przycisk||(1431,147)|0
+77|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Toggle Chat|(1408,146)|0
+78|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Toggle Chat|(1408,146)|0
+79|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|mcpplayground|(1081,146)|0
+80|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Go Back (Alt+LeftArrow)|(733,146)|0
+81|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Help|(601,146)|0
+82|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Terminal|(547,146)|0
+83|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Run|(495,146)|0
+84|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Go|(460,146)|0
+85|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|View|(422,146)|0
+86|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Selection|(366,146)|0
+87|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Edit|(313,146)|0
+88|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|File|(277,146)|0
+89|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close|(1917,146)|0
+90|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Maximize|(1871,146)|0
+91|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Minimize|(1825,146)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+92|.mcp.json - mcpplayground - Visual Studio Code|Grupa|2a75978e-3e6c-48ca-b245-5611ead6b2d9|(1415,620)|False|0|True|0.0|0
+93|.mcp.json - mcpplayground - Visual Studio Code|Grupa|Grupa|(1414,652)|False|0|True|0.0|0
+
+image.png
+It seems Chrome is loading in the background. Let me switch to it and navigate to the GitHub repo.
+
+Windows-mcp [App]
+OUT
+Switched to Google Chrome window.
+
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 2 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name             Depth  Status      Width    Height    Handle
+
+
+Google Chrome        3  Normal       1040       797    197524
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Pobrane — Eksplorator plików                                                  5  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        6  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+.mcp.json - mcpplayground - Visual Studio Code                                9  Normal        1717      1078    132794
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Google Chrome|Przycisk|Open szenkos profile|(1102,764)|0
+1|Google Chrome|Edytuj|Rename your profile|(1102,699)|0
+2|Google Chrome|Przycisk|More actions for szenkos|(1167,691)|0
+3|Google Chrome|Przycisk|Open Twoja przeglądarka Chrome profile|(1280,764)|0
+4|Google Chrome|Edytuj|Rename your profile|(1280,699)|0
+5|Google Chrome|Przycisk|More actions for Twoja przeglądarka Chrome|(1345,691)|0
+6|Google Chrome|Przycisk|Add|(1458,764)|0
+7|Google Chrome|Przycisk|Guest mode|(880,1028)|0
+8|Google Chrome|Pole Wyboru|Show on startup|(1622,1028)|0
+9|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+10|Pasek zadań|Przycisk|Zegar 15:16
+‎23.‎02.‎2026|(2511,1416)|0
+11|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+12|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+13|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+14|Pasek zadań|Przycisk|Google Chrome — 1 uruchomione okno|(1547,1416)|0
+15|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+16|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+17|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+18|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+19|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+20|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+21|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+22|Pasek zadań|Przycisk|Start|(1014,1416)|0
+23|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+24|Google Chrome|Grupa|Rename your profile|(1149,707)|False|0|True|0.0|0
+25|Google Chrome|Grupa|Rename your profile|(1293,709)|False|0|True|0.0|0
+
+image.png
+The profile picker is still showing. Let me click on the "szenkos" profile button directly.
+
+Windows-mcp [Click]
+OUT
+{"result":"Double left clicked at (628,440)."}
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 3 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name                                              Depth  Status      Width    Height    Handle
+
+
+.mcp.json - mcpplayground - Visual Studio Code        9  Normal       1717      1078    132794
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Google Chrome                                                                 3  Normal        1040       797    197524
+Pobrane — Eksplorator plików                                                  5  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        6  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+1|Pasek zadań|Przycisk|Zegar 15:16
+‎23.‎02.‎2026|(2511,1416)|0
+2|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+3|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+4|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+5|Pasek zadań|Przycisk|Google Chrome — 1 uruchomione okno|(1547,1416)|0
+6|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+7|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+8|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+9|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+10|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+11|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+12|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+13|Pasek zadań|Przycisk|Start|(1014,1416)|0
+14|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+15|.mcp.json - mcpplayground - Visual Studio Code|Przycisk||(1906,1150)|0
+16|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Show command menu (/)|(1874,1150)|0
+17|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Add|(1845,1150)|0
+18|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|1 line selected|(1409,1150)|0
+19|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Ask before edits|(1306,1150)|0
+20|.mcp.json - mcpplayground - Visual Studio Code|Edytuj|Message input|(1587,1111)|0
+21|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Copy code to clipboard|(1881,723)|0
+22|.mcp.json - mcpplayground - Visual Studio Code|Disclosure Triangle|Thinking|(1315,559)|0
+23|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Copy code to clipboard|(1881,343)|0
+24|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|New session|(1919,217)|0
+25|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|use only windows-mcp. open chrome, go to k4cper-g/computer-use-protocol on github and star it|(1393,217)|0
+26|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|OVR|(1427,1196)|0
+27|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Ln 12, Col 7 (6 selected)|(1517,1196)|0
+28|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Spaces: 2|(1621,1196)|0
+29|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|UTF-8|(1677,1196)|0
+30|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|CRLF|(1721,1196)|0
+31|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Editor Language Status: No schema validation, no JSON schema configured, next: $(copilot) No inline suggestion available, Inline suggestions|(1758,1196)|0
+32|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|JSON|(1787,1196)|0
+33|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Finish Setup|(1859,1196)|0
+34|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Notifications|(1925,1196)|0
+35|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|globe Connected to Discord, Connected to Discord|(402,1196)|0
+36|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|No Problems|(291,1196)|0
+37|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|remote|(240,1196)|0
+38|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|More Actions...|(1918,181)|0
+39|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Unlock Group|(1892,181)|0
+40|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|use only windows-mcp. op…, Editor Group 2|(1563,181)|0
+41|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(1659,181)|0
+42|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|use only cup-mcp. open c…, Editor Group 2|(1342,181)|0
+43|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(1436,181)|0
+44|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|command|(891,210)|0
+45|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|windows-mcp|(791,210)|0
+46|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|mcpServers|(683,210)|0
+47|.mcp.json - mcpplayground - Visual Studio Code|Element Listy|.mcp.json|(578,210)|0
+48|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|More Actions...|(1210,181)|0
+49|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Split Editor Right (Ctrl+) [Alt] Split Editor Down|(1184,181)|0
+50|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Claude Code: Open|(1158,181)|0
+51|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|mcp__cup__execute_action tool output (tmx3pd), preview, Editor Group 1|(808,181)|0
+52|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(957,181)|0
+53|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|.mcp.json, Editor Group 1|(584,181)|0
+54|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close (Ctrl+F4)|(629,181)|0
+55|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Timeline Section|(373,1174)|0
+56|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Outline Section|(373,1152)|0
+57|.mcp.json - mcpplayground - Visual Studio Code|Element Drzewa|.mcp.json|(373,311)|0
+58|.mcp.json - mcpplayground - Visual Studio Code|Element Drzewa|settings.local.json|(373,289)|0
+59|.mcp.json - mcpplayground - Visual Studio Code|Element Drzewa|.claude|(373,267)|0
+60|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Explorer Section: mcpplayground|(373,245)|0
+61|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Views and More Actions...|(500,216)|0
+62|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Containers|(449,181)|0
+63|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Python|(423,181)|0
+64|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Testing|(397,181)|0
+65|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Extensions (Ctrl+Shift+X)|(371,181)|0
+66|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Remote Explorer|(345,181)|0
+67|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Run and Debug (Ctrl+Shift+D)|(319,181)|0
+68|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Source Control (Ctrl+Shift+G)|(293,181)|0
+69|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Search (Ctrl+Shift+F)|(267,181)|0
+70|.mcp.json - mcpplayground - Visual Studio Code|Element Tabulatora|Explorer (Ctrl+Shift+E)|(241,181)|0
+71|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Manage|(1788,146)|0
+72|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Accounts|(1762,146)|0
+73|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Toggle Secondary Side Bar (Ctrl+Alt+B)|(1736,146)|0
+74|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Toggle Panel (Ctrl+J)|(1710,146)|0
+75|.mcp.json - mcpplayground - Visual Studio Code|Pole Wyboru|Toggle Primary Side Bar (Ctrl+B)|(1684,146)|0
+76|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Customize Layout...|(1658,146)|0
+77|.mcp.json - mcpplayground - Visual Studio Code|Przycisk||(1431,147)|0
+78|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Toggle Chat|(1408,146)|0
+79|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Toggle Chat|(1408,146)|0
+80|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|mcpplayground|(1081,146)|0
+81|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Go Back (Alt+LeftArrow)|(733,146)|0
+82|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Help|(601,146)|0
+83|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Terminal|(547,146)|0
+84|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Run|(495,146)|0
+85|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Go|(460,146)|0
+86|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|View|(422,146)|0
+87|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Selection|(366,146)|0
+88|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|Edit|(313,146)|0
+89|.mcp.json - mcpplayground - Visual Studio Code|Element Menu|File|(277,146)|0
+90|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Close|(1917,146)|0
+91|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Maximize|(1871,146)|0
+92|.mcp.json - mcpplayground - Visual Studio Code|Przycisk|Minimize|(1825,146)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+93|.mcp.json - mcpplayground - Visual Studio Code|Grupa|2a75978e-3e6c-48ca-b245-5611ead6b2d9|(1430,674)|False|0|True|0.0|0
+94|.mcp.json - mcpplayground - Visual Studio Code|Grupa|Grupa|(1580,764)|False|0|True|0.0|0
+95|.mcp.json - mcpplayground - Visual Studio Code|Grupa|Grupa|(1750,339)|False|0|True|0.0|0
+
+image.png
+Chrome is still in the background with the profile picker. Let me click on the Chrome taskbar button to bring it to focus, then select the profile.
+
+Windows-mcp [Click]
+OUT
+{"result":"Single left clicked at (1547,1416)."}
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 1 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name             Depth  Status      Width    Height    Handle
+
+
+Google Chrome        3  Normal       1040       797    197524
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Pobrane — Eksplorator plików                                                  5  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        6  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+.mcp.json - mcpplayground - Visual Studio Code                                9  Normal        1717      1078    132794
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Google Chrome|Przycisk|Open szenkos profile|(1102,764)|0
+1|Google Chrome|Edytuj|Rename your profile|(1102,699)|0
+2|Google Chrome|Przycisk|More actions for szenkos|(1167,691)|0
+3|Google Chrome|Przycisk|Open Twoja przeglądarka Chrome profile|(1280,764)|0
+4|Google Chrome|Edytuj|Rename your profile|(1280,699)|0
+5|Google Chrome|Przycisk|More actions for Twoja przeglądarka Chrome|(1345,691)|0
+6|Google Chrome|Przycisk|Add|(1458,764)|0
+7|Google Chrome|Przycisk|Guest mode|(880,1028)|0
+8|Google Chrome|Pole Wyboru|Show on startup|(1622,1028)|0
+9|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+10|Pasek zadań|Przycisk|Zegar 15:17
+‎23.‎02.‎2026|(2511,1416)|0
+11|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+12|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+13|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+14|Pasek zadań|Przycisk|Google Chrome — 1 uruchomione okno|(1547,1416)|0
+15|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+16|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+17|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+18|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+19|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+20|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+21|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+22|Pasek zadań|Przycisk|Start|(1014,1416)|0
+23|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+24|Google Chrome|Grupa|Rename your profile|(1135,718)|False|0|True|0.0|0
+25|Google Chrome|Grupa|Rename your profile|(1295,707)|False|0|True|0.0|0
+
+image.png
+Chrome is in focus with the profile picker. Let me click the "Open szenkos profile" button.
+
+Windows-mcp [Click]
+OUT
+{"result":"Single left clicked at (1102,764)."}
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 3 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name                       Depth  Status       Width    Height    Handle
+
+
+New Tab - Google Chrome        6  Maximized     2576      1408    722088
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Pobrane — Eksplorator plików                                                  4  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        5  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+.mcp.json - mcpplayground - Visual Studio Code                                9  Normal        1717      1078    132794
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+1|Pasek zadań|Przycisk|Zegar 15:17
+‎23.‎02.‎2026|(2511,1416)|0
+2|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+3|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+4|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+5|Pasek zadań|Przycisk|szenkos - Chrome — 1 uruchomione okno|(1547,1416)|0
+6|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+7|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+8|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+9|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+10|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+11|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+12|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+13|Pasek zadań|Przycisk|Start|(1014,1416)|0
+14|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+15|New Tab - Google Chrome|Przycisk|New Tab|(292,20)|0
+16|New Tab - Google Chrome|Element Tabulatora|New Tab|(156,20)|0
+17|New Tab - Google Chrome|Przycisk|Close|(256,20)|0
+18|New Tab - Google Chrome|Przycisk|Search tabs|(20,20)|0
+19|New Tab - Google Chrome|Bookmark Button|Le Pliage Original M Tote bag Black - Recycled canvas | Longchamp US|(564,100)|0
+20|New Tab - Google Chrome|Bookmark Folder Button|Dev|(455,100)|0
+21|New Tab - Google Chrome|Bookmark Button|BG.IBELICK - Modern, Ready-to-Use Background Snippets for Developers|(347,100)|0
+22|New Tab - Google Chrome|Bookmark Folder Button|Trade'ing|(224,100)|0
+23|New Tab - Google Chrome|Bookmark Button|Learn React|(129,100)|0
+24|New Tab - Google Chrome|Bookmark Folder Button|Tiktok|(41,100)|0
+25|New Tab - Google Chrome|Przycisk|Chrome|(2540,63)|0
+26|New Tab - Google Chrome|Przycisk|szenkos|(2502,63)|0
+27|New Tab - Google Chrome|Przycisk|Extensions|(2448,63)|0
+28|New Tab - Google Chrome|Przycisk|Bitwarden|(2412,63)|0
+29|New Tab - Google Chrome|Przycisk|Ask AI Mode in Google Search|(2335,63)|0
+30|New Tab - Google Chrome|Edytuj|Address and search bar|(1219,63)|1
+31|New Tab - Google Chrome|Przycisk|Reload|(94,63)|0
+32|New Tab - Google Chrome|Przycisk|Close|(2537,20)|0
+33|New Tab - Google Chrome|Przycisk|Restore|(2491,20)|0
+34|New Tab - Google Chrome|Przycisk|Minimize|(2445,20)|0
+35|New Tab - Google Chrome|Link|Gmail|(2368,153)|0
+36|New Tab - Google Chrome|Link|Search for Images|(2421,153)|0
+37|New Tab - Google Chrome|Przycisk|Google apps|(2478,153)|0
+38|New Tab - Google Chrome|Przycisk|Google Account: szenkos (szenekpriv@gmail.com)|(2526,153)|0
+39|New Tab - Google Chrome|Pole Kombi|Search Google or type a URL|(1204,407)|0
+40|New Tab - Google Chrome|Przycisk|Search by voice|(1470,407)|0
+41|New Tab - Google Chrome|Przycisk|Search by image|(1510,407)|0
+42|New Tab - Google Chrome|Przycisk|AI Mode|(1591,407)|0
+43|New Tab - Google Chrome|Link|YouTube|(832,505)|0
+44|New Tab - Google Chrome|Przycisk|More actions for YouTube shortcut|(872,467)|0
+45|New Tab - Google Chrome|Link|Asura Scans|(944,505)|0
+46|New Tab - Google Chrome|Przycisk|More actions for Asura Scans shortcut|(984,467)|0
+47|New Tab - Google Chrome|Link|Home / X|(1056,505)|0
+48|New Tab - Google Chrome|Przycisk|More actions for Home / X shortcut|(1096,467)|0
+49|New Tab - Google Chrome|Link|GitHub|(1168,505)|0
+50|New Tab - Google Chrome|Przycisk|More actions for GitHub shortcut|(1208,467)|0
+51|New Tab - Google Chrome|Link|Bullx|(1280,505)|0
+52|New Tab - Google Chrome|Przycisk|More actions for Bullx shortcut|(1320,467)|0
+53|New Tab - Google Chrome|Link|xStation 5|(1392,505)|0
+54|New Tab - Google Chrome|Przycisk|More actions for xStation 5 shortcut|(1432,467)|0
+55|New Tab - Google Chrome|Link|ChatGPT|(1504,505)|0
+56|New Tab - Google Chrome|Przycisk|More actions for ChatGPT shortcut|(1544,467)|0
+57|New Tab - Google Chrome|Link|AI Photo Editor|(1616,505)|0
+58|New Tab - Google Chrome|Przycisk|More actions for AI Photo Editor shortcut|(1656,467)|0
+59|New Tab - Google Chrome|Przycisk|Add shortcut|(1728,505)|0
+60|New Tab - Google Chrome|Link|Photo by NASA Image Library|(128,1358)|0
+61|New Tab - Google Chrome|Toggle Button|Customize this page|(2528,1360)|0
+
+
+
+List of Scrollable Elements:
+No scrollable elements
+image.png
+Chrome is open with the szenkos profile on a new tab. Now I'll type the GitHub URL in the address bar.
+
+Windows-mcp [Click]
+OUT
+{"result":"Single left clicked at (1219,63)."}
+Windows-mcp [Type]github.com/k4cper-g/computer-use-protoco…
+OUT
+{"result":"Typed github.com/k4cper-g/computer-use-protocol at (1219,63)."}
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 4 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name                                              Depth  Status       Width    Height    Handle
+
+
+k4cper-g/computer-use-protocol - Google Chrome        6  Maximized     2576      1408    722088
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Pobrane — Eksplorator plików                                                  4  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        5  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+.mcp.json - mcpplayground - Visual Studio Code                                9  Normal        1717      1078    132794
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+1|Pasek zadań|Przycisk|Zegar 15:18
+‎23.‎02.‎2026|(2511,1416)|0
+2|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+3|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+4|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+5|Pasek zadań|Przycisk|szenkos - Chrome — 1 uruchomione okno|(1547,1416)|0
+6|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+7|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+8|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+9|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+10|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+11|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+12|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+13|Pasek zadań|Przycisk|Start|(1014,1416)|0
+14|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+15|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|New Tab|(292,20)|0
+16|k4cper-g/computer-use-protocol - Google Chrome|Element Tabulatora|k4cper-g/computer-use-protocol|(156,20)|0
+17|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Close|(256,20)|0
+18|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Search tabs|(20,20)|0
+19|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Chrome|(2540,63)|0
+20|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|szenkos|(2502,63)|0
+21|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Extensions|(2448,63)|0
+22|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Bitwarden
+Has access to this site|(2412,63)|0
+23|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Bookmark this tab|(2362,63)|0
+24|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Ask Google|(2288,63)|0
+25|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Install GitHub|(2214,63)|0
+26|k4cper-g/computer-use-protocol - Google Chrome|Edytuj|Address and search bar|(1175,63)|0
+27|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|View site information|(137,63)|0
+28|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Reload|(94,63)|0
+29|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Back|(19,63)|0
+30|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Close|(2537,20)|0
+31|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Restore|(2491,20)|0
+32|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Minimize|(2445,20)|0
+33|k4cper-g/computer-use-protocol - Google Chrome|Link|Skip to content|(0,87)|0
+34|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Open menu|(32,119)|0
+35|k4cper-g/computer-use-protocol - Google Chrome|Link|Homepage ( g then d )|(76,119)|0
+36|k4cper-g/computer-use-protocol - Google Chrome|Link|k4cper-g|(134,119)|0
+37|k4cper-g/computer-use-protocol - Google Chrome|Link|computer-use-protocol|(270,119)|0
+38|k4cper-g/computer-use-protocol - Google Chrome|Link|Search or jump to…|(2136,119)|0
+39|k4cper-g/computer-use-protocol - Google Chrome|Link|Chat with Copilot|(2254,119)|0
+40|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Open Copilot…|(2282,119)|0
+41|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Create new...|(2344,119)|0
+42|k4cper-g/computer-use-protocol - Google Chrome|Link|Issues ( g then i )|(2393,119)|0
+43|k4cper-g/computer-use-protocol - Google Chrome|Link|Pull requests ( g then p )|(2433,119)|0
+44|k4cper-g/computer-use-protocol - Google Chrome|Link|Repositories|(2473,119)|0
+45|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Open user navigation menu|(2513,119)|0
+46|k4cper-g/computer-use-protocol - Google Chrome|Link|Code|(52,163)|0
+47|k4cper-g/computer-use-protocol - Google Chrome|Link|Issues|(135,163)|0
+48|k4cper-g/computer-use-protocol - Google Chrome|Link|Pull requests|(243,163)|0
+49|k4cper-g/computer-use-protocol - Google Chrome|Link|Actions|(355,163)|0
+50|k4cper-g/computer-use-protocol - Google Chrome|Link|Projects|(452,163)|0
+51|k4cper-g/computer-use-protocol - Google Chrome|Link|Security|(551,163)|0
+52|k4cper-g/computer-use-protocol - Google Chrome|Link|Insights|(649,163)|0
+53|k4cper-g/computer-use-protocol - Google Chrome|Link|Settings|(748,163)|0
+54|k4cper-g/computer-use-protocol - Google Chrome|Link|computer-use-protocol|(802,218)|0
+55|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Watch: Participating in k4cper-g/computer-use-protocol|(1540,217)|0
+56|k4cper-g/computer-use-protocol - Google Chrome|Link|Fork 0|(1655,217)|0
+57|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|See your forks of this repository|(1722,217)|0
+58|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Star this repository (0)|(1797,217)|0
+59|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Add this repository to a list|(1863,217)|0
+60|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|main branch|(717,290)|0
+61|k4cper-g/computer-use-protocol - Google Chrome|Link|1 Branch|(821,290)|0
+62|k4cper-g/computer-use-protocol - Google Chrome|Link|0 Tags|(902,290)|0
+63|k4cper-g/computer-use-protocol - Google Chrome|Pole Kombi|Go to file|(1237,290)|0
+64|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Add file|(1405,290)|0
+65|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Code|(1515,290)|0
+66|k4cper-g/computer-use-protocol - Google Chrome|Link|commits by k4cper-g|(741,349)|0
+67|k4cper-g/computer-use-protocol - Google Chrome|Link|commits by claude|(822,349)|0
+68|k4cper-g/computer-use-protocol - Google Chrome|Link|style: bold subtitle, badge spacing, and black label colors|(1025,349)|0
+69|k4cper-g/computer-use-protocol - Google Chrome|Toggle Button|Open commit details|(1222,349)|0
+70|k4cper-g/computer-use-protocol - Google Chrome|Link|Commit 134ecbf|(1346,349)|0
+71|k4cper-g/computer-use-protocol - Google Chrome|Link|14 Commits|(1504,349)|0
+72|k4cper-g/computer-use-protocol - Google Chrome|Link|.claude, (Directory)|(729,396)|0
+73|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: cup icon|(1084,396)|0
+74|k4cper-g/computer-use-protocol - Google Chrome|Link|assets, (Directory)|(726,437)|0
+75|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: redesign README header with banner, badges, and intro text|(1246,437)|0
+76|k4cper-g/computer-use-protocol - Google Chrome|Link|cup, (Directory)|(719,478)|0
+77|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,478)|0
+78|k4cper-g/computer-use-protocol - Google Chrome|Link|examples, (Directory)|(736,519)|0
+79|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: prepare for public release|(1136,519)|0
+80|k4cper-g/computer-use-protocol - Google Chrome|Link|schema, (Directory)|(731,560)|0
+81|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,560)|0
+82|k4cper-g/computer-use-protocol - Google Chrome|Link|tests, (Directory)|(722,601)|0
+83|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,601)|0
+84|k4cper-g/computer-use-protocol - Google Chrome|Link|.gitignore, (File)|(737,642)|0
+85|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,642)|0
+86|k4cper-g/computer-use-protocol - Google Chrome|Link|LICENSE, (File)|(733,683)|0
+87|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: prepare for public release|(1136,683)|0
+88|k4cper-g/computer-use-protocol - Google Chrome|Link|README.md, (File)|(746,724)|0
+89|k4cper-g/computer-use-protocol - Google Chrome|Link|style: bold subtitle, badge spacing, and black label colors|(1217,724)|0
+90|k4cper-g/computer-use-protocol - Google Chrome|Link|doc.md, (File)|(730,765)|0
+91|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: initial commit|(1099,765)|0
+92|k4cper-g/computer-use-protocol - Google Chrome|Link|pyproject.toml, (File)|(752,806)|0
+93|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: add action execution layer, MCP server, and protocol enhancements|(1267,806)|0
+94|k4cper-g/computer-use-protocol - Google Chrome|Link|README|(721,868)|0
+95|k4cper-g/computer-use-protocol - Google Chrome|Link|MIT license|(833,868)|0
+96|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Edit file|(1503,867)|0
+97|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Outline|(1542,867)|0
+98|k4cper-g/computer-use-protocol - Google Chrome|Link|Computer Use Protocol|(1116,1020)|0
+99|k4cper-g/computer-use-protocol - Google Chrome|Link|PyPI|(992,1213)|0
+100|k4cper-g/computer-use-protocol - Google Chrome|Link|MIT License|(1122,1213)|0
+101|k4cper-g/computer-use-protocol - Google Chrome|Link|Website|(1246,1213)|0
+102|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Edit repository metadata|(1868,284)|0
+103|k4cper-g/computer-use-protocol - Google Chrome|Link|Readme|(1647,388)|0
+104|k4cper-g/computer-use-protocol - Google Chrome|Link|MIT license|(1657,417)|0
+105|k4cper-g/computer-use-protocol - Google Chrome|Link|Activity|(1645,446)|0
+106|k4cper-g/computer-use-protocol - Google Chrome|Link|0 stars|(1642,475)|0
+107|k4cper-g/computer-use-protocol - Google Chrome|Link|0 watching|(1656,504)|0
+108|k4cper-g/computer-use-protocol - Google Chrome|Link|0 forks|(1643,533)|0
+109|k4cper-g/computer-use-protocol - Google Chrome|Link|Releases|(1639,588)|0
+110|k4cper-g/computer-use-protocol - Google Chrome|Link|Create a new release|(1663,644)|0
+111|k4cper-g/computer-use-protocol - Google Chrome|Link|Packages|(1744,698)|0
+112|k4cper-g/computer-use-protocol - Google Chrome|Link|Publish your first package|(1676,753)|0
+113|k4cper-g/computer-use-protocol - Google Chrome|Link|Python 100.0%|(1661,860)|0
+114|k4cper-g/computer-use-protocol - Google Chrome|Link|Configure  Publish Python Package|(1823,998)|0
+115|k4cper-g/computer-use-protocol - Google Chrome|Link|Configure  Django|(1823,1122)|0
+116|k4cper-g/computer-use-protocol - Google Chrome|Link|Configure  Pylint|(1823,1218)|0
+117|k4cper-g/computer-use-protocol - Google Chrome|Link|More workflows|(1658,1293)|0
+118|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Dismiss suggestions|(1827,1294)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+119|k4cper-g/computer-use-protocol - Google Chrome|Dokument|k4cper-g/computer-use-protocol|(1303,397)|False|0|True|0.0|1
+
+image.png
+The GitHub repo page is loaded. I can see the "Star" button (element #58: "Star this repository (0)"). Let me click it.
+
+Windows-mcp [Click]
+OUT
+{"result":"Single left clicked at (1797,217)."}
+Windows-mcp [Wait]
+OUT
+{"result":"Waited for 2 seconds."}
+Windows-mcp [Snapshot]
+OUT
+
+Active Desktop:
+Name
+
+
+Desktop 1
+
+
+
+All Desktops:
+Name
+
+
+Desktop 1
+
+
+
+Focused Window:
+Name                                              Depth  Status       Width    Height    Handle
+
+
+k4cper-g/computer-use-protocol - Google Chrome        6  Maximized     2576      1408    722088
+
+
+
+Opened Windows:
+Name                                                                      Depth  Status       Width    Height    Handle
+
+
+general (Channel) - MD Fellowship - Slack                                     0  Normal        1658      1201     66816
+Pobrane — Eksplorator plików                                                  4  Normal        1399      1113   3803034
+take a look at our cup m… - computer-use-protocol - Visual Studio Code        5  Normal        2028      1264   1247004
+@am - Discord                                                                 7  Minimized        0         0     66472
+.mcp.json - mcpplayground - Visual Studio Code                                9  Normal        1717      1078    132794
+
+
+
+List of Interactive Elements:
+# id|window|control_type|name|coords|focus
+
+0|Pasek zadań|Przycisk|Pokaż pulpit|(2554,1416)|0
+1|Pasek zadań|Przycisk|Zegar 15:18
+‎23.‎02.‎2026|(2511,1416)|0
+2|Pasek zadań|Przycisk|Głośność Głośniki (High Definition Audio Device): 98%|(2461,1416)|0
+3|Pasek zadań|Przycisk|Sieć Sieć 2
+Dostęp do Internetu|(2433,1416)|0
+4|Pasek zadań|Przycisk|Pokaż ukryte ikony|(2403,1416)|0
+5|Pasek zadań|Przycisk|szenkos - Chrome — 1 uruchomione okno|(1547,1416)|0
+6|Pasek zadań|Przycisk|Slack — 1 uruchomione okno|(1503,1416)|0
+7|Pasek zadań|Przycisk|Visual Studio Code — uruchomione okna: 2|(1459,1416)|0
+8|Pasek zadań|Przycisk|Discord — 1 uruchomione okno|(1415,1416)|0
+9|Pasek zadań|Przycisk|Eksplorator plików — 1 uruchomione okno — przypięto|(1371,1416)|0
+10|Pasek zadań|Przycisk|Google Chrome — przypięto|(1327,1416)|0
+11|Pasek zadań|Przycisk|Widok zadań|(1283,1416)|0
+12|Pasek zadań|Przycisk|Wyszukaj|(1149,1416)|0
+13|Pasek zadań|Przycisk|Start|(1014,1416)|0
+14|Pasek zadań|Przycisk|Widżety 7°C Pochmurnie|(82,1416)|0
+15|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|New Tab|(292,20)|0
+16|k4cper-g/computer-use-protocol - Google Chrome|Element Tabulatora|k4cper-g/computer-use-protocol|(156,20)|0
+17|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Close|(256,20)|0
+18|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Search tabs|(20,20)|0
+19|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Chrome|(2540,63)|0
+20|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|szenkos|(2502,63)|0
+21|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Extensions|(2448,63)|0
+22|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Bitwarden
+Has access to this site|(2412,63)|0
+23|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Bookmark this tab|(2362,63)|0
+24|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Ask Google|(2288,63)|0
+25|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Install GitHub|(2214,63)|0
+26|k4cper-g/computer-use-protocol - Google Chrome|Edytuj|Address and search bar|(1175,63)|0
+27|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|View site information|(137,63)|0
+28|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Reload|(94,63)|0
+29|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Back|(19,63)|0
+30|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Close|(2537,20)|0
+31|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Restore|(2491,20)|0
+32|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Minimize|(2445,20)|0
+33|k4cper-g/computer-use-protocol - Google Chrome|Link|Skip to content|(0,87)|0
+34|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Open menu|(32,119)|0
+35|k4cper-g/computer-use-protocol - Google Chrome|Link|Homepage ( g then d )|(76,119)|0
+36|k4cper-g/computer-use-protocol - Google Chrome|Link|k4cper-g|(134,119)|0
+37|k4cper-g/computer-use-protocol - Google Chrome|Link|computer-use-protocol|(270,119)|0
+38|k4cper-g/computer-use-protocol - Google Chrome|Link|Search or jump to…|(2136,119)|0
+39|k4cper-g/computer-use-protocol - Google Chrome|Link|Chat with Copilot|(2254,119)|0
+40|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Open Copilot…|(2282,119)|0
+41|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Create new...|(2344,119)|0
+42|k4cper-g/computer-use-protocol - Google Chrome|Link|Issues ( g then i )|(2393,119)|0
+43|k4cper-g/computer-use-protocol - Google Chrome|Link|Pull requests ( g then p )|(2433,119)|0
+44|k4cper-g/computer-use-protocol - Google Chrome|Link|Repositories|(2473,119)|0
+45|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Open user navigation menu|(2513,119)|0
+46|k4cper-g/computer-use-protocol - Google Chrome|Link|Code|(52,163)|0
+47|k4cper-g/computer-use-protocol - Google Chrome|Link|Issues|(135,163)|0
+48|k4cper-g/computer-use-protocol - Google Chrome|Link|Pull requests|(243,163)|0
+49|k4cper-g/computer-use-protocol - Google Chrome|Link|Actions|(355,163)|0
+50|k4cper-g/computer-use-protocol - Google Chrome|Link|Projects|(452,163)|0
+51|k4cper-g/computer-use-protocol - Google Chrome|Link|Security|(551,163)|0
+52|k4cper-g/computer-use-protocol - Google Chrome|Link|Insights|(649,163)|0
+53|k4cper-g/computer-use-protocol - Google Chrome|Link|Settings|(748,163)|0
+54|k4cper-g/computer-use-protocol - Google Chrome|Link|computer-use-protocol|(802,218)|0
+55|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Watch: Participating in k4cper-g/computer-use-protocol|(1522,217)|0
+56|k4cper-g/computer-use-protocol - Google Chrome|Link|Fork 0|(1638,217)|0
+57|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|See your forks of this repository|(1704,217)|0
+58|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Starred, click to unstar this repository (1)|(1788,217)|1
+59|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Add this repository to a list|(1864,217)|0
+60|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|main branch|(717,290)|0
+61|k4cper-g/computer-use-protocol - Google Chrome|Link|1 Branch|(821,290)|0
+62|k4cper-g/computer-use-protocol - Google Chrome|Link|0 Tags|(902,290)|0
+63|k4cper-g/computer-use-protocol - Google Chrome|Pole Kombi|Go to file|(1237,290)|0
+64|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Add file|(1405,290)|0
+65|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Code|(1515,290)|0
+66|k4cper-g/computer-use-protocol - Google Chrome|Link|commits by k4cper-g|(741,349)|0
+67|k4cper-g/computer-use-protocol - Google Chrome|Link|commits by claude|(822,349)|0
+68|k4cper-g/computer-use-protocol - Google Chrome|Link|style: bold subtitle, badge spacing, and black label colors|(1025,349)|0
+69|k4cper-g/computer-use-protocol - Google Chrome|Toggle Button|Open commit details|(1222,349)|0
+70|k4cper-g/computer-use-protocol - Google Chrome|Link|Commit 134ecbf|(1346,349)|0
+71|k4cper-g/computer-use-protocol - Google Chrome|Link|14 Commits|(1504,349)|0
+72|k4cper-g/computer-use-protocol - Google Chrome|Link|.claude, (Directory)|(729,396)|0
+73|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: cup icon|(1084,396)|0
+74|k4cper-g/computer-use-protocol - Google Chrome|Link|assets, (Directory)|(726,437)|0
+75|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: redesign README header with banner, badges, and intro text|(1246,437)|0
+76|k4cper-g/computer-use-protocol - Google Chrome|Link|cup, (Directory)|(719,478)|0
+77|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,478)|0
+78|k4cper-g/computer-use-protocol - Google Chrome|Link|examples, (Directory)|(736,519)|0
+79|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: prepare for public release|(1136,519)|0
+80|k4cper-g/computer-use-protocol - Google Chrome|Link|schema, (Directory)|(731,560)|0
+81|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,560)|0
+82|k4cper-g/computer-use-protocol - Google Chrome|Link|tests, (Directory)|(722,601)|0
+83|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,601)|0
+84|k4cper-g/computer-use-protocol - Google Chrome|Link|.gitignore, (File)|(737,642)|0
+85|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: semantic search, viewport-aware pruning, and MCP tool redesign|(1258,642)|0
+86|k4cper-g/computer-use-protocol - Google Chrome|Link|LICENSE, (File)|(733,683)|0
+87|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: prepare for public release|(1136,683)|0
+88|k4cper-g/computer-use-protocol - Google Chrome|Link|README.md, (File)|(746,724)|0
+89|k4cper-g/computer-use-protocol - Google Chrome|Link|style: bold subtitle, badge spacing, and black label colors|(1217,724)|0
+90|k4cper-g/computer-use-protocol - Google Chrome|Link|doc.md, (File)|(730,765)|0
+91|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: initial commit|(1099,765)|0
+92|k4cper-g/computer-use-protocol - Google Chrome|Link|pyproject.toml, (File)|(752,806)|0
+93|k4cper-g/computer-use-protocol - Google Chrome|Link|feat: add action execution layer, MCP server, and protocol enhancements|(1267,806)|0
+94|k4cper-g/computer-use-protocol - Google Chrome|Link|README|(721,868)|0
+95|k4cper-g/computer-use-protocol - Google Chrome|Link|MIT license|(833,868)|0
+96|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Edit file|(1503,867)|0
+97|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Outline|(1542,867)|0
+98|k4cper-g/computer-use-protocol - Google Chrome|Link|Computer Use Protocol|(1116,1020)|0
+99|k4cper-g/computer-use-protocol - Google Chrome|Link|PyPI|(992,1213)|0
+100|k4cper-g/computer-use-protocol - Google Chrome|Link|MIT License|(1122,1213)|0
+101|k4cper-g/computer-use-protocol - Google Chrome|Link|Website|(1246,1213)|0
+102|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Edit repository metadata|(1868,284)|0
+103|k4cper-g/computer-use-protocol - Google Chrome|Link|Readme|(1647,388)|0
+104|k4cper-g/computer-use-protocol - Google Chrome|Link|MIT license|(1657,417)|0
+105|k4cper-g/computer-use-protocol - Google Chrome|Link|Activity|(1645,446)|0
+106|k4cper-g/computer-use-protocol - Google Chrome|Link|0 stars|(1642,475)|0
+107|k4cper-g/computer-use-protocol - Google Chrome|Link|0 watching|(1656,504)|0
+108|k4cper-g/computer-use-protocol - Google Chrome|Link|0 forks|(1643,533)|0
+109|k4cper-g/computer-use-protocol - Google Chrome|Link|Releases|(1639,588)|0
+110|k4cper-g/computer-use-protocol - Google Chrome|Link|Create a new release|(1663,644)|0
+111|k4cper-g/computer-use-protocol - Google Chrome|Link|Packages|(1744,698)|0
+112|k4cper-g/computer-use-protocol - Google Chrome|Link|Publish your first package|(1676,753)|0
+113|k4cper-g/computer-use-protocol - Google Chrome|Link|Python 100.0%|(1661,860)|0
+114|k4cper-g/computer-use-protocol - Google Chrome|Link|Configure  Publish Python Package|(1823,998)|0
+115|k4cper-g/computer-use-protocol - Google Chrome|Link|Configure  Django|(1823,1122)|0
+116|k4cper-g/computer-use-protocol - Google Chrome|Link|Configure  Pylint|(1823,1218)|0
+117|k4cper-g/computer-use-protocol - Google Chrome|Link|More workflows|(1658,1293)|0
+118|k4cper-g/computer-use-protocol - Google Chrome|Przycisk|Dismiss suggestions|(1827,1294)|0
+
+
+
+List of Scrollable Elements:
+# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus
+
+119|k4cper-g/computer-use-protocol - Google Chrome|Dokument|k4cper-g/computer-use-protocol|(891,1150)|False|0|True|0.0|0
+
+image.png
+Done! The repo has been starred successfully. You can see the button now shows "Starred 1" (element #58: "Starred, click to unstar this repository (1)") confirming the star was applied to k4cper-g/computer-use-protocol.
