@@ -1,6 +1,21 @@
-# CUP — Computer Use Protocol
+<p align="center">
+  <a href="https://computeruseprotocol.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/logo.svg">
+      <img src="assets/logo.svg" height="128">
+    </picture>
+  </a>
+</p>
 
-A universal, cross-platform standard for UI accessibility tree representation. CUP normalizes the fragmented landscape of platform-specific accessibility APIs into a single canonical format — so AI agents, testing tools, and automation scripts can consume UI trees without platform-specific code.
+<h1 align="center">Computer Use Protocol</h1>
+
+<p align="center">
+  <a href="https://pypi.org/project/cup"><img src="https://img.shields.io/pypi/v/cup?style=for-the-badge&color=0d1117&labelColor=0d1117" alt="PyPI"></a>
+  <a href="https://github.com/k4cper-g/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/github/license/k4cper-g/computer-use-protocol?style=for-the-badge&color=0d1117&labelColor=0d1117" alt="License"></a>
+  <a href="https://discord.gg/your-invite"><img src="https://img.shields.io/badge/join_the_community-0d1117?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+</p>
+
+---
 
 ```
 pip install cup
