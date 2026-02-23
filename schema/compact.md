@@ -27,7 +27,7 @@ Depth is encoded as 2-space indentation:
 
 ```
 [e0] window "Discord" @509,62 1992x1274
-  [e1] document "Siema eniu | Lechownia" @509,62 1992x1274 {readonly}
+  [e1] document "General | Lechownia" @509,62 1992x1274 {readonly}
     [e2] button "Back" @518,66 26x24 [click]
     [e3] button "Forward" @546,66 26x24 {disabled} [click]
     [e7] tree "Servers" @509,94 72x1242

@@ -60,7 +60,7 @@ CUP defines a JSON envelope format built on ARIA roles:
 Key design decisions:
 - **54 ARIA-derived roles** — the universal subset that maps cleanly across all 6 platforms
 - **16 state flags** — only truthy/active states are listed (absence = default)
-- **15 canonical actions** — what can an agent *do* with this element? (13 element-level + `press_keys` for keyboard shortcuts)
+- **15 element-level actions** + session-level `press_keys` for keyboard shortcuts — what can an agent *do* with this element?
 - **Platform escape hatch** — raw native properties preserved in `node.platform.*` for advanced use
 
 Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format spec: [schema/compact.md](schema/compact.md) | Role mappings: [schema/mappings.json](schema/mappings.json)
@@ -69,35 +69,41 @@ Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format s
 
 54 ARIA-derived roles:
 
-`alert` `alertdialog` `application` `article` `banner` `button` `cell` `checkbox` `columnheader` `combobox` `complementary` `contentinfo` `definition` `dialog` `document` `feed` `figure` `form` `generic` `grid` `group` `heading` `img` `link` `list` `listbox` `listitem` `log` `main` `marquee` `math` `menu` `menubar` `menuitem` `menuitemcheckbox` `menuitemradio` `navigation` `note` `option` `progressbar` `radio` `radiogroup` `region` `row` `rowgroup` `rowheader` `scrollbar` `search` `searchbox` `separator` `slider` `spinbutton` `status` `switch` `tab` `table` `tablist` `tabpanel` `term` `text` `textbox` `timer` `toolbar` `tooltip` `tree` `treeitem` `window`
+`alert` `alertdialog` `application` `banner` `button` `cell` `checkbox` `columnheader` `combobox` `complementary` `contentinfo` `dialog` `document` `form` `generic` `grid` `group` `heading` `img` `link` `list` `listitem` `log` `main` `marquee` `menu` `menubar` `menuitem` `menuitemcheckbox` `menuitemradio` `navigation` `none` `option` `progressbar` `radio` `region` `row` `rowheader` `scrollbar` `search` `searchbox` `separator` `slider` `spinbutton` `status` `switch` `tab` `table` `tablist` `tabpanel` `text` `textbox` `timer` `titlebar` `toolbar` `tooltip` `tree` `treeitem` `window`
 
 ## States
 
 16 state flags (only truthy/active states are listed — absence = default):
 
-`busy` `checked` `collapsed` `current` `disabled` `expanded` `focused` `grabbed` `hidden` `invalid` `modal` `multiselectable` `offscreen` `pressed` `readonly` `required` `selected`
+`busy` `checked` `collapsed` `disabled` `editable` `expanded` `focused` `hidden` `mixed` `modal` `multiselectable` `offscreen` `pressed` `readonly` `required` `selected`
 
 ## Actions
 
-15 canonical actions:
+15 element-level actions:
 
 | Action | Parameters | Description |
 |--------|-----------|-------------|
 | `click` | — | Click/invoke the element |
+| `collapse` | — | Collapse an expanded element |
+| `decrement` | — | Decrement a slider/spinbutton |
+| `dismiss` | — | Dismiss a dialog/popup |
 | `doubleclick` | — | Double-click |
+| `expand` | — | Expand a collapsed element |
+| `focus` | — | Move keyboard focus to the element |
+| `increment` | — | Increment a slider/spinbutton |
+| `longpress` | — | Long-press (touch/mobile interaction) |
 | `rightclick` | — | Right-click (context menu) |
-| `type` | `value: str` | Type text into a field |
+| `scroll` | `direction: str` | Scroll container (up/down/left/right) |
+| `select` | — | Select an item in a list/tree/tab |
 | `setvalue` | `value: str` | Set element value programmatically |
 | `toggle` | — | Toggle checkbox or switch |
-| `expand` | — | Expand a collapsed element |
-| `collapse` | — | Collapse an expanded element |
-| `select` | — | Select an item in a list/tree/tab |
-| `increment` | — | Increment a slider/spinbutton |
-| `decrement` | — | Decrement a slider/spinbutton |
-| `scroll` | `direction: str` | Scroll container (up/down/left/right) |
-| `focus` | — | Move keyboard focus to the element |
-| `dismiss` | — | Dismiss a dialog/popup |
-| `press_keys` | `keys: str` | Send a keyboard shortcut (global, not element-scoped) |
+| `type` | `value: str` | Type text into a field |
+
+Session-level action (not element-scoped):
+
+| Action | Parameters | Description |
+|--------|-----------|-------------|
+| `press_keys` | `keys: str` | Send a keyboard shortcut |
 
 ## Compact format
 
@@ -124,7 +130,8 @@ Full spec: [schema/compact.md](schema/compact.md)
 
 | Language | Repository | Package |
 |----------|-----------|---------|
-| Python | [python-sdk](https://github.com/computeruseprotocol/python-sdk) | `pip install cup` |
+| Python | [python-sdk](https://github.com/computeruseprotocol/python-sdk) | `pip install computer-use-protocol` |
+| TypeScript | [typescript-sdk](https://github.com/computeruseprotocol/typescript-sdk) | `npm install computer-use-protocol` |
 
 ## Documentation
 
