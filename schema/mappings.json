@@ -1,11 +1,11 @@
 {
-  "$comment": "CUP platform mapping tables. Maps native roles, states, and actions to canonical CUP equivalents. This file is the source of truth for all platform adapters.",
+  "$comment": "CUP platform mapping tables. Maps native roles, states, and actions to canonical CUP equivalents. This file is the source of truth for all platform adapters. The iOS column uses a mix of UIAccessibilityTraits (button, header, link, image, staticText, searchField, adjustable, tabBar, selected) and XCUIElementType values (picker, webView, table, progressIndicator, textField, textView) since iOS identifies elements through both mechanisms.",
 
   "roles": {
     "$comment": "Key = CUP canonical role. Value = mapping per platform. '?' suffix means context-dependent (adapter must inspect additional properties).",
 
     "alert":            { "windows": "Text?",               "macos": "AXGroup:AXApplicationAlert",  "linux": "ROLE_ALERT",         "web": "alert",            "android": null,                           "ios": "staticText+alert" },
-    "alertdialog":      { "windows": "Window?",             "macos": "AXSheet",                     "linux": "ROLE_ALERT",         "web": "alertdialog",      "android": "android.app.AlertDialog",      "ios": null },
+    "alertdialog":      { "windows": "Window?",             "macos": "AXGroup:AXApplicationAlertDialog", "linux": "ROLE_ALERT",    "web": "alertdialog",      "android": "android.app.AlertDialog",      "ios": null },
     "application":      { "windows": "Window?",             "macos": "AXApplication",               "linux": "ROLE_APPLICATION",   "web": "application",      "android": null,                           "ios": "application" },
     "banner":           { "windows": null,                  "macos": null,                          "linux": null,                 "web": "banner",           "android": null,                           "ios": null },
     "button":           { "windows": "Button",              "macos": "AXButton",                    "linux": "ROLE_PUSH_BUTTON",   "web": "button",           "android": "android.widget.Button",        "ios": "button" },
@@ -68,7 +68,7 @@
   "states": {
     "$comment": "Key = CUP canonical state. Value = how each platform expresses it.",
 
-    "busy":            { "windows": "UIA_IsContentElementPropertyId?",  "macos": "AXElementBusy",          "linux": "STATE_BUSY",       "web": "aria-busy=true",     "android": null,           "ios": null },
+    "busy":            { "windows": "AriaProperties.busy?",              "macos": "AXElementBusy",          "linux": "STATE_BUSY",       "web": "aria-busy=true",     "android": null,           "ios": null },
     "checked":         { "windows": "ToggleState.On",                   "macos": "AXValue=1",              "linux": "STATE_CHECKED",    "web": "aria-checked=true",  "android": "isChecked",    "ios": "selected+checkbox?" },
     "collapsed":       { "windows": "ExpandCollapseState.Collapsed",    "macos": "AXExpanded=false",       "linux": "STATE_COLLAPSED",  "web": "aria-expanded=false","android": "!isExpanded",  "ios": null },
     "disabled":        { "windows": "IsEnabled=false",                  "macos": "AXEnabled=false",        "linux": "!STATE_ENABLED",   "web": "aria-disabled=true", "android": "!isEnabled",   "ios": "!isAccessibilityElement?" },
@@ -92,7 +92,7 @@
     "click":      { "windows": "InvokePattern.Invoke",           "macos": "AXPress",           "linux": "Action.click",         "web": "click()",                  "android": "ACTION_CLICK",          "ios": "activate" },
     "collapse":   { "windows": "ExpandCollapsePattern.Collapse",  "macos": "AXPress?",          "linux": "Action.collapse?",     "web": "aria-expanded=false",      "android": "ACTION_COLLAPSE",       "ios": null },
     "decrement":  { "windows": "RangeValuePattern.SetValue(-)",   "macos": "AXDecrement",       "linux": "Action.decrement",     "web": null,                       "android": "ACTION_SCROLL_BACKWARD","ios": "decrement" },
-    "dismiss":    { "windows": "WindowPattern.Close",             "macos": "AXRaise?",          "linux": "Action.dismiss?",      "web": null,                       "android": "ACTION_DISMISS",        "ios": null },
+    "dismiss":    { "windows": "WindowPattern.Close",             "macos": "AXCancel?",         "linux": "Action.dismiss?",      "web": null,                       "android": "ACTION_DISMISS",        "ios": null },
     "doubleclick":{ "windows": "SendInput(double-click)",         "macos": "AXPress(count=2)?", "linux": "Action.click(count=2)?","web": "dblclick()",              "android": null,                    "ios": null },
     "expand":     { "windows": "ExpandCollapsePattern.Expand",    "macos": "AXPress?",          "linux": "Action.expand?",       "web": "aria-expanded=true",       "android": "ACTION_EXPAND",         "ios": null },
     "focus":      { "windows": "SetFocus()",                      "macos": "AXRaise",           "linux": "Component.grabFocus",  "web": "focus()",                  "android": "ACTION_FOCUS",          "ios": null },
