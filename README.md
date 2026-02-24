@@ -56,13 +56,13 @@ CUP defines a JSON envelope format built on ARIA-derived roles:
     "platform": "windows",
     "timestamp": 1740067200000,
     "screen": { "w": 2560, "h": 1440, "scale": 1.0 },
-    "app": { "name": "Discord", "pid": 1234 },
+    "app": { "name": "Spotify", "pid": 1234 },
     "tree": [
         {
             "id": "e0",
             "role": "window",
-            "name": "Discord",
-            "bounds": { "x": 509, "y": 62, "w": 1992, "h": 1274 },
+            "name": "Spotify",
+            "bounds": { "x": 120, "y": 40, "w": 1680, "h": 1020 },
             "states": ["focused"],
             "actions": ["click"],
             "children": [ ... ]
@@ -126,15 +126,15 @@ A token-efficient text representation optimized for LLM context windows (~75% sm
 
 ```
 # CUP 0.1.0 | windows | 2560x1440
-# app: Discord
-# 87 nodes (353 before pruning)
+# app: Spotify
+# 63 nodes (280 before pruning)
 
-[e0] window "Discord" @509,62 1992x1274
-    [e1] document "General | Lechownia" @509,62 1992x1274 {readonly}
-        [e2] button "Back" @518,66 26x24 [click]
-        [e3] button "Forward" @546,66 26x24 {disabled} [click]
-        [e7] tree "Servers" @509,94 72x1242
-            [e8] treeitem "Lechownia" @513,190 64x48 {selected} [click,select]
+[e0] window "Spotify" @120,40 1680x1020
+    [e1] document "Spotify" @120,40 1680x1020
+        [e2] button "Back" @132,52 32x32 [click]
+        [e3] button "Forward" @170,52 32x32 {disabled} [click]
+        [e7] navigation "Main" @120,88 240x972
+            [e8] link "Home" @132,100 216x40 {selected} [click]
 ```
 
 Line format: `[id] role "name" @x,y wxh {states} [actions] val="value" (attrs)`
