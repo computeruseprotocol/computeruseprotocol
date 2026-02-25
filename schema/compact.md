@@ -144,38 +144,53 @@ during serialization -- the source CUP JSON tree is never modified.
 A "meaningful action" is any action other than `focus` (since nearly every
 element supports focus, including it is noise).
 
-### Standard pruning (default)
+### Compact pruning (default)
 
-1. **Hoist unnamed `generic` nodes** -- remove the node and promote its children
+1. **Skip chrome/decorative roles** -- `scrollbar`, `separator`, `titlebar`,
+   `tooltip`, and `status` nodes (and their entire subtrees) are dropped.
+   Scrollbar parents already expose `[scroll]`; titlebar actions use keyboard
+   shortcuts; the rest are decorative or read-only status info.
+
+2. **Skip zero-size elements** -- nodes with 0 width or 0 height are invisible
+   and dropped entirely.
+
+3. **Hoist unnamed `generic` nodes** -- remove the node and promote its children
    to the parent level. These are structural wrappers (Windows `Pane`, web
    `<div>`) with no semantic value.
 
-2. **Hoist unnamed `group` nodes without meaningful actions** -- same as above.
+4. **Hoist unnamed `region` nodes** -- same as above. Common in Electron/Chromium
+   apps where nested `<div>` wrappers get exposed as UIA regions.
+
+5. **Hoist unnamed `group` nodes without meaningful actions** -- same as above.
    Named groups and groups with actions (e.g., clickable panels) are kept.
 
-3. **Skip unnamed `img` nodes** -- decorative icons with no accessible name.
+6. **Skip unnamed `img` nodes** -- decorative icons with no accessible name.
    Dropped entirely with any descendants.
 
-4. **Skip empty-name `text` nodes** -- text nodes with no content.
+7. **Skip empty-name `text` nodes** -- text nodes with no content.
 
-5. **Skip redundant text labels** -- `text` nodes that are the sole child of a
+8. **Skip redundant text labels** -- `text` nodes that are the sole child of a
    named parent duplicate information already in the parent's name.
 
-6. **Skip offscreen nodes without content** -- unnamed, non-interactive elements
-   not visible on screen. Named or interactive offscreen nodes (e.g., scrolled-away
-   chat messages) are kept with an `offscreen` state flag.
+9. **Skip offscreen non-interactive nodes** -- offscreen elements with no
+   meaningful actions are dropped. Interactive offscreen nodes (e.g.,
+   scrolled-away buttons) are kept so the LLM knows what's available after
+   scrolling.
 
-7. **Drop `focus` action** -- nearly every element supports focus; including it
-   adds noise without informational value.
+10. **Collapse single-child structural containers** -- unnamed nodes with a
+    structural role (`region`, `document`, `main`, `complementary`, `navigation`,
+    `search`, `banner`, `contentinfo`, `form`) that have no meaningful actions
+    and end up with exactly one child after pruning are replaced by that child.
+
+11. **Drop `focus` action** -- nearly every element supports focus; including it
+    adds noise without informational value.
 
 ### Detail levels
 
 The `detail` parameter controls pruning aggressiveness:
 
-- **`standard`** (default) -- applies all rules above. Good balance of detail
+- **`compact`** (default) -- applies all rules above. Good balance of detail
   and token efficiency.
-- **`minimal`** -- keep only nodes with meaningful actions (not just focus) and
-  their ancestors. Dramatically reduces token count for large trees.
 - **`full`** -- no pruning at all. Every node from the raw tree is included.
   Use when you need complete structural information.
 
