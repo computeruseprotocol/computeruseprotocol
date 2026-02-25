@@ -129,15 +129,15 @@ A token-efficient text representation optimized for LLM context windows (~75% sm
 # app: Spotify
 # 63 nodes (280 before pruning)
 
-[e0] window "Spotify" @120,40 1680x1020
-    [e1] document "Spotify" @120,40 1680x1020
-        [e2] button "Back" @132,52 32x32 [click]
-        [e3] button "Forward" @170,52 32x32 {disabled} [click]
-        [e7] navigation "Main" @120,88 240x972
-            [e8] link "Home" @132,100 216x40 {selected} [click]
+[e0] win "Spotify" 120,40 1680x1020
+  [e1] doc "Spotify" 120,40 1680x1020
+    [e2] btn "Back" 132,52 32x32 [clk]
+    [e3] btn "Forward" 170,52 32x32 {dis} [clk]
+    [e7] nav "Main" 120,88 240x972
+      [e8] lnk "Home" 132,100 216x40 {sel} [clk]
 ```
 
-Line format: `[id] role "name" @x,y wxh {states} [actions] val="value" (attrs)`
+Line format: `[id] role "name" x,y wxh {states} [actions] val="value" (attrs)`
 
 Full spec: [schema/compact.md](schema/compact.md)
 

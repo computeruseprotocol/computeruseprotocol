@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 Initial release.
 
 ### Added
-- **CUP JSON schema** with 54 ARIA-derived roles, 16 state flags, and 15 canonical actions
+- **CUP JSON schema** with 59 ARIA-derived roles, 16 state flags, and 15 canonical actions
 - **Compact text format** specification optimized for LLM context windows with 3-tier pruning (standard, minimal, full)
 - **Platform role/state/action mappings** for Windows, macOS, Linux, Web, Android, and iOS
 - **Example envelope** demonstrating the schema format

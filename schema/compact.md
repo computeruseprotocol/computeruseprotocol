@@ -5,7 +5,7 @@ Token-efficient text representation of CUP trees for LLM context windows.
 ## Line format
 
 ```
-[id] role "name" @x,y wxh {states} [actions] val="value" (attrs)
+[id] role "name" x,y wxh {states} [actions] val="value" (attrs)
 ```
 
 Each field is included only when non-empty:
@@ -13,25 +13,97 @@ Each field is included only when non-empty:
 | Field | Format | Example | When included |
 |-------|--------|---------|---------------|
 | id | `[eN]` | `[e14]` | Always |
-| role | bare word | `button` | Always |
+| role | short code | `btn` | Always |
 | name | quoted | `"Submit"` | When non-empty |
-| bounds | `@x,y wxh` | `@120,340 88x36` | When element has bounds |
-| states | `{csv}` | `{disabled,checked}` | When any active states |
-| actions | `[csv]` | `[click,toggle]` | When any meaningful actions |
+| bounds | `x,y wxh` | `120,340 88x36` | When node has meaningful actions |
+| states | `{csv}` | `{dis,chk}` | When any active states |
+| actions | `[csv]` | `[clk,tog]` | When any meaningful actions |
 | value | `val="..."` | `val="hello"` | For input-type elements only |
 | attributes | `(...)` | `(L2 ph="Search")` | When semantically useful attributes exist |
+
+## Vocabulary short codes
+
+Roles, states, and actions use short codes to reduce token cost. The full
+mappings are listed below. Unknown values pass through unchanged.
+
+### Roles (59)
+
+| Role | Code | | Role | Code | | Role | Code |
+|------|------|-|------|------|-|------|------|
+| alert | `alrt` | | link | `lnk` | | separator | `sep` |
+| alertdialog | `adlg` | | list | `lst` | | slider | `sld` |
+| application | `app` | | listitem | `li` | | spinbutton | `spn` |
+| banner | `bnr` | | log | `log` | | status | `sts` |
+| button | `btn` | | main | `main` | | switch | `sw` |
+| cell | `cel` | | marquee | `mrq` | | tab | `tab` |
+| checkbox | `chk` | | menu | `mnu` | | table | `tbl` |
+| columnheader | `colh` | | menubar | `mnub` | | tablist | `tabs` |
+| combobox | `cmb` | | menuitem | `mi` | | tabpanel | `tpnl` |
+| complementary | `cmp` | | menuitemcheckbox | `mic` | | text | `txt` |
+| contentinfo | `ci` | | menuitemradio | `mir` | | textbox | `tbx` |
+| dialog | `dlg` | | navigation | `nav` | | timer | `tmr` |
+| document | `doc` | | none | `none` | | titlebar | `ttlb` |
+| form | `frm` | | option | `opt` | | toolbar | `tlbr` |
+| generic | `gen` | | progressbar | `pbar` | | tooltip | `ttp` |
+| grid | `grd` | | radio | `rad` | | tree | `tre` |
+| group | `grp` | | region | `rgn` | | treeitem | `ti` |
+| heading | `hdg` | | row | `row` | | window | `win` |
+| img | `img` | | rowheader | `rowh` | | | |
+|  |  | | scrollbar | `sb` | | | |
+|  |  | | search | `srch` | | | |
+|  |  | | searchbox | `sbx` | | | |
+
+### States (16)
+
+| State | Code | | State | Code |
+|-------|------|-|-------|------|
+| busy | `bsy` | | mixed | `mix` |
+| checked | `chk` | | modal | `mod` |
+| collapsed | `col` | | multiselectable | `msel` |
+| disabled | `dis` | | offscreen | `off` |
+| editable | `edt` | | pressed | `prs` |
+| expanded | `exp` | | readonly | `ro` |
+| focused | `foc` | | required | `req` |
+| hidden | `hid` | | selected | `sel` |
+
+### Actions (15)
+
+| Action | Code | | Action | Code |
+|--------|------|-|--------|------|
+| click | `clk` | | increment | `inc` |
+| collapse | `col` | | longpress | `lp` |
+| decrement | `dec` | | rightclick | `rclk` |
+| dismiss | `dsm` | | scroll | `scr` |
+| doubleclick | `dbl` | | select | `sel` |
+| expand | `exp` | | setvalue | `sv` |
+| focus | `foc` | | toggle | `tog` |
+|  |  | | type | `typ` |
+
+## Bounds
+
+Bounds are only included for **interactable nodes** (those with meaningful
+actions beyond `focus`). Non-interactable nodes are context-only — agents
+reference them by ID, not coordinates, so spatial info adds tokens without
+value.
+
+Format: `x,y wxh` (no `@` prefix). Position and size are in physical pixels.
+
+```
+[e2] btn "Back" 132,52 32x32 [clk]
+[e5] hdg "Introduction"                  # no bounds — not interactable
+```
 
 ## Hierarchy
 
 Depth is encoded as 2-space indentation:
 
 ```
-[e0] window "Discord" @509,62 1992x1274
-  [e1] document "General | Lechownia" @509,62 1992x1274 {readonly}
-    [e2] button "Back" @518,66 26x24 [click]
-    [e3] button "Forward" @546,66 26x24 {disabled} [click]
-    [e7] tree "Servers" @509,94 72x1242
-      [e8] treeitem "Lechownia" @513,190 64x48 {selected} [click,select]
+[e0] win "Discord"
+  [e1] doc "General | Lechownia" {ro}
+    [e2] btn "Back" 518,66 26x24 [clk]
+    [e3] btn "Forward" 546,66 26x24 {dis} [clk]
+    [e7] tre "Servers" 509,94 72x1242 [scr]
+      [e8] ti "Lechownia" 513,190 64x48 {sel} [clk,sel]
 ```
 
 ## Header
@@ -59,9 +131,9 @@ fields. Only the most LLM-relevant attributes are included:
 Example with attributes:
 
 ```
-[e5] heading "Introduction" (L2)
-[e9] textbox "Email" [type,setvalue] val="" (ph="you@example.com")
-[e12] slider "Volume" @200,300 120x20 [increment,decrement] val="50" (range=0..100)
+[e5] hdg "Introduction" (L2)
+[e9] tbx "Email" [typ,sv] val="" (ph="you@example.com")
+[e12] sld "Volume" 200,300 120x20 [inc,dec] val="50" (range=0..100)
 ```
 
 ## Pruning rules
