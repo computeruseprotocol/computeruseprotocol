@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>An open specification for describing desktop UIs in a universal, OS-agnostic format - built for computer use agents.</b>
+  An open specification for describing desktop UIs in a universal, OS-agnostic format - built for computer use agents.
 </p>
 
 <br>
