@@ -8,11 +8,11 @@
   An open specification for describing desktop UIs in a universal, OS-agnostic format - built for computer use agents.
 </p>
 
-<br>
-
 <p align="center">
-  <a href="https://github.com/computeruseprotocol/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-0cc0df?style=for-the-badge&labelColor=000000" alt="MIT License"></a>
-  <a href="https://computeruseprotocol.com"><img src="https://img.shields.io/badge/Website-7ed957?style=for-the-badge&logo=google-chrome&logoColor=white&labelColor=000000" alt="Website"></a>
+  <a href="https://www.npmjs.com/package/computeruseprotocol"><img src="https://img.shields.io/npm/v/computeruseprotocol" alt="npm version"></a>
+  <a href="https://pypi.org/project/computeruseprotocol/"><img src="https://img.shields.io/pypi/v/computeruseprotocol" alt="PyPI version"></a>
+  <a href="https://github.com/computeruseprotocol/computer-use-protocol/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <a href="https://computeruseprotocol.com"><img src="https://img.shields.io/badge/website-computeruseprotocol.com-green" alt="Website"></a>
 </p>
 
 ## What is Computer Use Protocol (CUP)?
