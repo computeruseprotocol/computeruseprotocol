@@ -15,6 +15,8 @@
   <a href="https://computeruseprotocol.com"><img src="https://img.shields.io/badge/website-computeruseprotocol.com-green" alt="Website"></a>
 </p>
 
+---
+
 ## What is Computer Use Protocol (CUP)?
 
 CUP is **protocol first**. At its core is a universal schema for representing UI accessibility trees — one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
