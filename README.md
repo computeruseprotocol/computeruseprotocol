@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://computeruseprotocol.com">
-    <img src="assets/banner.png" alt="Computer Use Protocol">
+    <img src="assets/banner.png" alt="Computer Use Protocol" width="1200">
   </a>
 </p>
 
