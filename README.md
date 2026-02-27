@@ -17,9 +17,9 @@
 
 ---
 
-CUP is **protocol first**. At its core is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
+Computer Use Protocol is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. It includes a compact text encoding optimized for LLM context windows (~75% smaller than JSON), making it ideal for AI agents that need to perceive and act on desktop UIs. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
 
-CUP also provides SDKs and MCP servers, but those exist to serve the protocol, not the other way around. The protocol is the foundation; everything else is built on top.
+CUP also provides [SDKs](#sdks) for capturing and interacting with native UI trees, and MCP servers for exposing those capabilities directly to AI agents like Claude and Copilot.
 
 **The layering:**
 
@@ -71,6 +71,17 @@ CUP defines a JSON envelope format built on ARIA-derived roles:
 }
 ```
 
+CUP compact format (~75% token reduction, heavily optimized for CUA/LLMs):
+
+```bash
+[e0] win "Spotify" 120,40 1680x1020
+  [e1] doc "Spotify" 120,40 1680x1020
+    [e2] btn "Back" 132,52 32x32 [clk]
+    [e3] btn "Forward" 170,52 32x32 {dis} [clk]
+    [e7] nav "Main" 120,88 240x972
+      [e8] lnk "Home" 132,100 216x40 {sel} [clk]
+```
+
 Key design decisions:
 - **59 ARIA-derived roles** - the universal subset that maps cleanly across all 6 platforms
 - **16 state flags** - only truthy/active states are listed (absence = default)
@@ -119,27 +130,6 @@ Session-level actions (not element-scoped):
 |--------|-----------|-------------|
 | `press_keys` | `keys: str` | Send a keyboard shortcut |
 | `wait` | `ms: int` | Wait/delay between actions in a batch |
-
-## Compact format
-
-A token-efficient text representation optimized for LLM context windows (~75% smaller than JSON):
-
-```
-# CUP 0.1.0 | windows | 2560x1440
-# app: Spotify
-# 63 nodes (280 before pruning)
-
-[e0] win "Spotify" 120,40 1680x1020
-  [e1] doc "Spotify" 120,40 1680x1020
-    [e2] btn "Back" 132,52 32x32 [clk]
-    [e3] btn "Forward" 170,52 32x32 {dis} [clk]
-    [e7] nav "Main" 120,88 240x972
-      [e8] lnk "Home" 132,100 216x40 {sel} [clk]
-```
-
-Line format: `[id] role "name" x,y wxh {states} [actions] val="value" (attrs)`
-
-Full spec: [schema/compact.md](schema/compact.md)
 
 ## SDKs
 
