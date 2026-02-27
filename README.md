@@ -17,7 +17,7 @@
 
 ---
 
-Computer Use Protocol is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. It includes a compact text encoding optimized for LLM context windows (~75% smaller than JSON), making it ideal for AI agents that need to perceive and act on desktop UIs. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
+Computer Use Protocol is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. It includes a compact text encoding optimized for LLM context windows (~98% smaller than JSON), making it ideal for AI agents that need to perceive and act on desktop UIs. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
 
 CUP also provides [SDKs](#sdks) for capturing and interacting with native UI trees, and MCP servers for exposing those capabilities directly to AI agents like Claude and Copilot.
 
