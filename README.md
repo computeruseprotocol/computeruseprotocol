@@ -122,7 +122,7 @@ Session-level actions (not element-scoped):
 Every platform exposes UI accessibility differently. Windows uses UIA with ~40 ControlTypes, macOS has AXUIElement with its own role system, Linux uses AT-SPI2 with 100+ roles, and the web has ~80 ARIA roles. AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception.
 
 - **One format everywhere** - write agent logic once, run it on any platform
-- **LLM-optimized** - compact encoding uses ~75% fewer tokens than raw JSON
+- **LLM-optimized** - compact encoding uses ~98% fewer tokens than raw JSON
 - **Built for actions** - 15 canonical verbs that map to native platform APIs
 - **No information loss** - raw native properties preserved via `node.platform.*`
 
