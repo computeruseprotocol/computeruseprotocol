@@ -21,31 +21,6 @@ Computer Use Protocol is a universal schema for representing UI accessibility tr
 
 CUP also provides [SDKs](#sdks) for capturing and interacting with native UI trees, and MCP servers for exposing those capabilities directly to AI agents like Claude and Copilot.
 
-**The layering:**
-
-| Layer | What it does | Where it lives |
-|-------|-------------|----------------|
-| **Protocol** (this repo) | Defines the universal tree format: roles, states, actions, schema, compact encoding | [computeruseprotocol](https://github.com/computeruseprotocol/computer-use-protocol) |
-| **SDKs** | Capture native accessibility trees, normalize them into CUP format, execute actions | [python-sdk](https://github.com/computeruseprotocol/python-sdk) · [typescript-sdk](https://github.com/computeruseprotocol/typescript-sdk) |
-| **MCP servers** | Expose CUP snapshots and actions as tools for AI agents (Claude, Copilot, etc.) | Bundled with each SDK |
-
-The protocol says "here's how to describe a button." An SDK says "here's how to find it on screen and click it." An MCP server says "here's how an AI agent can request that." Each layer builds on the one below it, but only the protocol is required. Everything else is optional.
-
-## The problem
-
-Every platform exposes UI accessibility differently:
-
-| Platform | API | Roles | IPC |
-|----------|-----|-------|-----|
-| Windows | UIA (COM) | ~40 ControlTypes | COM |
-| macOS | AXUIElement | AXRole + AXSubrole | XPC / Mach |
-| Linux | AT-SPI2 | ~100+ AtspiRole values | D-Bus |
-| Web | ARIA | ~80 ARIA roles | In-process / CDP |
-| Android | AccessibilityNodeInfo | Java class names | Binder |
-| iOS | UIAccessibility | ~15 trait flags | In-process |
-
-AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception. CUP solves this at the representation layer: one schema, one vocabulary, one format, so that implementations don't have to.
-
 ## Schema
 
 CUP defines a JSON envelope format built on ARIA-derived roles:
@@ -71,9 +46,11 @@ CUP defines a JSON envelope format built on ARIA-derived roles:
 }
 ```
 
+Full schema: [schema/cup.schema.json](schema/cup.schema.json)
+
 CUP compact format (~75% token reduction, heavily optimized for CUA/LLMs):
 
-```bash
+```yaml
 [e0] win "Spotify" 120,40 1680x1020
   [e1] doc "Spotify" 120,40 1680x1020
     [e2] btn "Back" 132,52 32x32 [clk]
@@ -82,19 +59,22 @@ CUP compact format (~75% token reduction, heavily optimized for CUA/LLMs):
       [e8] lnk "Home" 132,100 216x40 {sel} [clk]
 ```
 
+Compact format spec: [schema/compact.md](schema/compact.md)
+
 Key design decisions:
 - **59 ARIA-derived roles** - the universal subset that maps cleanly across all 6 platforms
 - **16 state flags** - only truthy/active states are listed (absence = default)
 - **15 action verbs** - a canonical vocabulary for what can be done with an element (the protocol defines the names; SDKs provide execution)
 - **Platform escape hatch** - raw native properties preserved in `node.platform.*` for advanced use
 
-Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format spec: [schema/compact.md](schema/compact.md) | Role mappings: [schema/mappings.json](schema/mappings.json)
 
 ## Roles
 
 59 ARIA-derived roles:
 
 `alert` `alertdialog` `application` `banner` `button` `cell` `checkbox` `columnheader` `combobox` `complementary` `contentinfo` `dialog` `document` `form` `generic` `grid` `group` `heading` `img` `link` `list` `listitem` `log` `main` `marquee` `menu` `menubar` `menuitem` `menuitemcheckbox` `menuitemradio` `navigation` `none` `option` `progressbar` `radio` `region` `row` `rowheader` `scrollbar` `search` `searchbox` `separator` `slider` `spinbutton` `status` `switch` `tab` `table` `tablist` `tabpanel` `text` `textbox` `timer` `titlebar` `toolbar` `tooltip` `tree` `treeitem` `window`
+
+Role mappings: [schema/mappings.json](schema/mappings.json)
 
 ## States
 
@@ -130,6 +110,15 @@ Session-level actions (not element-scoped):
 |--------|-----------|-------------|
 | `press_keys` | `keys: str` | Send a keyboard shortcut |
 | `wait` | `ms: int` | Wait/delay between actions in a batch |
+
+## Why CUP?
+
+Every platform exposes UI accessibility differently. Windows uses UIA with ~40 ControlTypes, macOS has AXUIElement with its own role system, Linux uses AT-SPI2 with 100+ roles, and the web has ~80 ARIA roles. AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception.
+
+- **One format everywhere** - write agent logic once, run it on any platform
+- **LLM-optimized** - compact encoding uses ~75% fewer tokens than raw JSON
+- **Built for actions** - 15 canonical verbs that map to native platform APIs
+- **No information loss** - raw native properties preserved via `node.platform.*`
 
 ## SDKs
 
