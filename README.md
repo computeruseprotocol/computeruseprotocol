@@ -17,21 +17,19 @@
 
 ---
 
-## What is Computer Use Protocol (CUP)?
+CUP is **protocol first**. At its core is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
 
-CUP is **protocol first**. At its core is a universal schema for representing UI accessibility trees — one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
-
-CUP also provides SDKs and MCP servers — but those exist to serve the protocol, not the other way around. The protocol is the foundation; everything else is built on top.
+CUP also provides SDKs and MCP servers, but those exist to serve the protocol, not the other way around. The protocol is the foundation; everything else is built on top.
 
 **The layering:**
 
 | Layer | What it does | Where it lives |
 |-------|-------------|----------------|
-| **Protocol** (this repo) | Defines the universal tree format — roles, states, actions, schema, compact encoding | [computeruseprotocol](https://github.com/computeruseprotocol/computer-use-protocol) |
+| **Protocol** (this repo) | Defines the universal tree format: roles, states, actions, schema, compact encoding | [computeruseprotocol](https://github.com/computeruseprotocol/computer-use-protocol) |
 | **SDKs** | Capture native accessibility trees, normalize them into CUP format, execute actions | [python-sdk](https://github.com/computeruseprotocol/python-sdk) · [typescript-sdk](https://github.com/computeruseprotocol/typescript-sdk) |
 | **MCP servers** | Expose CUP snapshots and actions as tools for AI agents (Claude, Copilot, etc.) | Bundled with each SDK |
 
-The protocol says "here's how to describe a button." An SDK says "here's how to find it on screen and click it." An MCP server says "here's how an AI agent can request that." Each layer builds on the one below it, but only the protocol is required — everything else is optional.
+The protocol says "here's how to describe a button." An SDK says "here's how to find it on screen and click it." An MCP server says "here's how an AI agent can request that." Each layer builds on the one below it, but only the protocol is required. Everything else is optional.
 
 ## The problem
 
@@ -46,7 +44,7 @@ Every platform exposes UI accessibility differently:
 | Android | AccessibilityNodeInfo | Java class names | Binder |
 | iOS | UIAccessibility | ~15 trait flags | In-process |
 
-AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception. CUP solves this at the representation layer — one schema, one vocabulary, one format — so that implementations don't have to.
+AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception. CUP solves this at the representation layer: one schema, one vocabulary, one format, so that implementations don't have to.
 
 ## Schema
 
@@ -74,10 +72,10 @@ CUP defines a JSON envelope format built on ARIA-derived roles:
 ```
 
 Key design decisions:
-- **59 ARIA-derived roles** — the universal subset that maps cleanly across all 6 platforms
-- **16 state flags** — only truthy/active states are listed (absence = default)
-- **15 action verbs** — a canonical vocabulary for what can be done with an element (the protocol defines the names; SDKs provide execution)
-- **Platform escape hatch** — raw native properties preserved in `node.platform.*` for advanced use
+- **59 ARIA-derived roles** - the universal subset that maps cleanly across all 6 platforms
+- **16 state flags** - only truthy/active states are listed (absence = default)
+- **15 action verbs** - a canonical vocabulary for what can be done with an element (the protocol defines the names; SDKs provide execution)
+- **Platform escape hatch** - raw native properties preserved in `node.platform.*` for advanced use
 
 Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format spec: [schema/compact.md](schema/compact.md) | Role mappings: [schema/mappings.json](schema/mappings.json)
 
@@ -89,30 +87,30 @@ Full schema: [schema/cup.schema.json](schema/cup.schema.json) | Compact format s
 
 ## States
 
-16 state flags (only truthy/active states are listed — absence = default):
+16 state flags (only truthy/active states are listed, absence = default):
 
 `busy` `checked` `collapsed` `disabled` `editable` `expanded` `focused` `hidden` `mixed` `modal` `multiselectable` `offscreen` `pressed` `readonly` `required` `selected`
 
 ## Actions
 
-The protocol defines 15 canonical action verbs — the vocabulary for what an agent can do with an element. The protocol specifies the names and semantics; SDKs provide the actual execution against native platform APIs.
+The protocol defines 15 canonical action verbs, the vocabulary for what an agent can do with an element. The protocol specifies the names and semantics; SDKs provide the actual execution against native platform APIs.
 
 | Action | Parameters | Description |
 |--------|-----------|-------------|
-| `click` | — | Click/invoke the element |
-| `collapse` | — | Collapse an expanded element |
-| `decrement` | — | Decrement a slider/spinbutton |
-| `dismiss` | — | Dismiss a dialog/popup |
-| `doubleclick` | — | Double-click |
-| `expand` | — | Expand a collapsed element |
-| `focus` | — | Move keyboard focus to the element |
-| `increment` | — | Increment a slider/spinbutton |
-| `longpress` | — | Long-press (touch/mobile interaction) |
-| `rightclick` | — | Right-click (context menu) |
+| `click` | - | Click/invoke the element |
+| `collapse` | - | Collapse an expanded element |
+| `decrement` | - | Decrement a slider/spinbutton |
+| `dismiss` | - | Dismiss a dialog/popup |
+| `doubleclick` | - | Double-click |
+| `expand` | - | Expand a collapsed element |
+| `focus` | - | Move keyboard focus to the element |
+| `increment` | - | Increment a slider/spinbutton |
+| `longpress` | - | Long-press (touch/mobile interaction) |
+| `rightclick` | - | Right-click (context menu) |
 | `scroll` | `direction: str` | Scroll container (up/down/left/right) |
-| `select` | — | Select an item in a list/tree/tab |
+| `select` | - | Select an item in a list/tree/tab |
 | `setvalue` | `value: str` | Set element value programmatically |
-| `toggle` | — | Toggle checkbox or switch |
+| `toggle` | - | Toggle checkbox or switch |
 | `type` | `value: str` | Type text into a field |
 
 Session-level actions (not element-scoped):
@@ -145,7 +143,7 @@ Full spec: [schema/compact.md](schema/compact.md)
 
 ## SDKs
 
-SDKs implement the protocol — they capture native accessibility trees, normalize them into CUP format, execute actions, and optionally expose everything through MCP servers for AI agent integration.
+SDKs implement the protocol. They capture native accessibility trees, normalize them into CUP format, execute actions, and optionally expose everything through MCP servers for AI agent integration.
 
 | Language | Repository | Package |
 |----------|-----------|---------|
@@ -156,14 +154,14 @@ Building your own SDK? All you need is this spec. Implement tree capture for you
 
 ## Documentation
 
-- **[JSON Schema](schema/cup.schema.json)** — Full envelope schema
-- **[Compact Format Spec](schema/compact.md)** — LLM-optimized text format
-- **[Role Mappings](schema/mappings.json)** — 59 roles mapped across 6 platforms
-- **[Example Envelope](schema/example.json)** — Sample CUP output
+- **[JSON Schema](schema/cup.schema.json)** - Full envelope schema
+- **[Compact Format Spec](schema/compact.md)** - LLM-optimized text format
+- **[Role Mappings](schema/mappings.json)** - 59 roles mapped across 6 platforms
+- **[Example Envelope](schema/example.json)** - Sample CUP output
 
 ## Contributing
 
-CUP is in early development (v0.1.0). Contributions to the specification are welcome — especially:
+CUP is in early development (v0.1.0). Contributions to the specification are welcome, especially:
 
 - New role or action proposals with cross-platform mapping rationale
 - Platform mapping improvements in [schema/mappings.json](schema/mappings.json)
