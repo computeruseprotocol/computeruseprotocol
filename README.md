@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  An open specification for describing desktop UIs in a universal, OS-agnostic format - built for computer use agents.
+  A universal protocol for AI agents to perceive and interact with any desktop UI.
 </p>
 
 <p align="center">
