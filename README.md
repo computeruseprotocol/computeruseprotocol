@@ -57,13 +57,6 @@ CUP compact format (~98% token reduction, heavily optimized for CUA/LLMs):
       [e8] lnk "Home" 132,100 216x40 {sel} [clk]
 ```
 
-Key design decisions:
-- **59 ARIA-derived roles** - the universal subset that maps cleanly across all 6 platforms
-- **16 state flags** - only truthy/active states are listed (absence = default)
-- **15 action verbs** - a canonical vocabulary for what can be done with an element (the protocol defines the names; SDKs provide execution)
-- **Platform escape hatch** - raw native properties preserved in `node.platform.*` for advanced use
-
-
 Full schema: [schema/cup.schema.json](schema/cup.schema.json) |
 Compact format spec: [schema/compact.md](schema/compact.md)
 
