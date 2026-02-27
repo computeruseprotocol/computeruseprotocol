@@ -64,9 +64,15 @@ Key design decisions:
 - **Platform escape hatch** - raw native properties preserved in `node.platform.*` for advanced use
 
 
-Full schema: [schema/cup.schema.json](schema/cup.schema.json) | 
+Full schema: [schema/cup.schema.json](schema/cup.schema.json) |
 Compact format spec: [schema/compact.md](schema/compact.md)
 
+## Benchmark
+
+Captured UI on a text heavy [wikipedia page](https://en.wikipedia.org/wiki/Barack_Obama), using every format.
+
+
+<img src="assets/benchmark.png" alt="CUP Format Benchmark" width="1200">
 
 ## Roles
 
