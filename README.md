@@ -17,9 +17,20 @@
 
 ---
 
-Computer Use Protocol is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. It includes a compact text encoding optimized for LLM context windows (~98% smaller than JSON), making it ideal for AI agents that need to perceive and act on desktop UIs. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
+Computer Use Protocol is a universal schema for representing UI accessibility trees, one format that works identically across Windows, macOS, Linux, Web, Android, and iOS. It includes a compact text encoding optimized for LLM context windows (~97% smaller than JSON), making it ideal for AI agents that need to perceive and act on desktop UIs. This repository is that core: the JSON schema, the compact text format, the cross-platform role/state/action mappings, and documentation.
 
 CUP also provides [SDKs](#sdks) for capturing and interacting with native UI trees, and MCP servers for exposing those capabilities directly to AI agents like Claude and Copilot.
+
+## Why CUP?
+
+Every platform exposes UI accessibility differently. Windows uses UIA with ~40 ControlTypes, macOS has AXUIElement with its own role system, Linux uses AT-SPI2 with 100+ roles, and the web has ~80 ARIA roles. 
+
+Today, every agent framework reinvents this translation layer independently. CUP solves it once at the representation level:
+
+- **One format everywhere** - write agent logic once, run it on any platform
+- **Built for LLMs** - compact encoding fits complex UIs into context windows at ~15x fewer tokens than the next closest format
+- **Built for actions** - 15 canonical verbs that map to native platform APIs
+- **No information loss** - raw native properties preserved via `node.platform.*`
 
 ## Schema
 
@@ -46,7 +57,7 @@ CUP defines a JSON envelope format built on ARIA-derived roles:
 }
 ```
 
-CUP compact format (~98% token reduction, heavily optimized for CUA/LLMs):
+CUP compact format (~97% token reduction, heavily optimized for CUA/LLMs):
 
 ```bash
 [e0] win "Spotify" 120,40 1680x1020
@@ -109,15 +120,6 @@ Session-level actions (not element-scoped):
 |--------|-----------|-------------|
 | `press_keys` | `keys: str` | Send a keyboard shortcut |
 | `wait` | `ms: int` | Wait/delay between actions in a batch |
-
-## Why CUP?
-
-Every platform exposes UI accessibility differently. Windows uses UIA with ~40 ControlTypes, macOS has AXUIElement with its own role system, Linux uses AT-SPI2 with 100+ roles, and the web has ~80 ARIA roles. AI agents like Claude Computer Use, OpenAI CUA, and Microsoft UFO2 each independently reinvent UI perception.
-
-- **One format everywhere** - write agent logic once, run it on any platform
-- **LLM-optimized** - compact encoding uses ~98% fewer tokens than raw JSON
-- **Built for actions** - 15 canonical verbs that map to native platform APIs
-- **No information loss** - raw native properties preserved via `node.platform.*`
 
 ## SDKs
 
