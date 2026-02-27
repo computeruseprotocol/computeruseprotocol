@@ -46,7 +46,7 @@ CUP defines a JSON envelope format built on ARIA-derived roles:
 }
 ```
 
-CUP compact format (~75% token reduction, heavily optimized for CUA/LLMs):
+CUP compact format (~98% token reduction, heavily optimized for CUA/LLMs):
 
 ```bash
 [e0] win "Spotify" 120,40 1680x1020
