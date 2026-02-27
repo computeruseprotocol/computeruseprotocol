@@ -14,4 +14,4 @@ Initial release.
 - **Platform role/state/action mappings** for Windows, macOS, Linux, Web, Android, and iOS
 - **Example envelope** demonstrating the schema format
 
-[0.1.0]: https://github.com/computeruseprotocol/computer-use-protocol/releases/tag/v0.1.0
+[0.1.0]: https://github.com/computeruseprotocol/computeruseprotocol/releases/tag/v0.1.0
