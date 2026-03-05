@@ -21,17 +21,6 @@ Computer Use Protocol is a universal schema for representing UI accessibility tr
 
 CUP also provides [SDKs](#sdks) for capturing and interacting with native UI trees, and MCP servers for exposing those capabilities directly to AI agents like Claude and Copilot.
 
-## Why CUP?
-
-Every platform exposes UI accessibility differently. Windows uses UIA with ~40 ControlTypes, macOS has AXUIElement with its own role system, Linux uses AT-SPI2 with 100+ roles, and the web has ~80 ARIA roles. 
-
-Today, every agent framework reinvents this translation layer independently. CUP solves it once at the representation level:
-
-- **One format everywhere** - write agent logic once, run it on any platform
-- **Built for LLMs** - compact encoding fits complex UIs into context windows at ~15x fewer tokens than the next closest format
-- **Built for actions** - 15 canonical verbs that map to native platform APIs
-- **No information loss** - raw native properties preserved via `node.platform.*`
-
 ## Schema
 
 CUP defines a JSON envelope format built on ARIA-derived roles:
@@ -77,6 +66,18 @@ Captured UI on a text heavy [wikipedia page](https://en.wikipedia.org/wiki/Barac
 
 
 <img src="assets/benchmark.png" alt="CUP Format Benchmark" width="1200">
+
+
+## Why CUP?
+
+Every platform exposes UI accessibility differently. Windows uses UIA with ~40 ControlTypes, macOS has AXUIElement with its own role system, Linux uses AT-SPI2 with 100+ roles, and the web has ~80 ARIA roles. 
+
+Today, every agent framework reinvents this translation layer independently. CUP solves it once at the representation level:
+
+- **One format everywhere** - write agent logic once, run it on any platform
+- **Built for LLMs** - compact encoding fits complex UIs into context windows at ~15x fewer tokens than the next closest format
+- **Built for actions** - 15 canonical verbs that map to native platform APIs
+- **No information loss** - raw native properties preserved via `node.platform.*`
 
 ## Roles
 
