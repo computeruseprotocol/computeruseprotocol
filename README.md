@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/computeruseprotocol-computeruseprotocol-badge.png)](https://mseep.ai/app/computeruseprotocol-computeruseprotocol)
+
 <p align="center">
   <a href="https://computeruseprotocol.com">
     <img src="assets/banner.png" alt="Computer Use Protocol" width="1200">
