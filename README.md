@@ -1,5 +1,5 @@
 > [!WARNING]
-> **This project is archived.** Computer Use Protocol has been superseded by [agent-ctrl](https://github.com/YOUR_ORG/agent-ctrl), a native Rust CLI that implements the same cross-platform UI normalization with a compact agent-ready output format. Please use agent-ctrl going forward.
+> **This project is archived.** Computer Use Protocol has been superseded by [agent-ctrl](https://github.com/k4cper-g/agent-ctrl), a native Rust CLI that implements the same cross-platform UI normalization with a compact agent-ready output format. Please use agent-ctrl going forward.
 
 ---
 
